@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prescrição Integra Saúde</title>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="pagina-prescricao">
+
+  <div class="container-prescricao">
+
+    <div class="header-prescricao">
+      <img src="img/logo.png" class="logo-topo" alt="Logo">
+      <div class="nome-empresa">INTEGRA SAÚDE</div>
+    </div>
+
+    <h2>DADOS DO PACIENTE</h2>
+    <div class="field">Nome: <span id="nome"></span></div>
+    <div class="field">CPF: <span id="cpf"></span></div>
+    <div class="field">Data de nascimento: <span id="nascimento"></span></div>
+    <div class="field">Data do atendimento: <span id="atendimento"></span></div>
+
+    <h2>PRESCRIÇÃO / SOLICITAÇÃO</h2>
+    <div class="bloco-prescricao" id="prescricao"></div>
+
+    <h2>DADOS DO PROFISSIONAL</h2>
+    <div class="field">Nome: <span id="profissional"></span></div>
+    <div class="field">Registro: <span id="registro"></span></div>
+    <div class="field">Conselho: <span id="conselho"></span></div>
+
+  </div>
+
+  <div class="footer-prescricao">
+    <div class="footer-content-prescricao">
+
+      <div class="qr">
+        <div>Validação do documento</div>
+        <img id="qrCode" alt="QR Code">
+      </div>
+
+      <div class="footer-text">
+        Documento emitido por meio da plataforma Integra Saúde.<br>
+        A responsabilidade clínica é exclusiva do profissional emissor.
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+  <script src="js/script.js"></script>
+
+</body>
+
+</html>

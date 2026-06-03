@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra Saúde</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+
+        <div class="header-icon">
+            <img src="img/logo.png" alt="Logo">
+        </div>
+
+        <div class="header2-icon">
+            <img src="img/logo-integra.png" alt="Logo">
+        </div>
+
+    </header>
+
+    <nav class="menu-bar">
+        <ul class="menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
+            <li class="ativo"><a href="#">Profissionais</a></li>
+            <li><a href="contato.html">Contato</a></li>
+            <li><a href="area-paciente.html">Área do paciente</a></li>
+            <li><a href="area-profissional.html">Área do profissional</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero3">
+        <div class="container hero-content">
+            <div class="hero-text3">
+                <h1>A Integra Saúde conecta você a<br>profissionais de diferentes áreas da saúde.</h1>
+                <p>Profissionais habilitados e comprometidos com um atendimento ético, seguro e centrado em você.</p>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="profissionais-section">
+        <div class="container">
+
+            <div class="filtros">
+                <button class="filtro-btn" onclick="mostrarEspecialidade('psicologia')">Psicologia</button>
+                <button class="filtro-btn" onclick="mostrarEspecialidade('nutricao')">Nutrição</button>
+                <button class="filtro-btn" onclick="mostrarEspecialidade('fono')">Fonoaudiologia</button>
+            </div>
+            <div class="profissionais-grid" id="profissionaisContainer">
+            </div>
+
+
+
+        </div>
+
+        </div>
+    </section>
+    </section>
+
+    <div id="agendaContainer" class="agenda-container">
+        <div id="agendaModal" class="agenda-modal">
+            <div class="agenda-box">
+
+                <h3>Selecione o dia</h3>
+
+                <div id="calendario"></div>
+
+                <div id="horarios"></div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-novo">
+        <div class="footer-col" style="align-items: center; justify-content: center;">
+            <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icon">
+            <img src="img/logo-integra.png" alt="Integra Saúde" class="footer-logo">
+        </div>
+
+        <div class="footer-col">
+            <h3>Entre em contato</h3>
+            <a href="contato.html">Formulário de Contato</a>
+        </div>
+
+        <div class="footer-col">
+            <h3>A Integra Saúde</h3>
+            <a href="conheca.html">Sobre nós</a>
+            <a href="termos.html">Termos e Políticas</a>
+        </div>
+
+        <div class="footer-col">
+            <a href="area-paciente.html" class="titulo-link">Área do Paciente</a>
+            <a href="trabalhe-conosco.html">Trabalhe conosco</a>
+        </div>
+
+        <div class="footer-copyright">
+            <p>© 2026 Integra Saúde - Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+
+</body>
+
+</html>

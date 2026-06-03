@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integra Saúde - Trabalhe Conosco</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="header-icon"><img src="img/logo.png" alt="Logo"></div>
+    <div class="header2-icon"><img src="img/logo-integra.png" alt="Logo"></div>
+  </header>
+  <nav class="menu-bar">
+    <ul class="menu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
+      <li><a href="profissionais.html">Profissionais</a></li>
+      <li><a href="contato.html">Contato</a></li>
+      <li><a href="area-paciente.html">Área do paciente</a></li>
+      <li><a href="area-profissional.html">Área do profissional</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero5" style="padding-top: 50px;">
+    <div class="auth-container">
+      <div class="auth-card active" style="max-width: 650px; width: 100%;">
+        <h2 style="color: #0f4c5c;">Trabalhe Conosco</h2>
+        <p class="subtitulo" style="margin-bottom: 25px;">Preencha sua ficha abaixo. Nossa equipe avaliará seu perfil e
+          entrará em contato.</p>
+
+        <form id="formTrabalheConosco" style="text-align: left;">
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Dados Pessoais</h3>
+          <div class="input-group">
+            <input type="text" id="candNome" placeholder=" " required>
+            <label for="candNome">Nome completo *</label>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candCpf" maxlength="14" placeholder=" " required>
+              <label for="candCpf">CPF *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="date" id="candNascimento" placeholder=" " required>
+              <label for="candNascimento">Data de nascimento *</label>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="tel" id="candTelefone" placeholder=" " required>
+              <label for="candTelefone">Telefone *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="email" id="candEmail" placeholder=" " required>
+              <label for="candEmail">E-mail *</label>
+            </div>
+          </div>
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Endereço</h3>
+
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candCep" maxlength="9" placeholder=" " required>
+              <label for="candCep">CEP *</label>
+            </div>
+            <div class="input-group" style="flex: 2;">
+              <input type="text" id="candRua" placeholder=" " required>
+              <label for="candRua">Rua/Logradouro *</label>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candNumero" placeholder=" " required>
+              <label for="candNumero">Número *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candComplemento" placeholder=" ">
+              <label for="candComplemento">Complemento</label>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candBairro" placeholder=" " required>
+              <label for="candBairro">Bairro *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candCidade" placeholder=" " required>
+              <label for="candCidade">Cidade *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candUf" maxlength="2" placeholder=" " required>
+              <label for="candUf">UF *</label>
+            </div>
+          </div>
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Registro Profissional</h3>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 2;">
+              <select id="candProfissao" required
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif;">
+                <option value="" disabled selected>Profissão *</option>
+                <option value="Psicologia">Psicologia</option>
+                <option value="Nutrição">Nutrição</option>
+                <option value="Fonoaudiologia">Fonoaudiologia</option>
+              </select>
+            </div>
+            <div class="input-group" style="flex: 2;">
+              <input type="text" id="candRegistro" placeholder=" " required>
+              <label for="candRegistro">Nº Registro *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candEstado" maxlength="2" placeholder=" " required>
+              <label for="candEstado">UF *</label>
+            </div>
+          </div>
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Experiência</h3>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="number" id="candExp" min="0" placeholder=" " required>
+              <label for="candExp">Anos de experiência *</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="candPublico" placeholder=" " required>
+              <label for="candPublico">Público atendido *</label>
+            </div>
+          </div>
+          <div class="input-group">
+            <input type="text" id="candAtuacao" placeholder=" " required>
+            <label for="candAtuacao">Principais áreas de atuação *</label>
+          </div>
+
+          <button type="submit" class="btn-primary btn-full"
+            style="font-size: 16px; padding: 15px; margin-top: 20px;">Enviar Ficha para Avaliação</button>
+        </form>
+
+        <div id="msgSucessoTrabalhe"
+          style="display: none; background-color: #d4edda; color: #155724; padding: 25px; border-radius: 8px; margin-top: 10px; text-align: center; border: 1px solid #c3e6cb;">
+          <h3 style="margin-bottom: 10px;">Ficha enviada com sucesso!</h3>
+          <p>O seu formulário será analisado pela nossa equipe. Entraremos em contato em breve pelo WhatsApp.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer-novo">
+    <div class="footer-col" style="align-items: center; justify-content: center;">
+      <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icon">
+      <img src="img/logo-integra.png" alt="Integra Saúde" class="footer-logo">
+    </div>
+
+    <div class="footer-col">
+      <h3>Entre em contato</h3>
+      <a href="contato.html">Formulário de Contato</a>
+    </div>
+
+    <div class="footer-col">
+      <h3>A Integra Saúde</h3>
+      <a href="conheca.html">Sobre nós</a>
+      <a href="termos.html">Termos e Políticas</a>
+    </div>
+
+    <div class="footer-col">
+      <a href="area-paciente.html" class="titulo-link">Área do Paciente</a>
+      <a href="trabalhe-conosco.html">Trabalhe conosco</a>
+    </div>
+
+    <div class="footer-copyright">
+      <p>© 2026 Integra Saúde - Todos os direitos reservados</p>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="js/script.js"></script>
+</body>
+
+</html>

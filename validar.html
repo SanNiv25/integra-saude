@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validação de Documento - Integra Saúde</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .valid-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #0E5F73;
+      padding: 20px;
+    }
+
+    .valid-box {
+      max-width: 500px;
+      width: 100%;
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .status-icon {
+      font-size: 70px;
+      margin-bottom: 20px;
+    }
+
+    .valid {
+      color: #2E7D32;
+    }
+
+    .invalid {
+      color: #d9534f;
+    }
+
+    .doc-info {
+      text-align: left;
+      background: #f4f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #cce3e6;
+      margin-bottom: 25px;
+    }
+
+    .doc-info p {
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="valid-container">
+    <div class="valid-box" id="resultadoBox">
+      <img src="img/logo.png" alt="Integra Saúde" style="width: 80px; margin-bottom: 20px;">
+      <h2 style="color: #0F4C5C; margin-bottom: 10px;">Verificando Autenticidade...</h2>
+      <p style="color: #666;">Aguarde enquanto consultamos nosso banco de dados seguro.</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="js/script.js"></script>
+</body>
+
+</html>

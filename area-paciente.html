@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integra Saúde</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://meet.jit.si/external_api.js"></script>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+
+    <div class="header-icon">
+      <img src="img/logo.png" alt="Logo">
+    </div>
+
+    <div class="header2-icon">
+      <img src="img/logo-integra.png" alt="Logo">
+    </div>
+
+  </header>
+
+  <nav class="menu-bar">
+    <ul class="menu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
+      <li><a href="profissionais.html">Profissionais</a></li>
+      <li><a href="contato.html">Contato</a></li>
+      <li class="ativo"><a href="#">Área do paciente</a></li>
+      <li><a href="area-profissional.html">Área do profissional</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero5" id="secaoAutenticacao">
+    <div class="auth-container">
+
+      <div class="auth-card active" id="loginCard">
+        <h2>Faça seu login</h2>
+        <form id="loginForm">
+          <div class="input-group">
+            <input type="text" id="cpfLogin" required maxlength="14" placeholder=" ">
+            <label for="cpfLogin">CPF</label>
+          </div>
+          <div class="input-group input-senha">
+            <input type="password" id="senhaLogin" maxlength="20" placeholder=" " required>
+            <label for="senhaLogin">Senha</label>
+            <button type="button" class="toggle-senha" onclick="toggleSenha('senhaLogin', this)">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5C5 5 2 12 2 12s3 7 10 7 10-7 10-7-3-7-10-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
+              </svg>
+            </button>
+          </div>
+          <p class="link-text"><a href="#" onclick="event.preventDefault(); mostrarRecuperar();">Esqueceu a sua
+              senha?</a></p>
+          <button type="submit" class="btn-primary btn-full">Entrar</button>
+          <p class="link-text">Não tem uma conta? <a href="#"
+              onclick="event.preventDefault(); mostrarCadastroPaciente();">Crie agora</a></p>
+        </form>
+      </div>
+
+      <div class="auth-card" id="recuperarCard">
+        <h2>Recuperar senha</h2>
+        <form id="recuperarForm">
+          <div class="input-group">
+            <input type="text" id="cpfRecuperar" maxlength="14" placeholder=" " required>
+            <label for="cpfRecuperar">CPF</label>
+          </div>
+          <div class="input-group">
+            <input type="date" id="nascimentoRecuperar" placeholder=" " required>
+            <label for="nascimentoRecuperar">Data de nascimento</label>
+          </div>
+          <button type="submit" class="btn-primary btn-full">Recuperar senha</button>
+          <p class="link-text"><a href="#" onclick="event.preventDefault(); mostrarLogin();">Voltar ao login</a></p>
+        </form>
+      </div>
+
+      <div class="auth-card" id="cadastroCard" style="max-width: 650px; width: 100%;">
+        <h2 style="color: #0f4c5c;">Cadastro de Paciente</h2>
+        <form id="cadastroForm" style="text-align: left;">
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Dados Pessoais</h3>
+          <div class="input-group">
+            <input type="text" id="nome" placeholder=" " required>
+            <label for="nome">Nome completo</label>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="cpfCadastro" maxlength="14" placeholder=" " required>
+              <label for="cpfCadastro">CPF</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="date" id="nascimento" placeholder=" " required>
+              <label for="nascimento">Data de nascimento</label>
+            </div>
+          </div>
+          <div class="input-group">
+            <input type="email" id="emailCadastro" placeholder=" " required>
+            <label for="emailCadastro">E-mail</label>
+          </div>
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Endereço</h3>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="cep" maxlength="9" placeholder=" " required>
+              <label for="cep">CEP</label>
+            </div>
+            <div class="input-group" style="flex: 2;">
+              <input type="text" id="rua" placeholder=" " required>
+              <label for="rua">Rua/Logradouro</label>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="numero" placeholder=" " required>
+              <label for="numero">Número</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="complemento" placeholder=" ">
+              <label for="complemento">Complemento</label>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="bairro" placeholder=" " required>
+              <label for="bairro">Bairro</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="cidade" placeholder=" " required>
+              <label for="cidade">Cidade</label>
+            </div>
+            <div class="input-group" style="flex: 1;">
+              <input type="text" id="uf" maxlength="2" placeholder=" " required>
+              <label for="uf">UF</label>
+            </div>
+          </div>
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Validação de Identidade (Selfie)
+          </h3>
+          <p style="font-size: 12px; color: #666; margin-bottom: 10px; line-height: 1.4;">
+            📷 <strong>Aviso de Segurança:</strong> O envio de uma selfie clara do seu rosto é obrigatório. Esta foto
+            será utilizada <strong>exclusivamente</strong> para que o profissional de saúde possa validar sua identidade
+            no momento da videochamada.
+          </p>
+          <div class="input-group">
+            <input type="file" id="fotoSelfieCadastro" accept="image/*" capture="user" required
+              style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: 'Montserrat', sans-serif;">
+          </div>
+
+          <h3
+            style="font-size: 16px; color: #0E5F73; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            Acesso</h3>
+          <div class="input-group input-senha">
+            <input type="password" id="senhaCadastro" placeholder=" " required>
+            <label for="senhaCadastro">Criar Senha</label>
+            <button type="button" class="toggle-senha" onclick="toggleSenha('senhaCadastro', this)">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 5C5 5 2 12 2 12s3 7 10 7 10-7 10-7-3-7-10-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" class="btn-primary btn-full" style="margin-top: 15px;">Criar minha conta</button>
+          <p class="link-text" style="text-align: center;"><a href="#"
+              onclick="event.preventDefault(); mostrarLogin();">⬅ Voltar para o Login</a></p>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="dashboardSection" class="dashboard-layout hidden">
+    <aside class="dashboard-sidebar">
+      <div class="perfil-resumo"
+        style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+        <img id="fotoPerfilSidebar" src="img/logo-integra.png" alt="Foto de Perfil"
+          style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #a3c9d1; cursor: pointer; margin-bottom: 10px;"
+          onclick="document.getElementById('inputFotoSidebar').click()">
+
+        <input type="file" id="inputFotoSidebar" accept="image/*" style="display: none;"
+          onchange="atualizarFotoPerfil(this)">
+
+        <h3 id="nomeSidebar">Nome do Paciente</h3>
+        <p style="font-size: 12px; color: #a3c9d1;">Paciente</p>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="ativo"><a href="#">🏠 Início / Consultas</a></li>
+
+        <li><a href="profissionais.html">📅 Nova Consulta</a></li>
+
+        <li id="menuAgendarPacote" style="display: none;">
+          <a href="#" onclick="abrirTermosPacote()">📦 Agendar Pacote</a>
+        </li>
+
+        <div id="painelStatusPacote"
+          style="display: none; padding: 10px; margin: 10px 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; border: 1px solid rgba(163, 201, 209, 0.3);">
+          <p style="font-size: 10px; color: #a3c9d1; margin-bottom: 5px; text-transform: uppercase;">Pacote Ativo</p>
+          <div style="font-size: 13px; color: #fff; font-weight: bold;">
+            Consulta <span id="numSessao">1</span> de 4
+          </div>
+          <p id="txtValidadePacote" style="font-size: 10px; margin-top: 5px;">Vence em: --/--</p>
+        </div>
+
+        <li style="margin-top: 10px;"><a href="#" onclick="abrirModalExames()">📁 Enviar Exames</a></li>
+        <li style="margin-top: 40px;"><a href="#" onclick="sairDaConta()" class="btn-sair-sidebar">🚪 Sair da Conta</a>
+        </li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-content">
+      <header class="dashboard-header">
+        <h1 class="saudacao" id="nomePacienteDashboard">Olá, Paciente!</h1>
+        <p>Acompanhe seus agendamentos e histórico de consultas.</p>
+      </header>
+
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <h3>Sua Próxima Consulta</h3>
+          <p id="proximaConsultaText">Nenhuma agendada</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total de Consultas Marcadas</h3>
+          <p id="totalConsultasText">0</p>
+        </div>
+      </div>
+
+      <div class="conteudo-principal" style="margin-top: 30px;">
+        <h2 style="color: #0F4C5C; margin-bottom: 15px;">Meus Agendamentos</h2>
+
+        <div id="muralDeConsultas">
+          <p style="color: #777;">⏳ Buscando seus agendamentos...</p>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <div id="popupSenha" class="popup-overlay">
+    <div class="popup-box">
+      <h3 id="popupMensagem"></h3>
+      <button onclick="fecharPopup()" class="btn-primary">Fechar</button>
+    </div>
+  </div>
+
+  <div id="modalCancelar" class="popup-overlay">
+    <div class="popup-box" style="position: relative; padding: 40px 30px;">
+
+      <div id="estadoConfirmacao">
+        <h3 style="color: #d9534f; margin-bottom: 10px;">Cancelar e Reembolsar</h3>
+        <p style="color: #555; margin-bottom: 25px; font-size: 14px;">Tem certeza que deseja cancelar? O valor da
+          consulta será estornado para a sua forma de pagamento original em até 7 dias úteis.</p>
+        <div style="display: flex; justify-content: center; gap: 15px;">
+          <button onclick="efetivarCancelamento()" class="btn-primary" style="background-color: #d9534f;">Sim,
+            Cancelar</button>
+          <button onclick="fecharModalCancelar()" class="btn-secondary">Não</button>
+        </div>
+      </div>
+
+      <div id="estadoSucesso" class="hidden">
+        <button onclick="fecharModalSucesso()"
+          style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; font-weight: bold; color: #888; cursor: pointer;">✖</button>
+        <h3 style="color: #2E7D32; margin-top: 10px;">Consulta cancelada!</h3>
+        <p style="color: #555; margin-top: 10px; font-size: 14px;">Seu reembolso foi solicitado e será processado
+          automaticamente pelo sistema.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="modalReagendar" class="popup-overlay">
+    <div class="popup-box" style="position: relative; padding: 30px; max-width: 600px; width: 90%;">
+      <button onclick="fecharModalReagendar()"
+        style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; font-weight: bold; color: #888; cursor: pointer;">✖</button>
+      <h3 style="color: #0f4c5c; margin-bottom: 10px;">Reagendar Consulta</h3>
+      <p style="color: #555; margin-bottom: 20px; font-size: 14px;">Mantenha seu profissional atual ou escolha outro da
+        mesma especialidade. Nenhuma taxa extra será cobrada.</p>
+
+      <div class="input-group" style="margin-bottom: 20px;">
+        <select id="selectProfissionalReagendar" onchange="mudarProfissionalReagendamento()"
+          style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: bold; color: #0E5F73;">
+        </select>
+      </div>
+
+      <div id="calendarioReagendar"
+        style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; max-height: 200px; overflow-y: auto;">
+      </div>
+
+      <div id="horariosReagendar"
+        style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px;"></div>
+
+      <button onclick="confirmarReagendamento()" class="btn-primary btn-full"
+        style="margin-top: 25px; background-color: #2a9fec;">Confirmar Reagendamento</button>
+    </div>
+  </div>
+
+  <footer class="footer-novo">
+    <div class="footer-col" style="align-items: center; justify-content: center;">
+      <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icon">
+      <img src="img/logo-integra.png" alt="Integra Saúde" class="footer-logo">
+    </div>
+
+    <div class="footer-col">
+      <h3>Entre em contato</h3>
+      <a href="contato.html">Formulário de Contato</a>
+    </div>
+
+    <div class="footer-col">
+      <h3>A Integra Saúde</h3>
+      <a href="conheca.html">Sobre nós</a>
+      <a href="termos.html">Termos e Políticas</a>
+    </div>
+
+    <div class="footer-col">
+      <a href="area-paciente.html" class="titulo-link">Área do Paciente</a>
+      <a href="trabalhe-conosco.html">Trabalhe conosco</a>
+    </div>
+
+    <div class="footer-copyright">
+      <p>© 2026 Integra Saúde - Todos os direitos reservados</p>
+    </div>
+  </footer>
+
+  <div id="modalExames"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
+    <div
+      style="background: #fff; width: 90%; max-width: 400px; padding: 25px; border-radius: 8px; position: relative; text-align: center;">
+      <button onclick="fecharModalExames()"
+        style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888;">✖</button>
+      <h2 style="color: #0F4C5C; margin-bottom: 10px;">📁 Enviar Exame</h2>
+      <p style="font-size: 13px; color: #555; margin-bottom: 20px;">Envie exames em PDF ou Imagem (JPG/PNG) para o seu
+        profissional avaliar.</p>
+
+      <input type="file" id="arquivoExame" accept=".pdf, image/png, image/jpeg"
+        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 20px;">
+
+      <button id="btnSalvarExame" onclick="salvarExamePaciente()"
+        style="width: 100%; background: #0F766E; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">📤
+        Enviar Exame</button>
+    </div>
+  </div>
+
+  <div id="modalTelemedicina"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; flex-direction: column;">
+    <div
+      style="background: #0F4C5C; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; color: white;">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <img src="img/logo-integra.png" style="height: 30px; filter: brightness(0) invert(1);" alt="Integra">
+        <h2 style="margin: 0; font-size: 18px;">Sala de Teleatendimento</h2>
+      </div>
+      <button onclick="encerrarChamadaEmbutida()"
+        style="background: #d9534f; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Sair
+        da Sala</button>
+    </div>
+    <div id="videoContainer" style="flex: 1; width: 100%; height: 100%;"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="js/supabase.js"></script>
+
+  <script src="js/script.js?v=86"></script>
+</body>
+
+</html>

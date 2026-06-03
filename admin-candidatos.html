@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Candidatos</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body style="background-color: #f4f7f6;">
+
+    <section class="hero5" id="secaoLoginAdmin"
+        style="min-height: 100vh; display: flex; align-items: center; padding-top: 0;">
+        <div class="auth-container" style="width: 100%;">
+            <div class="auth-card active"
+                style="max-width: 400px; margin: auto; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="img/logo.png" alt="Logo"
+                        style="width: 80px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.2));">
+                </div>
+                <h2 style="color: #0f4c5c; text-align: center;">Acesso Restrito</h2>
+                <p style="text-align: center; color: #777; margin-bottom: 25px; font-size: 14px;">Painel Administrativo
+                    da Integra Saúde</p>
+
+                <form id="formLoginAdmin">
+                    <div class="input-group">
+                        <input type="text" id="usuarioAdmin" placeholder=" " required>
+                        <label for="usuarioAdmin">Usuário</label>
+                    </div>
+                    <div class="input-group input-senha" style="margin-top: 15px;">
+                        <input type="password" id="senhaAdmin" placeholder=" " required>
+                        <label for="senhaAdmin">Senha</label>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full" style="margin-top: 25px; font-size: 16px;">Entrar
+                        no Painel</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <div id="conteudoAdmin" class="dashboard-layout hidden">
+
+        <aside class="dashboard-sidebar">
+            <div class="perfil-resumo">
+                <h3 style="color: white; font-size: 20px;">🛡️ Painel Admin</h3>
+                <p style="font-size: 12px; color: #a3c9d1;">Controle Total</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="ativo" id="menuVisaoGeral"><a href="#" onclick="mudarAbaAdmin('visaoGeral')">📊 Visão
+                        Geral</a></li>
+                <li id="menuTriagem"><a href="#" onclick="mudarAbaAdmin('triagem')">📝 Triagem de Fichas</a></li>
+                <li id="menuProfissionais"><a href="#" onclick="mudarAbaAdmin('profissionais')">🧑‍⚕️ Profissionais da
+                        Casa</a></li>
+                <li id="menuFinanceiro"><a href="#" onclick="mudarAbaAdmin('financeiro')">💳 Financeiro e Consultas</a>
+                </li>
+                <li style="margin-top: 40px;"><a href="#" onclick="sairAdmin()" class="btn-sair-sidebar">🚪 Sair do
+                        Painel</a></li>
+            </ul>
+        </aside>
+
+        <main class="dashboard-content" style="background-color: #f4f7f6;">
+
+            <section id="abaVisaoGeral">
+                <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">📊
+                    Visão Geral da Plataforma</h2>
+                <div class="dashboard-stats">
+                    <div class="stat-card" style="border-left-color: #3498db;">
+                        <h3>Pacientes Ativos</h3>
+                        <p id="totalPacientesAdmin">0</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #2ecc71;">
+                        <h3>Profissionais Ativos</h3>
+                        <p id="totalProfissionaisAdmin">0</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #f1c40f;">
+                        <h3>Fichas Pendentes</h3>
+                        <p id="totalFichasAdmin">0</p>
+                    </div>
+                    <div class="stat-card" style="border-left-color: #9b59b6;">
+                        <h3>Total de Consultas</h3>
+                        <p id="totalConsultasAdmin">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="abaTriagem" class="hidden">
+                <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">📝
+                    Candidatos na Fila de Espera</h2>
+                <div id="listaCandidatos" style="display: flex; flex-direction: column; gap: 20px;">
+                    <p>Carregando fichas...</p>
+                </div>
+            </section>
+
+            <section id="abaProfissionais" class="hidden">
+                <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">
+                    🧑‍⚕️ Profissionais da Casa</h2>
+                <p style="color: #666; margin-bottom: 20px;">Acompanhe o desempenho de quem já atende na Integra Saúde.
+                </p>
+                <div id="listaProfissionaisAdmin" style="display: flex; flex-direction: column; gap: 15px;">
+                </div>
+            </section>
+
+            <section id="abaFinanceiro" class="hidden">
+                <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">💳
+                    Histórico de Consultas e Reembolsos</h2>
+                <p style="color: #666; margin-bottom: 20px;">Monitore todas as consultas marcadas, finalizadas e
+                    cancelamentos que exigem estorno financeiro.</p>
+                <div id="listaFinanceiroAdmin" style="display: flex; flex-direction: column; gap: 15px;">
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>

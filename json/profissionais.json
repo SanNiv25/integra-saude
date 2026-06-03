@@ -1,0 +1,146 @@
+{
+  "psicologia": [
+    {
+      "id": 1,
+      "nome": "Dra. Maria Silva",
+      "especialidade": "Psicóloga",
+      "registro": "CRP 00/0000",
+      "estadoReg": "RJ",
+      "imagem": "img/psico1.jpg",
+      "descricao": "Especialista em Terapia Cognitivo-Comportamental, com foco em ansiedade, depressão e autoconhecimento.",
+      "agenda": {
+        "dias_trabalho": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "turnos": [
+          "tarde",
+          "noite"
+        ],
+        "horarios_por_dia": 16
+      }
+    },
+    {
+      "id": 2,
+      "nome": "Dr. Rafael Almeida",
+      "especialidade": "Psicólogo",
+      "registro": "CRP 00/0001",
+      "estadoReg": "RJ",
+      "imagem": "img/psico2.jpg",
+      "descricao": "Abordagem em psicanálise. Experiência no tratamento de traumas, transições de carreira e relacionamentos.",
+      "agenda": {
+        "dias_trabalho": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "turnos": [
+          "manha",
+          "tarde"
+        ],
+        "horarios_por_dia": 16
+      }
+    }
+  ],
+  "nutricao": [
+    {
+      "id": 3,
+      "nome": "Dra. Carla Mendes",
+      "especialidade": "Nutricionista",
+      "registro": "CRN 00/0000",
+      "estadoReg": "RJ",
+      "imagem": "img/nutri1.jpg",
+      "descricao": "Foco em nutrição esportiva e hipertrofia. Planos alimentares personalizados para melhora de performance.",
+      "agenda": {
+        "dias_trabalho": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "turnos": [
+          "manha",
+          "tarde"
+        ],
+        "horarios_por_dia": 16
+      }
+    },
+    {
+      "id": 4,
+      "nome": "Dr. Bruno Lima",
+      "especialidade": "Nutricionista",
+      "registro": "CRN 00/0002",
+      "estadoReg": "RJ",
+      "imagem": "img/nutri2.jpg",
+      "descricao": "Especialista em nutrição clínica, reeducação alimentar, emagrecimento saudável e controle de diabetes.",
+      "agenda": {
+        "dias_trabalho": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "turnos": [
+          "manha",
+          "tarde"
+        ],
+        "horarios_por_dia": 16
+      }
+    }
+  ],
+  "fono": [
+    {
+      "id": 5,
+      "nome": "Dra. Juliana Rocha",
+      "especialidade": "Fonoaudióloga",
+      "registro": "CREFONO 00/0000",
+      "estadoReg": "RJ",
+      "imagem": "img/fono1.jpg",
+      "descricao": "Atendimento voltado ao desenvolvimento infantil, atrasos na fala e motricidade orofacial.",
+      "agenda": {
+        "dias_trabalho": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "turnos": [
+          "manha",
+          "noite"
+        ],
+        "horarios_por_dia": 16
+      }
+    },
+    {
+      "id": 6,
+      "nome": "Dr. Felipe Santos",
+      "especialidade": "Fonoaudiólogo",
+      "registro": "CREFONO 00/0001",
+      "estadoReg": "RJ",
+      "imagem": "img/fono2.jpg",
+      "descricao": "Especialista em reabilitação vocal para cantores e professores, fluência (gagueira) e processamento auditivo.",
+      "agenda": {
+        "dias_trabalho": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "turnos": [
+          "tarde",
+          "noite"
+        ],
+        "horarios_por_dia": 16
+      }
+    }
+  ]
+}

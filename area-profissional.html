@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra Saúde - Profissional</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://meet.jit.si/external_api.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-icon"><img src="img/logo.png" alt="Logo"></div>
+        <div class="header2-icon"><img src="img/logo-integra.png" alt="Logo"></div>
+    </header>
+
+    <nav class="menu-bar">
+        <ul class="menu">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
+            <li><a href="profissionais.html">Profissionais</a></li>
+            <li><a href="contato.html">Contato</a></li>
+            <li><a href="area-paciente.html">Área do paciente</a></li>
+            <li class="ativo"><a href="#">Área do profissional</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero5" id="secaoAutenticacaoProf">
+        <div class="auth-container">
+            <div class="auth-card active" id="loginCard">
+                <h2 style="color: #0f4c5c; margin-bottom: 20px; text-align: center;">Acesso do Profissional</h2>
+                <form id="formLoginProf">
+                    <div class="input-group">
+                        <input type="text" id="registroProfLogin" placeholder=" " required>
+                        <label for="registroProfLogin">Seu Registro (Ex: CRP 00/0000)</label>
+                    </div>
+                    <div class="input-group input-senha">
+                        <input type="password" id="senhaProfLogin" placeholder=" " required>
+                        <label for="senhaProfLogin">Senha</label>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full" style="margin-top: 15px;">Acessar</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboardProfSection" class="dashboard-layout hidden">
+        <aside class="dashboard-sidebar">
+            <div class="perfil-resumo">
+                <img src="img/logo-integra.png" alt="Perfil"
+                    style="width: 120px; margin-bottom: 10px; filter: brightness(0) invert(1);">
+                <h3 id="nomeSidebarProf">NOME</h3>
+                <p style="font-size: 12px; color: #a3c9d1;">Profissional de Saúde</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="ativo"><a href="#">🏠 Minha Agenda</a></li>
+                <li style="margin-top: 40px;"><a href="#" onclick="sairDaContaProf()" class="btn-sair-sidebar">🚪 Sair
+                        da Conta</a></li>
+            </ul>
+        </aside>
+
+        <main class="dashboard-content">
+            <header class="dashboard-header">
+                <h1 class="saudacao" id="nomeProfDashboard">Olá, Profissional!</h1>
+                <p>Acompanhe os pacientes agendados para hoje.</p>
+            </header>
+            <div class="dashboard-main-section">
+                <h2>Pacientes Agendados</h2>
+                <div class="menu-abas">
+                    <button class="btn-aba-prof ativo" id="btn-consultas-hoje"
+                        onclick="window.mudarAbaConsultasProf('consultas-hoje')"
+                        style="border-bottom: 3px solid #0F766E; color: #0F766E; font-weight: bold;">Consultas do
+                        Dia</button>
+                    <button class="btn-aba-prof" id="btn-proximas-consultas"
+                        onclick="window.mudarAbaConsultasProf('proximas-consultas')">Próximas Consultas</button>
+                    <button class="btn-aba-prof" id="btn-finalizadas-prof"
+                        onclick="window.mudarAbaConsultasProf('finalizadas-prof')">Finalizadas</button>
+                </div>
+
+                <div id="consultas-hoje" class="tab-content-prof" style="display: block;"></div>
+                <div id="proximas-consultas" class="tab-content-prof" style="display: none;"></div>
+                <div id="finalizadas-prof" class="tab-content-prof" style="display: none;"></div>
+            </div>
+        </main>
+    </section>
+
+    <div id="modalProntuario" class="popup-overlay">
+        <div class="popup-box"
+            style="max-width: 850px; width: 95%; height: 90vh; overflow-y: auto; padding: 30px; position: relative; text-align: left;">
+            <button onclick="fecharProntuario()"
+                style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; color: #888; cursor: pointer;">✖</button>
+
+            <h2 style="color: #0F4C5C; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">📝
+                Prontuário Eletrônico (PEP)</h2>
+            <h3 id="nomePacienteProntuario" style="color: #2E7D32; margin-bottom: 20px;">Paciente: ...</h3>
+
+            <div
+                style="background: #f4f9f9; border: 1px solid #cce3e6; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                <h4 style="color: #0E5F73; margin-bottom: 10px;">📋 Histórico de Registros (Salvo e Bloqueado)</h4>
+                <div id="historicoProntuario"
+                    style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                </div>
+            </div>
+
+            <div
+                style="background: #f0f7f7; border: 1px solid #cce3e6; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                <h4 style="color: #0E5F73; margin-bottom: 10px;">📁 Arquivos Anexados pelo Paciente</h4>
+                <div id="listaExamesPaciente"
+                    style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+                <div style="background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #0F4C5C; margin-bottom: 10px;">Evolução do Paciente</h4>
+                    <textarea id="textoEvolucao" rows="6"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; margin-bottom: 10px; font-family: inherit;"
+                        placeholder="Título do documento<br><br>Digite a evolução..."></textarea>
+
+                    <div style="display: flex; gap: 10px; flex-direction: column;">
+                        <button onclick="salvarRegistroProntuario('evolucao', false)" class="btn-primary"
+                            style="padding: 10px; font-size: 13px;">Salvar Evolução (Apenas Histórico)</button>
+                        <button onclick="salvarRegistroProntuario('evolucao', true)" class="btn-secondary"
+                            style="padding: 10px; font-size: 13px; background: #e0f2f1; border-color: #26a69a; color: #00695c;">Salvar
+                            e Baixar PDF</button>
+                    </div>
+                </div>
+
+                <div style="background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #0F4C5C; margin-bottom: 10px;">Prescrição / Solicitação</h4>
+                    <textarea id="textoPrescricao" rows="6"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; margin-bottom: 10px; font-family: inherit;"
+                        placeholder="Digite a prescrição..."></textarea>
+
+                    <div style="display: flex; gap: 10px; flex-direction: column;">
+                        <button onclick="salvarRegistroProntuario('prescricao', false)" class="btn-primary"
+                            style="padding: 10px; font-size: 13px;">Salvar Prescrição (Apenas Histórico)</button>
+                        <button onclick="salvarRegistroProntuario('prescricao', true)" class="btn-secondary"
+                            style="padding: 10px; font-size: 13px; background: #e0f2f1; border-color: #26a69a; color: #00695c;">Salvar
+                            e Baixar PDF</button>
+                    </div>
+                </div>
+
+                <div id="dropzone-envio"
+                    ondragover="event.preventDefault(); this.style.backgroundColor='#d1e8e6'; this.style.borderColor='#0a4d48';"
+                    ondragleave="event.preventDefault(); this.style.backgroundColor='#f0f7f7'; this.style.borderColor='#0F766E';"
+                    ondrop="window.soltarArquivoPDF(event)"
+                    style="grid-column: 1 / -1; margin-top: 30px; padding: 40px 20px; background-color: #f0f7f7; border-radius: 8px; border: 2px dashed #0F766E; text-align: center; transition: 0.3s;">
+
+                    <h3 style="color: #0F766E; margin-bottom: 10px;">Enviar Documento Assinado ao Paciente</h3>
+                    <p style="font-size: 14px; margin-bottom: 15px; color: #555;">Arraste aqui o PDF já assinado ou
+                        clique para selecionar.</p>
+
+                    <input type="file" id="uploadPdfEnvio" accept="application/pdf" style="display: none;"
+                        onchange="window.selecionarArquivoPDF(this)">
+
+                    <label for="uploadPdfEnvio"
+                        style="display: inline-block; background-color: #fff; color: #0F766E; padding: 10px 20px; border: 1px solid #0F766E; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 10px;">
+                        📂 Selecionar PDF Assinado
+                    </label>
+
+                    <div id="nome-arquivo-envio"
+                        style="font-size: 13px; color: #777; margin-bottom: 20px; font-style: italic;">Nenhum arquivo
+                        selecionado</div>
+
+                    <button type="button" onclick="enviarDocumentoAssinado()" id="btnEnviarPaciente"
+                        style="background-color: #0F766E; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: bold; opacity: 0.6;"
+                        disabled>
+                        🚀 Enviar Diretamente ao Paciente
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-novo">
+        <div class="footer-col" style="align-items: center; justify-content: center;">
+            <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icon">
+            <img src="img/logo-integra.png" alt="Integra Saúde" class="footer-logo">
+        </div>
+
+        <div class="footer-col">
+            <h3>Entre em contato</h3>
+            <a href="contato.html">Formulário de Contato</a>
+        </div>
+
+        <div class="footer-col">
+            <h3>A Integra Saúde</h3>
+            <a href="conheca.html">Sobre nós</a>
+            <a href="termos.html">Termos e Políticas</a>
+        </div>
+
+        <div class="footer-col">
+            <a href="area-paciente.html" class="titulo-link">Área do Paciente</a>
+            <a href="trabalhe-conosco.html">Trabalhe conosco</a>
+        </div>
+
+        <div class="footer-copyright">
+            <p>© 2026 Integra Saúde - Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <div id="modalTelemedicina"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999; flex-direction: column;">
+        <div
+            style="background: #0F4C5C; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; color: white;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="img/logo-integra.png" style="height: 30px; filter: brightness(0) invert(1);" alt="Integra">
+                <h2 style="margin: 0; font-size: 18px;">Sala de Teleatendimento</h2>
+            </div>
+            <button onclick="encerrarChamadaEmbutida()"
+                style="background: #d9534f; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Sair
+                da Sala</button>
+        </div>
+        <div id="videoContainer" style="flex: 1; width: 100%; height: 100%;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script type="module" src="js/script.js?v=97"></script>
+</body>
+
+</html>

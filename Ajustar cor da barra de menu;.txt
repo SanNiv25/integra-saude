@@ -1,0 +1,244 @@
+quero fazer da seguinte forma, quando clicar no botão "agendar consulta", seja mostrado os horários que esse profissional atende, em seguida, a pessoa deve escolher os dias disponíveis, por fim, clicar no botão "marcar consulta" para marcar com o profissional, caso essa pessoa não tenha conta no site, ela deve ser redirecionada para a página de login do site, se já estiver logada, então aparecerá na tela a mensagem de "Sua consulta foi confirmada"
+
+Vou refazer o meu pedido pq eu esqueci de mencionar umas cooisas importantes.
+
+Ok, preste atenção agora, eu quero que faça o seguinte (analise os anexos também):
+
+ - Tirar a escolha de cadastro de profissional e cliente, essa parte será o cadastro do cliente e nada mais.
+ - O cadastro de profisional será disponibilizado após a pessoa clicar em "Trabalhe conosco" na página inicial do site, um hiperlink em branco que ficará no rodapé da página no canto esquerdo.
+ - Quando finalizado o cadastro do profissional, não quero que salve os dados, muito menos que integre ao site, isso eu mesmo farei quando receber a ficha do candidato e avaliá-lo.
+ - Por fim, quero que envie pelo whatsapp de forma AUTOMÁTICA, não quero abrir o whatsapp web para fazer algo que já deveria ser automático.
+ - Sobre o rodapé (imagem anexada), quero que ele fique assim: Logo e nome // Entre em contato que deve ser um link para o formulário de contato // A Integra Saúde e em baixo o link "sobre nós" que vai para a parte conheça a Integra saúde //  Link para Area do paciente // e link " Trabalhe conosco" que vai para o  cadastro de profissional
+
+
+
+AGENDA: [OK]
+
+- Apenas duas cores, cinza (horário indisponível) e azul (horário disponível). 
+- Consultas duram 1h.
+- So pode agendar consulta depois que estiver logado.
+- As datas devem estar organizadas como calendário, começando pelo domingo e terminando no sábado
+- Remover os dias 'sem vaga' e 'feriado' que estão implementados no código.
+- Acima das datas, deve mostrar o dia da semana nesse formato: Dom, Seg, Ter...
+- 
+- 
+
+LOGIN E SENHA:[OK]
+
+Ótimo, agora o próximo passo é a parte de login e cadastro, eu preciso do seguinte:
+
+- Retirar o campo nome em 'recuperar senha'
+- Colocar um validador de CPF
+- Tirar o logo no canto esquerdo acima do nome.
+- Colocar uma condição em que todas as letras do nome estejam em maiúsculo.
+- Cadastro deve pedir CEP, rua, bairro, etc. serão preenchidos automaticamente após o CEP, com excessão do número da casa que precisa ser fornecido pelo próprio usuário assim como o CEP.
+
+Segue em anexo o print da página, o arquivo .html em questão e os arquivos .css, .js e .json
+
+
+ÁREA DO PACIENTE E DO PROFISSIONAL:
+
+- Na área do paciente, após o login, na parte onde mostra as consultas agendadas, terá um botão escrito 'Confirmar consulta', ele estará inativo (na cor cinza) e só ficará ativo (cor padrão dos botões desse site) 5 minutos antes da consulta marcada, quando clicado, o usuário será redirecionado para uma chamada no google meet.
+- na área do profissional logado, ele poderá ver as consultas que foram agendadas com ele, terá ao lado desse nome, o botão 'iniciar consulta', se o paciente estiver na chamada do google meet, então esse botão estará ativo e quando for clicado, o profissional será enviado para a mesma chamada do Google meet onde está seu paciente, caso contrário, o botão estará inativo
+
+Preciso de sua ajuda, vamos fazer mais uma mudança, dessa vez, na área de cadastro do usuário, vamos adicionar o cadastro de profissionais e alterar o campo de login para profissionais, mas essa parte faremos por último, a prioridade será o cadastro. Quando o usuário for clicar em "Crie agora" para criar uma conta, aparecerá um card com a mensagem perguntando "Qual conta deseja criar?" embaixo da mensagem terá dois botões um abaixo do outro, o primeio vai estar escrito "Paciente", quando clicado, abrirá o cadastro de pacientes, o segundo botão estará escrito "Profissional", quando clicado, vai abrir o cadastro de profissionais que vamos criar.criei um formulário no jotform para simular como eu quero esse cadastro,deverá ter todas essas opções, porém, formatadas no mesmo estilo do nosso site, os campos com asterísticos vermelhos são obrigatórios. Segue o link do formulário para adaptar para o site, e não esqueça da ordem: Perguntar se é cadastro de paciente/profissional > Criar cadastro do profissional > Alterar o login do profissional.
+
+<button class="btn-primary btn-disabled" style="margin-top: 15px;" disabled="">Aguardando paciente (Tolerância de 30 min ativa)</button>
+
+Bom dia, gostaria dete pedir uma coisa, quero que faça um resumo em lista de tudo que trabalhamos no projeto do site ontem, e oranize-a conforme o exemplo abaixo:
+
+**INÍCIO DO DIA**
+
+* Pedido 1
+  - Correção 1 (Breve descrição)
+  - Correção 2 (Breve descrição)
+  - Correção 3 (Breve descrição)
+* Pedido 2
+  - Não precisou de correção
+* Pedido 3
+  - Correção 1 (Breve descrição)
+  - Correção 2 (Breve descrição)
+  - Correção 3 (Breve descrição)
+  - Correção 4 (Breve descrição)
+  - Correção 5 (Breve descrição)
+
+**FIM DO DIA**
+
+Vou enviar os arquivos .html, .js, .css e .json em anexo caso seja necessário.
+
+Ok, agora eu quero te pediruma coisa, tá vendo essas consultas riscadas, eu quero tirar esse riscado das letras e deixar apenas o card todo cinza, mas vai ter um porém, se o tatus do card for "Consulta finalizada", então o card ficará cinza com um leve tom de verde, se o status for "Não compareceu", então será um leve tom de vermelho, vale lembrar que eu quero um CINZA com tom de outra cor mais LEVE, que apesar de serem diferentes, não deve haver dúvidas de que é um cinza.
+
+Funcionou, mas agora, quero dar uma pausa na criação do cadastro que estamos fazendo, para criar outra coisa importante que ficou de fora. após encerrada a consulta, eu quero criar dois botões na área do profissional, um para finalizar a consulta do dia, e outro para encerrar a consulta caso o paciente falte. Funciona da seguinte forma, o primeiro botão "Finalizar Consulta": Estará diponível após o profissional sair da chamada pela primeira vez, deve ter a cor verde e o texto deve ter a cor branca, caso a chamada de vídeo tenha acabado e o profissional saiu da chamada, então vai aparecer esse botão chamado "Finalizar Consulta", quando clicado, encerra a chamada ativa (se ainda estiver alguém na sala) e marca a consulta em questão como "Consulta Finalizada"; O segundo botão "Encerrar Consulta": Estará disponível após 5 minutos caso o paciente não se apresente na chamada (ou seja, ele não clicou no botão "Confirmar Consulta"), deve ter a cor vermelha e o texto deve ter a cor branca, caso o paciente falte, a consulta do dia, então o profissional vai clicar nesse botão e finalizar a consulta, que será marcada como "Ausente".
+
+Na página área do paciente, tem um problema sério, como pode ver nesses dois prints que eu enviei, aparece o campo de login, mas se abaixar a página, vai mostrar a página como se já estivesse logado, não quero essas duas páginas juntas, quero que a página de baixo só apareça DEPOIS de realizado o login. Segue em anexo os prints da página, o arquivo .html em questão e os arquivos .css, .js e .json
+
+Segue em anexo o print da página, o arquivo .html em questão e os arquivos .css, .js e .json
+
+22- No card dos profissionais, ao lado dos nomes, deve mostrar os turnos em que cada profissional atende. [OK]
+
+21- Configurar a agenda de cada profissional, quando clicar em agendar consulta, deve aparecer um calendário mostrando os dias disponíveis para agendar a consulta com o respectivo profissional.
+
+20- Área do paciente: Tela com CPF/Senha -- opção esqueci minha senha //neste caso paciente recebe link para cadastrar nova senha; e opção "Não tem uma conta? Crie agora" o crie agora será link para pagina de cadastro; [OK] posicionar mais para cima [OK]
+
+19- Ao enviar o formulário deve aparecer na tela uma mensagem confirmando o envio e o paciente deve receber uma e-mail automático confirmando o recebimento (Texto a ser defenido), configurar email para não receber resposta.
+
+
+18- Página "Profissionais" reduzir tamanho da área com texto e subir os botões para ficar bem visível assim que abrir a página [OK]
+
+17- No formulário tem como condicionar o envio a ter mensagem digitada? [OK]
+
+16- Primeira página botão agendar está em cima do texto (Subir texto e botão); [OK]
+
+15- Missão, visão e valores; [OK]
+
+14- pagina de contato com opção de formulário e e-mail;  [OK]
+
+13- Inserir texto no menu Conheça a Integra Saúde; [OK]
+
+12- Menu PROFISSIONAIS, inserir o nome da cada especialidade como link para a pagina com as informações dos profissionais e foto para teste;  [OK]
+
+11- Criar pagina dos itens do menu; [OK]
+
+10- Consertar a palavra Saúde no cabeçalho, está sem assento; [OK]
+
+9- Link ativos para páginas do menu (deve ter o mesmo cabeçalho e menu em todas as páginas); [OK]
+
+8- Ajustar cor da barra de menu; [OK]
+
+7- Chegar o texto "Plataforma ...." um pouco para a direita e aumentar um pouco a imagem do médico para reduzir espaço livre [OK]
+
+6- Reduzir logo e inserir nome da empresa e slogan (cor branca); [OK]
+
+5- Alterar cor da descrição da área de agendamento para cor branca); [OK]
+
+4- Inserir efeitos visuais no cabeçalho e na área de agendamento; [OK]
+
+3- Inserir imagens nas especialidades; [OK]
+
+2- Retirar do menu o campo "planos"; [OK]
+
+1- Inserir no menu um campo "Conheça a Integra Saúde" [OK]
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Segue a lista do que eu já fiz de tudo que vc me pediu aqui no Teams:
+
+"Substituir o título por 'A Integra Saúde conecta você a profissionais de diferentes áreas da saúde.'" [FEITO]
+
+"Posteriormente elaborar texto para informar que a consulta poderá ser iniciada no site na área do paciente através do botaõ 'INICIAR CONSULTA'  No botão só ficará ativo 5 minutos antes do horário agendado. Essa informação precisa aparecer se tentarem clicar antes deste horário" [FEITO]
+
+"Primeiro ajustar tela da área do paciente. Recuperar senha ... retirar campo nome" [FEITO]
+
+"cores da agenda (cinza e azul) e consulta de 1 em 1 hora" [FEITO]
+
+"Ao encerrar a consulta aparecer o status como atendido. Se passar o horário do agendamento sem que o paciente entre na consulta aparecer o status 'Não compareceu' botão cor vermelha" [FEITO]
+
+"Está sem a especialidade fonoaudiologia" [FEITO]
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+* informar ao agendar, junto com a confirmação de agendamento e aparecer um texto caso tente clicar antes do horário estipulado. 
+Colocar 10 minutos antes para liberar o botão acho que é melhor [FEITO]
+
+* Tirar o formulário do site, este é de uso interno e só será encaminhado para alguns contatos.
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Vou enviar o .html do cadastro e quero que você analise e me responda se no formulário de cadastro de profissionais tem essas opções, em seguida, retorne a lista cmarcada com as opções presentes no formulário e as opções ausentes 
+
+Preencha seu dados
+
+* Nome completo
+* CPF
+* Data de nascimento
+* telefone
+* e-mail
+ 
+Registro profissional
+
+* Número do  registro profissional
+* Estado de registro
+ 
+Experiência profissional (em anos)
+
+* Principais atuação
+* Publico atendido
+ 
+Aparecer uma mensagem dizendo "Seus dados foram enviados com sucesso, aguarde que entraremos em contato."
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Sobre a página admin-candidatos.html, eu gostaria que transformasse em uma página própria para que o administrador pudesse controlar tudo que acontece dentro da página: Candidatos a profissionais, quantas consultas foram realizadas pelo profissional, suas agendas, quantos cancelamentos ou reembolsos, etc. Quero que essa página seja fácil de se usar e suas funções sejam fáceis de entender, visto que a pessoa que está trabalhando comigo nesse projeto não está familiarizada com programação e banco de dados
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Preciso de sua ajuda com relação a área do profissional
+
+Deve ter um área para fazer prescrição ou seja escrever o pedido de exames e ou medicações deve ficar gravado sem opção de apagar.
+
+E uma área “Prontuário do paciente” o profissional deve escrever a evolução do paciente, ficar gravado e sem a opção de apagar.
+
+Tá vendo a opção "Salvar e enviar para paciente" nesse print em anexo? Era pra funcionar assim, quando clicado, salvava o prontuário em um arquivo PDF gerado pelo site, nele, tem que ter no fundo, uma marca d'agua e na página, um cabeçalho contendo o Nome da clínica com logo e Nome do paciente, enquanto no rodapé, vai ter o CRP,CRN ou CRFa do profissional, deve conter também, um campo para prescrição/solicitação para o paciente e um código QR único, que é gerado a cada prescrição como se fosse um comprovante de que essa prescrição é válida e realmente houve essa consulta, deve ser do jeito que eu vou te enviar em prints.
+
+Nos dois campos deve ter um link de envio, e devem ser enviado automaticamente para o e-mail que o paciente cadastrou no primeiro acesso.
+
+Nos dois campos deve sair no cabeçalho o nome da clinica com logo; nome do Paciente e no rodapé nome e CRP, CRN ou CRFa do profissional.
+
+* Fazer o QR Code validar um ID único de prescrição
+
+* Criar página de validação (tipo “documento válido / inválido”)
+
+* Integrar isso direto no seu site de agendamento
+
+* Gerar um sistema onde cada QR Code valida um documento único (tipo receita autenticada
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Mudança de planos, faltou detalhes no meu pedido:
+
+Quero que faça uma pequena correção nos campos de prescrição e evolução do paciente, temos os botões de salvar o que foi escrito e o die criar um PDF, precisamos fazer uma correção:
+
+* Sabemos que tem dois campos, evolução do paciente e prescrição, cada um com dois botões, um pra salvar o que foi escrito e outro pra gerar PDF.
+* Atualmente, clicando nos dois botões de gerar PDF, gera um PDF com a prescrição, agora, eu quero que os dois botões tenham uma função específica, o gerar PDF do campo evolução, salva um PDF contendo a evolução do paciente em vez da prescrição, enquanto o botão do campo prescrição, vai criar um PDF com a prescrição normalmente.
+* Independente de qual botão seja clicado, o que eu escrevo nos dois campos é apagado automaticamente, quero que apague essa regra, o que eu escrevo deve permanecer, porém, só devo criar qualquer PDF se houver os dois campos escritos
+
+Quero mais umas correções:
+
+* Não deverá mais ser obrigatório ter os dois campos escritos para gerar um PDF, cada campo deverá gerar o seu próprio PDF sem a necessidade do outro campo estar preenchido.
+* No campo da Evolução do paciente, o PDF é gerado, porém, ele tem "PRESCRIÇÃO" no nome do doucmento e no título dentro dele, sendo que, se eu gerei um PDF no campo "Evolução do paciente", então, o título do documento e o nome gerado, deve ser sobre esse campo específico
+
+Ainda precisa de melhorias, aqui estão:
+
+* Não quero que abra o email automaticamente, não será necessário.
+* Nos dois PDFs gerados, eu quero que faça o seguinte, sempre que for gerar um novo arquivo, em vez de aparecer "Integra Saúde" no topo do documento, ponha uma imagem (logo-integra.png) no lugar desse texto.
+* Abaixo dos campos e botões do Exames e do Prescrições, deve ter um campo de upload, onde o profissional envia o arquivo que foi criado para poder colocar a sua assinatura digital, para então baixar novamente e enviar para o paciente.
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+* 
+
+URL App da Web: https://script.google.com/macros/s/AKfycbxPXYLhguUaGuOmaxt5jSA7DsFziiLJh6876LCQQ7H1iytMsAljfCmroJKeA1snaGokXg/exec
+
+Código de implantação: AKfycbxPXYLhguUaGuOmaxt5jSA7DsFziiLJh6876LCQQ7H1iytMsAljfCmroJKeA1snaGokXg
+
+
+
+ botões de salvar documento, no site, temos o campo de evolução do paciente e o campo de prescrição, quero que cada botão funcione apenas para o seu devido campo, em evoluçãoi do paciente, ao clicar em salvar, o site vai salvar um PDF com apenas o título (referente ao campo) e a evolução do paciente; enquanto isso, no campo de prescrição, vai continuar gerando normalmente o PDF das prescriçoes
+
+
+v
+
+Funcionou, mas eu tenho uma pergunta, Como eu faço para que chegue mensagens diferentes dependendo do email enviado? No caso, por exemplo, se eu enviar a prescrição, o site ou o código do google script (Você vai saber melhor como funciona), vai ler o nome do arquivo, se tiver 'Prescrição' no nome, então  a mensagem automática vai ser a seguinte: no assunto, será escrito "Sua prescrição chegou", e na mensagem, será escrito "Olá,
+
+Segue em anexo sua prescrição em PDF.
+
+Atenciosamente, Equipe Integra Saúde". Quando for lido o nome e tiver 'Evolução', então, no assunto será escrito "Seu prontuário chegou", e na mensagem, "Olá,
+
+Segue em anexo seu prontuário em PDF.
+
+Atenciosamente, Equipe Integra Saúde". Caso não tenha nenhum e nem outro, vai a mesnagem e assunto padrão que já está escrito no código do google script

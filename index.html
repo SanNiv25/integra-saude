@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra Saúde</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+
+        <div class="header-icon">
+            <img src="img/logo.png" alt="Logo">
+        </div>
+
+        <div class="header2-icon">
+            <img src="img/logo-integra.png" alt="Logo">
+        </div>
+
+    </header>
+
+    <nav class="menu-bar">
+        <ul class="menu">
+            <li class="ativo"><a href="#">Home</a></li>
+            <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
+            <li><a href="profissionais.html">Profissionais</a></li>
+            <li><a href="contato.html">Contato</a></li>
+            <li><a href="area-paciente.html">Área do paciente</a></li>
+            <li><a href="area-profissional.html">Área do profissional</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1>Plataforma Online<br>de Saúde Digital</h1>
+                <p>Psicologia, Fonoaudiologia e<br>Nutrição em um só lugar.</p>
+
+                <a href="#agendar" class="btn-primary">
+                    Agendar Consulta
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ESPECIALIDADES -->
+    <section id="agendar" class="especialidades">
+        <div class="container">
+            <h2>Especialidades</h2>
+
+            <div class="cards">
+
+                <div class="card">
+                    <img src="img/psicologia.png" alt="Psicologia" class="card-icon">
+                    <h3 class="titulo-psicologia">Psicologia</h3>
+                    <p>Cuidado emocional<br>e saúde mental.</p>
+                    <a href="profissionais.html?esp=psicologia" class="btn-secondary">
+                        Agendar
+                    </a>
+                </div>
+
+                <div class="card">
+                    <img src="img/nutricao.png" alt="Nutrição" class="card-icon">
+                    <h3 class="titulo-nutricao">Nutrição</h3>
+                    <p>Plano alimentar personalizado.</p>
+                    <a href="profissionais.html?esp=nutricao" class="btn-secondary">
+                        Agendar
+                    </a>
+                </div>
+
+                <div class="card">
+                    <img src="img/fonoaudiologo.png" alt="Fonoaudiologia" class="card-icon">
+                    <h3 class="titulo-fonoaudiologia">Fonoaudiologia</h3>
+                    <p>Desenvolvimento da<br>fala e comunicação.</p>
+                    <a href="profissionais.html?esp=fono" class="btn-secondary">
+                        Agendar
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-novo">
+        <div class="footer-col" style="align-items: center; justify-content: center;">
+            <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icon">
+            <img src="img/logo-integra.png" alt="Integra Saúde" class="footer-logo">
+        </div>
+
+        <div class="footer-col">
+            <h3>Entre em contato</h3>
+            <a href="contato.html">Formulário de Contato</a>
+        </div>
+
+        <div class="footer-col">
+            <h3>A Integra Saúde</h3>
+            <a href="conheca.html">Sobre nós</a>
+            <a href="termos.html">Termos e Políticas</a>
+        </div>
+
+        <div class="footer-col">
+            <a href="area-paciente.html" class="titulo-link">Área do Paciente</a>
+            <a href="trabalhe-conosco.html">Trabalhe conosco</a>
+        </div>
+
+        <div class="footer-copyright">
+            <p>© 2026 Integra Saúde - Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/supabase.js"></script>
+
+</body>
+
+</html>
