@@ -899,7 +899,7 @@ window.abrirAgenda = async function (nomeProfissional) {
     let pacoteEmAndamento = null;
     if (isPacote) {
       const { data: pacotes } = await supabaseClient
-        .from('pacotes_pacientes')
+        .from('pacotes')
         .select('*')
         .eq('pacienteCpf', usuarioLogado.cpf)
         .eq('ativo', true);
@@ -1200,7 +1200,7 @@ window.efetivarCancelamento = async function () {
       // 2. Desativa o pacote na tabela de pacotes
       if (idDoPacote) {
         await supabaseClient
-          .from("pacientes_pacotes")
+          .from("pacotes")
           .update({ ativo: false })
           .eq("id", idDoPacote);
       }
@@ -2769,7 +2769,7 @@ window.atualizarContadorPacote = async function () {
 
   // 👇 OTIMIZAÇÃO: Busca direto na tabela de pacotes
   const { data: pacotes, error } = await supabaseClient
-    .from("pacientes_pacotes")
+    .from("pacotes")
     .select("*")
     .eq("pacienteCpf", usuarioLogado.cpf)
     .eq("ativo", true);
