@@ -25,7 +25,7 @@ async function buscarConsultasPaciente(cpfPaciente) {
 // Buscar profissionais (Direto do Banco)
 async function buscarProfissionais() {
   const { data, error } = await supabaseClient
-    .from("profissionaisDb")
+    .from("profissionais")
     .select("*");
 
   if (error) {
@@ -670,7 +670,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // 👇 OTIMIZAÇÃO: Consulta diretamente a tabela de profissionais no Supabase 👇
       const { data: profEncontrado, error } = await supabaseClient
-        .from("profissionaisDb")
+        .from("profissionais")
         .select("*")
         .eq("registro", registro)
         .eq("senha", senha)
@@ -880,7 +880,7 @@ window.abrirAgenda = async function (nomeProfissional) {
 
     // 👇 OTIMIZAÇÃO: Busca o profissional direto do banco
     const { data: prof, error } = await supabaseClient
-      .from('profissionaisDb')
+      .from('profissionais')
       .select('*')
       .eq('nome', nomeProfissional)
       .single();
@@ -936,7 +936,7 @@ window.abrirAgenda = async function (nomeProfissional) {
         // Precisaria cruzar com os profissionais para checar especialidade, mas por questão de performance, o ideal é o backend gerenciar um status de "bloqueio_especialidade_x" no perfil do paciente. 
         // Mantemos a lógica baseada na consulta puxada.
         for (let c of ultimasCanceladas) {
-          const { data: profCancelado } = await supabaseClient.from('profissionaisDb').select('especialidade').eq('nome', c.profissional).single();
+          const { data: profCancelado } = await supabaseClient.from('profissionais').select('especialidade').eq('nome', c.profissional).single();
           if (profCancelado && profCancelado.especialidade.toLowerCase() === especialidadeAlvo) {
             let [ano, mes, dia] = c.data.split("-");
             let limite30Dias = new Date(new Date(ano, mes - 1, dia).getTime() + (30 * 24 * 60 * 60 * 1000));
@@ -1372,7 +1372,7 @@ if (formTrabalheConosco) {
 
     // 2. Verifica se o CPF já pertence a um profissional ativo
     const { data: jaProfissional } = await supabaseClient
-      .from("profissionaisDb")
+      .from("profissionais")
       .select("cpf")
       .eq("cpf", cpfLimpo)
       .single();
@@ -1485,7 +1485,7 @@ window.aprovarCandidato = async function (cpf) {
   };
 
   // 2. Insere na tabela de profissionais
-  const { error: errInsert } = await supabaseClient.from("profissionaisDb").insert([novoProfissional]);
+  const { error: errInsert } = await supabaseClient.from("profissionais").insert([novoProfissional]);
 
   if (errInsert) {
     alert("Erro ao cadastrar profissional.");
@@ -1553,11 +1553,11 @@ window.abrirModalReagendar = async function (profissionalNome, dataOriginal, hor
 
   consultaParaReagendar = consultaAtual;
 
-  const { data: profOriginal } = await supabaseClient.from("profissionaisDb").select("especialidade").eq("nome", profissionalNome).single();
+  const { data: profOriginal } = await supabaseClient.from("profissionais").select("especialidade").eq("nome", profissionalNome).single();
   if (!profOriginal) return;
 
   let especialidadeOriginal = profOriginal.especialidade.toLowerCase();
-  const { data: todosProfissionais } = await supabaseClient.from("profissionaisDb").select("nome, especialidade, registro, agenda, valor");
+  const { data: todosProfissionais } = await supabaseClient.from("profissionais").select("nome, especialidade, registro, agenda, valor");
 
   let profsDaMesmaArea = todosProfissionais.filter(p => {
     if (!p.especialidade) return false;
@@ -1882,7 +1882,7 @@ window.mudarAbaAdmin = function (aba) {
 window.renderizarAdminVisaoGeral = async function () {
   const [{ count: countPacientes }, { count: countProfs }, { count: countFichas }, { count: countConsultas }] = await Promise.all([
     supabaseClient.from("pacientes").select('*', { count: 'exact', head: true }),
-    supabaseClient.from("profissionaisDb").select('*', { count: 'exact', head: true }),
+    supabaseClient.from("profissionais").select('*', { count: 'exact', head: true }),
     supabaseClient.from("candidatos_espera").select('*', { count: 'exact', head: true }),
     supabaseClient.from("consultas").select('*', { count: 'exact', head: true })
   ]);
@@ -1898,7 +1898,7 @@ window.renderizarAdminProfissionais = async function () {
   const listaDiv = document.getElementById("listaProfissionaisAdmin");
   if (!listaDiv) return;
 
-  const { data: profissionais } = await supabaseClient.from("profissionaisDb").select("*");
+  const { data: profissionais } = await supabaseClient.from("profissionais").select("*");
   const { data: consultas } = await supabaseClient.from("consultas").select("profissional, statusGeral");
 
   listaDiv.innerHTML = "";
@@ -1930,7 +1930,7 @@ window.renderizarAdminProfissionais = async function () {
 
 window.removerProfissional = async function (registro) {
   if (confirm("⚠️ ATENÇÃO!\n\nTem certeza absoluta que deseja EXCLUIR este profissional da plataforma?\n\nEle será removido da vitrine e não poderá mais acessar o painel. Esta ação não pode ser desfeita.")) {
-    const { error } = await supabaseClient.from("profissionaisDb").delete().eq("registro", registro);
+    const { error } = await supabaseClient.from("profissionais").delete().eq("registro", registro);
     if (!error) {
       alert("Profissional removido com sucesso!");
       window.renderizarAdminProfissionais();
@@ -2178,7 +2178,7 @@ if (window.location.pathname.includes("validar.html")) {
 
     // Busca o nome do profissional no banco
     const { data: prof } = await supabaseClient
-      .from("profissionaisDb")
+      .from("profissionais")
       .select("nome")
       .eq("registro", documento.profissionalRegistro)
       .single();
@@ -2237,7 +2237,7 @@ if (window.location.pathname.includes("prescricao.html")) {
     // Buscar paciente
     const { data: paciente } = await supabaseClient.from("pacientes").select("*").eq("cpf", documento.pacienteCpf).single();
     // Buscar profissional
-    const { data: prof } = await supabaseClient.from("profissionaisDb").select("*").eq("registro", documento.profissionalRegistro).single();
+    const { data: prof } = await supabaseClient.from("profissionais").select("*").eq("registro", documento.profissionalRegistro).single();
 
     // 🔹 Preencher tela
     document.getElementById("nome").innerText = paciente?.nome || "-";
