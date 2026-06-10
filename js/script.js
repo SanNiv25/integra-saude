@@ -156,8 +156,8 @@ window.atualizarDashboardPaciente = async function () {
   if (!usuarioLogado) return;
 
   const fotoSidebar = document.getElementById("fotoPerfilSidebar");
-  if (fotoSidebar && usuarioLogado.fotoPerfil) {
-    fotoSidebar.src = usuarioLogado.fotoPerfil;
+  if (fotoSidebar && usuarioLogado.foto_perfil_url) {
+    fotoSidebar.src = usuarioLogado.foto_perfil_url;
   }
 
   // OTIMIZAÇÃO DE BACKEND: Só puxa as consultas deste CPF específico
@@ -563,8 +563,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       if (document.getElementById("nomePacienteDashboard")) document.getElementById("nomePacienteDashboard").innerText = `Olá, ${formatarNome(usuarioLogado.nome)}!`;
       if (document.getElementById("nomeSidebar")) document.getElementById("nomeSidebar").innerText = usuarioLogado.nome.toUpperCase();
-      if (document.getElementById("fotoPerfilSidebar") && usuarioLogado.fotoPerfil) {
-        document.getElementById("fotoPerfilSidebar").src = usuarioLogado.fotoPerfil;
+      if (document.getElementById("fotoPerfilSidebar") && usuarioLogado.foto_perfil_url) {
+        document.getElementById("fotoPerfilSidebar").src = usuarioLogado.foto_perfil_url;
       }
 
       if (window.atualizarDashboardPaciente) window.atualizarDashboardPaciente();
@@ -604,8 +604,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (document.getElementById("nomeSidebarProf")) document.getElementById("nomeSidebarProf").innerText = profLogado.nome.toUpperCase();
 
       const fotoExibicao = document.getElementById("fotoPerfilSidebar");
-      if (fotoExibicao && profLogado.fotoPerfil) {
-        fotoExibicao.src = profLogado.fotoPerfil;
+      if (fotoExibicao && profLogado.foto_perfil_url) {
+        fotoExibicao.src = profLogado.foto_perfil_url;
       }
 
       if (window.atualizarDashboardProfissional) window.atualizarDashboardProfissional();
@@ -719,7 +719,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       if (filtrados.length > 0) {
         filtrados.forEach(prof => {
-          const imagem = prof.imagem || "img/logo-integra.png";
+          const imagem = prof.imagem_url || "img/logo-integra.png";
           const descricao = prof.miniBio || "Profissional de excelência cadastrado na Integra Saúde.";
           const turnos = (prof.agenda && prof.agenda.turnos) ? prof.agenda.turnos : ["manha", "tarde", "noite"];
 
@@ -857,7 +857,7 @@ window.abrirAgenda = async function (nomeProfissional) {
     }
 
     // 👇 CADEADO DA FOTO PERFIL 👇
-    if (!usuarioLogado.fotoPerfil) {
+    if (!usuarioLogado.foto_perfil_url) {
       let modalFoto = document.getElementById('modalFaltaFoto');
       if (!modalFoto) {
         const modalHtml = `
@@ -1479,7 +1479,7 @@ window.aprovarCandidato = async function (cpf) {
     especialidade: cand.profissao,
     estadoReg: cand.estado,
     miniBio: "Profissional da Integra Saúde.",
-    imagem: "img/logo-integra.png",
+    imagem_url: "img/logo-integra.png",
     agenda: { turnos: ["manha", "tarde", "noite"] },
     valor: 1.00 // 👈 Adicione o valor padrão aqui
   };
@@ -2819,32 +2819,23 @@ window.abrirTermosPacote = function () {
 };
 
 /* =====================================================
-   📷 SISTEMA DE FOTO COM COMPRESSÃO E UPLOAD NA NUVEM
+   📷 SISTEMA DE FOTO COM COMPRESSÃO E UPLOAD (SUPABASE)
 ===================================================== */
 
-const CLOUD_NAME = "dyjjg0bje";
-const UPLOAD_PRESET = "exames_integra_saude"; // Usando o mesmo preset de upload configurado
-
-// 1. Função corrigida para comprimir a imagem no navegador antes de enviar
+// 1. Função para comprimir a imagem no navegador antes de enviar
 function comprimirImagem(arquivo, callback, errorCallback) {
   try {
     const leitor = new FileReader();
-
     leitor.onload = (e) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-
-        // Define o tamanho padrão da foto de perfil (quadrada)
         const tamanhoMaximo = 400;
         canvas.width = tamanhoMaximo;
         canvas.height = tamanhoMaximo;
-
-        // Desenha a imagem redimensionada
         ctx.drawImage(img, 0, 0, tamanhoMaximo, tamanhoMaximo);
 
-        // CORREÇÃO: toBlob é assíncrono e deve retornar no formato JPG com 80% de qualidade
         canvas.toBlob((blob) => {
           if (blob) {
             callback(blob);
@@ -2853,51 +2844,57 @@ function comprimirImagem(arquivo, callback, errorCallback) {
           }
         }, 'image/jpeg', 0.8);
       };
-
       img.onerror = () => {
         if (errorCallback) errorCallback("O arquivo não é uma imagem válida.");
       };
-
       img.src = e.target.result;
     };
-
     leitor.readAsDataURL(arquivo);
   } catch (err) {
     if (errorCallback) errorCallback("Falha na leitura: " + err.message);
   }
 }
 
-// Helper para fazer o upload do Blob gerado para o Cloudinary
-async function fazerUploadCloudinary(blob) {
-  const formData = new FormData();
-  formData.append("file", blob, "foto_perfil.jpg");
-  formData.append("upload_preset", UPLOAD_PRESET);
+// 2. Helper para fazer o upload do Blob gerado direto para o SUPABASE STORAGE
+async function fazerUploadSupabase(blob, cpf) {
+  const nomeArquivo = `${cpf}.jpg`;
 
-  const resposta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
-    method: "POST",
-    body: formData
-  });
+  // Faz o upload substituindo o arquivo se ele já existir (upsert: true)
+  const { data, error } = await supabaseClient
+    .storage
+    .from('fotos-perfil') // O nome exato do seu bucket
+    .upload(nomeArquivo, blob, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: 'image/jpeg'
+    });
 
-  const dados = await resposta.json();
-  if (!dados.secure_url) {
-    throw new Error("Falha no retorno da URL da imagem.");
+  if (error) {
+    throw new Error("Erro no upload para o Supabase: " + error.message);
   }
-  return dados.secure_url;
+
+  // Pega a URL pública
+  const { data: urlData } = supabaseClient
+    .storage
+    .from('fotos-perfil')
+    .getPublicUrl(nomeArquivo);
+
+  // Adicionamos um timestamp "?t=..." no final para forçar o navegador a não usar o cache antigo
+  return urlData.publicUrl + "?t=" + new Date().getTime();
 }
 
-// 2. Função de clique direto na foto da Sidebar
+// 3. Função de clique direto na foto da Sidebar
 window.atualizarFotoPerfil = async function (inputElement) {
   if (!inputElement || !inputElement.files || inputElement.files.length === 0) return;
 
-  const arquivo = inputElement.files;
-  const usuarioLogado = await getUsuarioLogado(); // Busca dados seguros do Supabase
+  const arquivo = inputElement.files[0];
+  const usuarioLogado = await getUsuarioLogado();
 
   if (!usuarioLogado) {
     alert("Sessão expirada. Faça login novamente.");
     return;
   }
 
-  // Feedback visual de carregamento
   const fotoSidebar = document.getElementById("fotoPerfilSidebar");
   const urlOriginal = fotoSidebar ? fotoSidebar.src : "";
   if (fotoSidebar) fotoSidebar.style.opacity = "0.5";
@@ -2906,27 +2903,27 @@ window.atualizarFotoPerfil = async function (inputElement) {
     arquivo,
     async (blobComprimido) => {
       try {
-        // 1. Sobe a imagem comprimida para o Cloudinary
-        const urlFotoNuvem = await fazerUploadCloudinary(blobComprimido);
+        // Sobe para o Supabase Storage
+        const urlFotoSupabase = await fazerUploadSupabase(blobComprimido, usuarioLogado.cpf);
 
-        // 2. Salva a URL da foto no Supabase
+        // Atualiza a URL na tabela de pacientes
         const { error } = await supabaseClient
           .from("pacientes")
-          .update({ fotoPerfil: urlFotoNuvem })
-          .eq("cpf", usuarioLogado.cpf);
+          .update({ foto_perfil_url: urlFotoSupabase })
+          .eq("cpf", usuarioLogado.cpf); // Corrigido para cpf, dependendo do que estiver na sua tabela. Se for paciente_cpf, mude aqui.
 
         if (error) throw error;
 
-        // 3. Atualiza a tela
+        // Atualiza a tela
         if (fotoSidebar) {
-          fotoSidebar.src = urlFotoNuvem;
+          fotoSidebar.src = urlFotoSupabase;
           fotoSidebar.style.opacity = "1";
         }
         alert("✅ Foto de perfil atualizada com sucesso!");
 
       } catch (err) {
         console.error("Erro no upload:", err);
-        alert("❌ Erro ao salvar a foto na nuvem. Tente novamente.");
+        alert("❌ Erro ao salvar a foto. Tente novamente.");
         if (fotoSidebar) {
           fotoSidebar.src = urlOriginal;
           fotoSidebar.style.opacity = "1";
@@ -2940,16 +2937,16 @@ window.atualizarFotoPerfil = async function (inputElement) {
   );
 };
 
-// 3. Função do Modal Obrigatório ("Ação Necessária")
+// 4. Função do Modal Obrigatório ("Ação Necessária")
 window.salvarFotoPendente = async function () {
   const input = document.getElementById("fotoAtualizacao");
 
-  if (!input || !input.files || !input.files) {
+  if (!input || !input.files || input.files.length === 0) {
     alert("Selecione uma foto do seu rosto.");
     return;
   }
 
-  const arquivo = input.files;
+  const arquivo = input.files[0];
   const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
 
   if (!tiposPermitidos.includes(arquivo.type)) {
@@ -2979,20 +2976,20 @@ window.salvarFotoPendente = async function () {
     arquivo,
     async (blobComprimido) => {
       try {
-        // 1. Sobe para o Cloudinary
-        const urlFotoNuvem = await fazerUploadCloudinary(blobComprimido);
+        // Sobe para o Supabase Storage
+        const urlFotoSupabase = await fazerUploadSupabase(blobComprimido, usuarioLogado.cpf);
 
-        // 2. Atualiza o banco de dados (Supabase)
+        // Atualiza o banco de dados (Tabela pacientes)
         const { error } = await supabaseClient
           .from("pacientes")
-          .update({ fotoPerfil: urlFotoNuvem })
+          .update({ foto_perfil_url: urlFotoSupabase })
           .eq("cpf", usuarioLogado.cpf);
 
         if (error) throw error;
 
-        // 3. Atualiza a UI e fecha o modal
+        // Atualiza a UI e fecha o modal
         const fotoSidebar = document.getElementById("fotoPerfilSidebar");
-        if (fotoSidebar) fotoSidebar.src = urlFotoNuvem;
+        if (fotoSidebar) fotoSidebar.src = urlFotoSupabase;
 
         const modal = document.getElementById("modalFaltaFoto");
         if (modal) modal.remove();
