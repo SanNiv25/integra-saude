@@ -13,7 +13,7 @@ async function buscarConsultasPaciente(cpfPaciente) {
   const { data, error } = await supabaseClient
     .from("consultas")
     .select("*")
-    .eq("pacienteCpf", cpfPaciente); // O banco filtra, economizando internet e memória
+    .eq("paciente_cpf", cpfPaciente); // O banco filtra, economizando internet e memória
 
   if (error) {
     console.error("Erro ao buscar consultas:", error);
@@ -338,7 +338,7 @@ window.atualizarDashboardProfissional = async function () {
 
   minhasConsultas.forEach(c => {
     if (c.isPacote) {
-      let chavePacote = c.pacoteId || c.pacienteCpf;
+      let chavePacote = c.pacoteId || c.paciente_cpf;
       if (!historicoPacotesIDs.includes(chavePacote)) {
         historicoPacotesIDs.push(chavePacote);
       }
@@ -404,7 +404,7 @@ window.atualizarDashboardProfissional = async function () {
       }
     }
 
-    let cpfConsultaLimpo = String(c.pacienteCpf || "").replace(/\D/g, "");
+    let cpfConsultaLimpo = String(c.paciente_cpf || "").replace(/\D/g, "");
     let pacienteEncontrado = usuarios ? usuarios.find(u => String(u.cpf || "").replace(/\D/g, "") === cpfConsultaLimpo) : null;
     let nomeDoPaciente = pacienteEncontrado ? pacienteEncontrado.nome : "Paciente não identificado";
 
@@ -416,7 +416,7 @@ window.atualizarDashboardProfissional = async function () {
           <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
           ${btnProf}
           
-          <button class="btn-primary" style="width: 100%; margin-top: 10px; background: #17a2b8;" onclick="abrirProntuario('${c.pacienteCpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
+          <button class="btn-primary" style="width: 100%; margin-top: 10px; background: #17a2b8;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
       </div>
     `;
   };
@@ -901,7 +901,7 @@ window.abrirAgenda = async function (nomeProfissional) {
       const { data: pacotes } = await supabaseClient
         .from('pacotes')
         .select('*')
-        .eq('pacienteCpf', usuarioLogado.cpf)
+        .eq('paciente_cpf', usuarioLogado.cpf)
         .eq('ativo', true);
 
       // Filtra os que ainda estão no prazo e não esgotaram as 4 sessões
@@ -926,7 +926,7 @@ window.abrirAgenda = async function (nomeProfissional) {
       const { data: ultimasCanceladas } = await supabaseClient
         .from('consultas')
         .select('*')
-        .eq('pacienteCpf', usuarioLogado.cpf)
+        .eq('paciente_cpf', usuarioLogado.cpf)
         .gte('numReagendamentos', 2);
 
       let especialidadeAlvo = (profissionalAtual.especialidade || "").toLowerCase();
@@ -1047,7 +1047,7 @@ window.finalizarAgendamento = async function (botaoElement) {
     especialidade: profissionalAtual.especialidade,
     data: dataSelecionada,
     hora: horarioSelecionado,
-    pacienteCpf: usuarioLogado.cpf,
+    paciente_cpf: usuarioLogado.cpf,
     statusGeral: "pendente_pagamento",
     isPacote: isPacote,
     meetLink: `https://meet.jit.si/IntegraSaude_${uniqueId}`
@@ -1071,7 +1071,7 @@ window.finalizarAgendamento = async function (botaoElement) {
   const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
     body: {
       consultaId: uniqueId,
-      pacienteCpf: usuarioLogado.cpf,
+      paciente_cpf: usuarioLogado.cpf,
       tipoAcao: isPacote ? 'pacote' : 'consulta_normal',
       sessaoPacote: numSessao,
       valorConsulta: Number(profissionalAtual.valor)
@@ -1127,6 +1127,116 @@ window.fecharAgenda = function () {
   horarioSelecionado = null;
 }
 
+/* =====================================================
+   🔹 SISTEMA DE AGENDAMENTO (CALENDÁRIO E HORÁRIOS)
+===================================================== */
+window.gerarCalendario = function () {
+  const calendario = document.getElementById("calendario");
+  if (!calendario) return;
+  calendario.innerHTML = "";
+
+  const diasSemanaNomes = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  diasSemanaNomes.forEach(dia => {
+    let div = document.createElement("div");
+    div.innerText = dia;
+    div.style.fontWeight = "bold";
+    div.style.textAlign = "center";
+    div.style.color = "#0f4c5c";
+    calendario.appendChild(div);
+  });
+
+  const agora = new Date();
+  const limiteTempo = new Date(agora.getTime());
+  const limite2Meses = new Date(agora.getFullYear(), agora.getMonth() + 2, agora.getDate());
+  let dataAtual = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+
+  let diaSemanaAtual = dataAtual.getDay();
+  for (let i = 0; i < diaSemanaAtual; i++) calendario.appendChild(document.createElement("div"));
+
+  while (dataAtual <= limite2Meses) {
+    let div = document.createElement("div");
+    div.classList.add("dia");
+    div.innerText = `${dataAtual.getDate().toString().padStart(2, '0')}/${(dataAtual.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    let diaSemana = dataAtual.getDay();
+    let dataStr = `${dataAtual.getFullYear()}-${(dataAtual.getMonth() + 1).toString().padStart(2, '0')}-${dataAtual.getDate().toString().padStart(2, '0')}`;
+
+    if (diaSemana === 0 || diaSemana === 6) {
+      div.classList.add("indisponivel");
+    } else {
+      div.classList.add("disponivel");
+      div.onclick = (e) => window.selecionarDia(dataStr, e.target);
+    }
+
+    calendario.appendChild(div);
+    dataAtual.setDate(dataAtual.getDate() + 1);
+  }
+};
+
+window.selecionarDia = function (dataStr, elementoClicado) {
+  dataSelecionada = dataStr;
+  horarioSelecionado = null;
+  document.querySelectorAll("#calendario .dia").forEach(d => d.style.outline = "none");
+  elementoClicado.style.outline = "3px solid #0E5F73";
+  window.mostrarHorarios();
+};
+
+window.mostrarHorarios = async function () {
+  const horariosDiv = document.getElementById("horarios");
+  horariosDiv.innerHTML = "Carregando horários..."; // Feedback visual
+
+  const agora = new Date();
+  const limiteTempo = new Date(agora.getTime());
+  let [ano, mes, dia] = dataSelecionada.split("-");
+
+  let slots = window.gerarSlotsProfissional();
+
+  // Consulta no banco as ocupações do médico NO DIA SELECIONADO
+  const { data: consultasDoDia } = await supabaseClient
+    .from("consultas")
+    .select("hora")
+    .eq("profissional", profissionalAtual.nome)
+    .eq("data", dataSelecionada)
+    .in("statusGeral", ["agendada", "pendente_pagamento"]);
+
+  horariosDiv.innerHTML = "";
+
+  slots.forEach(hora => {
+    let div = document.createElement("div");
+    div.classList.add("horario");
+
+    let [h, m] = hora.split(":");
+    let dataHoraSlot = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m));
+
+    let minFim = parseInt(m) + 50;
+    let hFim = parseInt(h);
+    if (minFim >= 60) { hFim += 1; minFim -= 60; }
+    const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
+
+    div.innerText = hora === "12:00" ? "12:00 (Almoço)" : `${hora} - ${horaFimStr}`;
+
+    if (hora === "12:00") {
+      div.classList.add("horario-indisponivel"); div.style.gridColumn = "span 2";
+    } else if (dataHoraSlot < limiteTempo) {
+      div.classList.add("horario-indisponivel");
+    } else {
+      let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
+
+      if (ocupado) {
+        div.classList.add("horario-indisponivel");
+      } else {
+        div.classList.add("horario-disponivel");
+        div.onclick = (e) => {
+          horarioSelecionado = hora;
+          document.querySelectorAll("#horarios .horario").forEach(el => el.style.outline = "none");
+          e.target.style.outline = "3px solid #000";
+        };
+      }
+    }
+    horariosDiv.appendChild(div);
+  });
+};
+
 window.gerarSlotsProfissional = function () {
   const turnos = profissionalAtual.agenda.turnos;
   let slots = [];
@@ -1144,7 +1254,7 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
   // OTIMIZAÇÃO: Bloqueia o horário tanto para consultas confirmadas quanto para as que estão aguardando o pagamento do Mercado Pago
   const { data: consultasDoDia } = await supabaseClient
     .from("consultas")
-    .select("hora, pacienteCpf")
+    .select("hora, paciente_cpf")
     .eq("profissional", profissionalAtual.nome)
     .eq("data", dataStr)
     .in("statusGeral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
@@ -1179,7 +1289,7 @@ window.efetivarCancelamento = async function () {
   const { data: consultaAlvo } = await supabaseClient
     .from("consultas")
     .select("*")
-    .eq("pacienteCpf", usuarioLogado.cpf)
+    .eq("paciente_cpf", usuarioLogado.cpf)
     .eq("profissional", consultaParaCancelar.profissional)
     .eq("data", consultaParaCancelar.data)
     .eq("hora", consultaParaCancelar.hora)
@@ -1193,7 +1303,7 @@ window.efetivarCancelamento = async function () {
       await supabaseClient
         .from("consultas")
         .update({ statusGeral: "cancelada_reembolso" })
-        .eq("pacienteCpf", usuarioLogado.cpf)
+        .eq("paciente_cpf", usuarioLogado.cpf)
         .eq("statusGeral", "agendada")
         .eq("pacoteId", idDoPacote);
 
@@ -1245,7 +1355,7 @@ window.entrarNaChamada = async function (prof, data, hora) {
     .eq("profissional", prof)
     .eq("data", data)
     .eq("hora", hora)
-    .eq("pacienteCpf", usuarioLogado.cpf)
+    .eq("paciente_cpf", usuarioLogado.cpf)
     .single();
 
   if (consulta) {
@@ -1530,7 +1640,7 @@ window.abrirModalReagendar = async function (profissionalNome, dataOriginal, hor
   const { data: consultaAtual } = await supabaseClient
     .from("consultas")
     .select("*")
-    .eq("pacienteCpf", usuarioLogado.cpf)
+    .eq("paciente_cpf", usuarioLogado.cpf)
     .eq("profissional", profissionalNome)
     .eq("data", dataOriginal)
     .eq("hora", horaOriginal)
@@ -1619,7 +1729,7 @@ window.confirmarReagendamento = async function (botaoElement) {
     const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
       body: {
         consultaId: consultaParaReagendar.id,
-        pacienteCpf: usuarioLogado.cpf,
+        paciente_cpf: usuarioLogado.cpf,
         tipoAcao: 'reagendamento_taxa',
         novoProfissional: profissionalReagendarAtual.nome,
         novaData: dataSelecionada,
@@ -1956,7 +2066,7 @@ window.renderizarAdminFinanceiro = async function () {
   }
 
   consultas.forEach(consulta => {
-    let paciente = pacientes ? pacientes.find(u => u.cpf === consulta.pacienteCpf) : null;
+    let paciente = pacientes ? pacientes.find(u => u.cpf === consulta.paciente_cpf) : null;
     let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
 
     let statusHTML = `<span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
@@ -1974,7 +2084,7 @@ window.renderizarAdminFinanceiro = async function () {
         <div>
           <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${consulta.data.split('-').reverse().join('/')} às ${consulta.hora}</h3>
           <p style="font-size: 13px; color: #555;"><strong>Profissional:</strong> ${consulta.profissional}</p>
-          <p style="font-size: 13px; color: #555;"><strong>Paciente:</strong> ${nomePac} (CPF: ${consulta.pacienteCpf})</p>
+          <p style="font-size: 13px; color: #555;"><strong>Paciente:</strong> ${nomePac} (CPF: ${consulta.paciente_cpf})</p>
         </div>
         <div style="text-align: right;">
           ${statusHTML}
@@ -2038,7 +2148,7 @@ window.renderizarHistoricoProntuario = async function () {
   const { data: registros, error } = await supabaseClient
     .from("prontuarios")
     .select("*")
-    .eq("pacienteCpf", pacienteProntuarioAtual.cpf)
+    .eq("paciente_cpf", pacienteProntuarioAtual.cpf)
     .eq("profissionalRegistro", profLogado.registro)
     .order("created_at", { ascending: false });
 
@@ -2083,7 +2193,7 @@ window.salvarRegistroProntuario = async function (tipo, enviarEmail) {
 
     const novoRegistro = {
       id: documentoId, // No futuro, UUID gerado pelo Supabase
-      pacienteCpf: pacienteProntuarioAtual.cpf,
+      paciente_cpf: pacienteProntuarioAtual.cpf,
       profissionalRegistro: profLogado.registro,
       tipo: tipo,
       texto: texto,
@@ -2171,7 +2281,7 @@ if (window.location.pathname.includes("validar.html")) {
     const { data: paciente } = await supabaseClient
       .from("pacientes")
       .select("nome")
-      .eq("cpf", documento.pacienteCpf)
+      .eq("cpf", documento.paciente_cpf)
       .single();
 
     let nomePac = paciente ? paciente.nome : "Paciente não identificado";
@@ -2199,7 +2309,7 @@ if (window.location.pathname.includes("validar.html")) {
             <p><strong>Código de Autenticação:</strong> <span style="color:#0F4C5C;">${documento.id}</span></p>
             <p><strong>Tipo de Documento:</strong> ${tipoNome}</p>
             <p><strong>Data de Emissão:</strong> ${documento.dataHora}</p>
-            <p><strong>Paciente:</strong> ${nomePac} (CPF: ${documento.pacienteCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")})</p>
+            <p><strong>Paciente:</strong> ${nomePac} (CPF: ${documento.paciente_cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")})</p>
             <p><strong>Emitido por:</strong> ${nomeProf} (${documento.profissionalRegistro})</p>
           </div>
           
@@ -2235,13 +2345,13 @@ if (window.location.pathname.includes("prescricao.html")) {
     }
 
     // Buscar paciente
-    const { data: paciente } = await supabaseClient.from("pacientes").select("*").eq("cpf", documento.pacienteCpf).single();
+    const { data: paciente } = await supabaseClient.from("pacientes").select("*").eq("cpf", documento.paciente_cpf).single();
     // Buscar profissional
     const { data: prof } = await supabaseClient.from("profissionais").select("*").eq("registro", documento.profissionalRegistro).single();
 
     // 🔹 Preencher tela
     document.getElementById("nome").innerText = paciente?.nome || "-";
-    let cpf = documento.pacienteCpf || "00000000000";
+    let cpf = documento.paciente_cpf || "00000000000";
     cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
     document.getElementById("cpf").innerText = cpf;
@@ -2424,7 +2534,7 @@ window.salvarExamePaciente = async function () {
 
     // 2. Salva o registro (link e metadados) na tabela do Supabase (em vez do LocalStorage)
     const novoExame = {
-      pacienteCpf: usuarioLogado.cpf,
+      paciente_cpf: usuarioLogado.cpf,
       nomeArquivo: file.name,
       tipo: file.type,
       dataEnvio: new Date().toLocaleDateString('pt-BR'),
@@ -2461,7 +2571,7 @@ window.salvarExamePaciente = async function () {
 /* =====================================================
    🔹 3. OTIMIZAÇÃO: BUSCA DE EXAMES PARA O PROFISSIONAL
 ===================================================== */
-window.carregarExamesDoPaciente = async function (idPacienteCpf) {
+window.carregarExamesDoPaciente = async function (idpaciente_cpf) {
   const container = document.getElementById('listaExamesPaciente');
   if (!container) return;
 
@@ -2471,7 +2581,7 @@ window.carregarExamesDoPaciente = async function (idPacienteCpf) {
   const { data: examesDoPaciente, error } = await supabaseClient
     .from("exames_pacientes")
     .select("*")
-    .eq("pacienteCpf", idPacienteCpf)
+    .eq("paciente_cpf", idpaciente_cpf)
     .order('created_at', { ascending: false });
 
   if (error || !examesDoPaciente || examesDoPaciente.length === 0) {
@@ -2558,7 +2668,7 @@ window.carregarMinhasConsultas = async function () {
   const { data: minhasConsultas, error } = await supabaseClient
     .from("consultas")
     .select("*")
-    .eq("pacienteCpf", usuarioLogado.cpf)
+    .eq("paciente_cpf", usuarioLogado.cpf)
     .order('data', { ascending: false });
 
   if (error || !minhasConsultas || minhasConsultas.length === 0) {
@@ -2771,7 +2881,7 @@ window.atualizarContadorPacote = async function () {
   const { data: pacotes, error } = await supabaseClient
     .from("pacotes")
     .select("*")
-    .eq("pacienteCpf", usuarioLogado.cpf)
+    .eq("paciente_cpf", usuarioLogado.cpf)
     .eq("ativo", true);
 
   const painel = document.getElementById("painelStatusPacote");
