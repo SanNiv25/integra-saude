@@ -163,7 +163,7 @@ window.atualizarDashboardPaciente = async function () {
   // OTIMIZAÇÃO DE BACKEND: Só puxa as consultas deste CPF específico
   const minhasConsultas = await buscarConsultasPaciente(usuarioLogado.cpf);
 
-  const jaTeveConsultaFinalizada = minhasConsultas.some(c => c.statusGeral === 'finalizada');
+  const jaTeveConsultaFinalizada = minhasConsultas.some(c => c.status_geral === 'finalizada');
   const menuPacote = document.getElementById('menuAgendarPacote');
 
   if (menuPacote) {
@@ -239,10 +239,10 @@ window.atualizarDashboardPaciente = async function () {
 
         let botoesRender = "";
 
-        if (consulta.statusGeral === 'finalizada') {
+        if (consulta.status_geral === 'finalizada') {
           classePassada = "consulta-inativa consulta-finalizada";
           botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px; text-decoration: none !important;">✅ Atendido</p>`;
-        } else if (consulta.statusGeral === 'ausente') {
+        } else if (consulta.status_geral === 'ausente') {
           classePassada = "consulta-inativa consulta-ausente";
           botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">❌ Não compareceu</p>`;
         } else if (agora.getTime() >= tempoFim) {
@@ -250,8 +250,8 @@ window.atualizarDashboardPaciente = async function () {
           botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">Consulta Encerrada</p>`;
         } else {
           if (agora.getTime() >= dezMinAntes) {
-            if (consulta.statusPaciente === 'na_sala') {
-              btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; background: #2E7D32; font-size: 13px; padding: 10px 5px;" onclick="window.open('${consulta.meetLink}', '_blank')">Retornar à Chamada</button>`;
+            if (consulta.status_paciente === 'na_sala') {
+              btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; background: #2E7D32; font-size: 13px; padding: 10px 5px;" onclick="window.open('${consulta.meet_link}', '_blank')">Retornar à Chamada</button>`;
             } else {
               btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="entrarNaChamada('${consulta.profissional}', '${consulta.data}', '${consulta.hora}')">Iniciar Consulta</button>`;
             }
@@ -307,14 +307,14 @@ window.atualizarDashboardProfissional = async function () {
 
   // 1. AUTO-LIMPEZA VISUAL (Não mexe no banco, apenas atualiza a tela)
   minhasConsultas.forEach(c => {
-    if (c.statusGeral === 'agendada') {
+    if (c.status_geral === 'agendada') {
       const [ano, mes, dia] = c.data.split("-");
       const [h, m] = c.hora.split(":");
       const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (80 * 60 * 1000);
 
       // Se passou o tempo e ele não está na sala, mostra como ausente na tela do profissional
-      if (agora.getTime() >= limiteTolerancia && c.statusProfissional !== 'na_sala') {
-        c.statusGeral = 'ausente';
+      if (agora.getTime() >= limiteTolerancia && c.status_profissional !== 'na_sala') {
+        c.status_geral = 'ausente';
       }
     }
   });
@@ -327,18 +327,18 @@ window.atualizarDashboardProfissional = async function () {
     return lista.sort((a, b) => new Date(a.data + "T" + a.hora).getTime() - new Date(b.data + "T" + b.hora).getTime());
   };
 
-  let pendentes = ordenarFuturas(minhasConsultas.filter(c => c.statusGeral === 'agendada'));
-  let realizadas = ordenarHistorico(minhasConsultas.filter(c => c.statusGeral === 'finalizada'));
-  let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.statusGeral === 'cancelada' || c.statusGeral === 'cancelada_reembolso'));
-  let ausentes = ordenarHistorico(minhasConsultas.filter(c => c.statusGeral === 'ausente'));
+  let pendentes = ordenarFuturas(minhasConsultas.filter(c => c.status_geral === 'agendada'));
+  let realizadas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'finalizada'));
+  let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
+  let ausentes = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'ausente'));
 
   // 3. IDENTIFICAÇÃO GLOBAL DOS PACOTES
   let historicoPacotesIDs = [];
   let contadorSessoes = {};
 
   minhasConsultas.forEach(c => {
-    if (c.isPacote) {
-      let chavePacote = c.pacoteId || c.paciente_cpf;
+    if (c.is_pacote) {
+      let chavePacote = c.pacote_id || c.paciente_cpf;
       if (!historicoPacotesIDs.includes(chavePacote)) {
         historicoPacotesIDs.push(chavePacote);
       }
@@ -368,20 +368,20 @@ window.atualizarDashboardProfissional = async function () {
     const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
 
     let avisoPacoteHTML = "";
-    if (c.isPacote) {
+    if (c.is_pacote) {
       avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada || '?'}/4 do Pacote N° ${c.pacoteIndexGlobal || ''}</div>`;
     }
 
     let btnProf = "";
     let classePassada = "";
 
-    if (c.statusGeral === 'finalizada') {
+    if (c.status_geral === 'finalizada') {
       classePassada = "consulta-inativa consulta-finalizada";
       btnProf = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Finalizada</p>`;
-    } else if (c.statusGeral === 'ausente') {
+    } else if (c.status_geral === 'ausente') {
       classePassada = "consulta-inativa consulta-ausente";
       btnProf = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
-    } else if (c.statusGeral === 'cancelada' || c.statusGeral === 'cancelada_reembolso') {
+    } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
       classePassada = "consulta-inativa";
       btnProf = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Cancelada</p>`;
     } else if (agora.getTime() >= tempoFimComTolerancia) {
@@ -391,7 +391,7 @@ window.atualizarDashboardProfissional = async function () {
       if (agora.getTime() < inicioLiberado) {
         btnProf = `<button style="width: 100%; margin-top: 15px; padding: 10px; background: #999; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed;" disabled>Aguardando horário...</button>`;
       } else {
-        if (c.statusProfissional === 'na_sala') {
+        if (c.status_profissional === 'na_sala') {
           btnProf = `<button style="width: 100%; margin-top: 15px; padding: 10px; background: #2E7D32; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="entrarNaChamadaProfissional('${c.profissional}', '${c.data}', '${c.hora}')">Retornar à Chamada</button>`;
           if (agora.getTime() >= tempoParaPoderFinalizar) {
             btnProf += `<button style="width: 100%; margin-top: 10px; padding: 10px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="finalizarConsulta('${c.profissional}', '${c.data}', '${c.hora}')">Finalizar Consulta</button>`;
@@ -892,12 +892,12 @@ window.abrirAgenda = async function (nomeProfissional) {
     profissionalAtual = prof;
 
     const urlParams = new URLSearchParams(window.location.search);
-    const isPacote = urlParams.get('tipo') === 'pacote';
+    const is_pacote = urlParams.get('tipo') === 'pacote';
     const hoje = new Date();
 
     // 👇 OTIMIZAÇÃO: Busca pacotes ativos do paciente no Supabase
     let pacoteEmAndamento = null;
-    if (isPacote) {
+    if (is_pacote) {
       const { data: pacotes } = await supabaseClient
         .from('pacotes')
         .select('*')
@@ -922,7 +922,7 @@ window.abrirAgenda = async function (nomeProfissional) {
 
     // Lógica simplificada para bloqueio de agendamento por taxa (Se você tiver uma coluna "bloqueado" na tabela pacientes, fica ainda mais fácil no futuro).
     // Aqui adaptamos a verificação consultando o banco.
-    if (!isPacote) {
+    if (!is_pacote) {
       const { data: ultimasCanceladas } = await supabaseClient
         .from('consultas')
         .select('*')
@@ -957,7 +957,7 @@ window.abrirAgenda = async function (nomeProfissional) {
     if (!profissionalAtual.agenda) profissionalAtual.agenda = { turnos: ["manha", "tarde", "noite"] };
 
     let avisoPacoteHtml = "";
-    if (isPacote && pacoteEmAndamento) {
+    if (is_pacote && pacoteEmAndamento) {
       avisoPacoteHtml = `<div style="background: #FFF3CD; color: #856404; padding: 10px; text-align: center; font-weight: bold; border-radius: 6px; margin-bottom: 15px; border: 1px solid #FFEEBA;">📦 MODO PACOTE ATIVADO - Suas escolhas seguirão a regra de 30 dias.</div>`;
     }
 
@@ -1033,11 +1033,11 @@ window.finalizarAgendamento = async function (botaoElement) {
   if (!usuarioLogado) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const isPacote = urlParams.get('tipo') === 'pacote';
+  const is_pacote = urlParams.get('tipo') === 'pacote';
   const uniqueId = Date.now() + "_" + Math.random().toString(36).substr(2, 9);
 
   let numSessao = 1;
-  if (isPacote && typeof pacoteEmAndamento !== 'undefined' && pacoteEmAndamento) {
+  if (is_pacote && typeof pacoteEmAndamento !== 'undefined' && pacoteEmAndamento) {
     numSessao = pacoteEmAndamento.agendadas + 1;
   }
 
@@ -1048,9 +1048,9 @@ window.finalizarAgendamento = async function (botaoElement) {
     data: dataSelecionada,
     hora: horarioSelecionado,
     paciente_cpf: usuarioLogado.cpf,
-    statusGeral: "pendente_pagamento",
-    isPacote: isPacote,
-    meetLink: `https://meet.jit.si/IntegraSaude_${uniqueId}`
+    status_geral: "pendente_pagamento",
+    is_pacote: is_pacote,
+    meet_link: `https://meet.jit.si/IntegraSaude_${uniqueId}`
   };
 
   // 2. Salva no banco imediatamente
@@ -1072,7 +1072,7 @@ window.finalizarAgendamento = async function (botaoElement) {
     body: {
       consultaId: uniqueId,
       paciente_cpf: usuarioLogado.cpf,
-      tipoAcao: isPacote ? 'pacote' : 'consulta_normal',
+      tipoAcao: is_pacote ? 'pacote' : 'consulta_normal',
       sessaoPacote: numSessao,
       valorConsulta: Number(profissionalAtual.valor)
     }
@@ -1091,11 +1091,11 @@ window.finalizarAgendamento = async function (botaoElement) {
 
   // Caso A: É uma sessão gratuita de pacote
   if (respostaPagamento && respostaPagamento.status === 'gratis') {
-    await supabaseClient.from("consultas").update({ statusGeral: "agendada" }).eq("id", uniqueId);
+    await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("id", uniqueId);
 
     const agenda = document.getElementById("agendaContainer");
     if (agenda) {
-      let titulo = isPacote ? `✅ Consulta ${numSessao} Confirmada!` : "✅ Consulta Confirmada!";
+      let titulo = is_pacote ? `✅ Consulta ${numSessao} Confirmada!` : "✅ Consulta Confirmada!";
       agenda.innerHTML = `
         <div class="agenda-box" style="text-align: center; padding: 40px 20px;">
           <h2 style="color: #2E7D32;">${titulo}</h2>
@@ -1197,7 +1197,7 @@ window.mostrarHorarios = async function () {
     .select("hora")
     .eq("profissional", profissionalAtual.nome)
     .eq("data", dataSelecionada)
-    .in("statusGeral", ["agendada", "pendente_pagamento"]);
+    .in("status_geral", ["agendada", "pendente_pagamento"]);
 
   horariosDiv.innerHTML = "";
 
@@ -1257,7 +1257,7 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
     .select("hora, paciente_cpf")
     .eq("profissional", profissionalAtual.nome)
     .eq("data", dataStr)
-    .in("statusGeral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
+    .in("status_geral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
 
   let totalSlotsValidos = 0;
   let slotsOcupados = 0;
@@ -1296,16 +1296,16 @@ window.efetivarCancelamento = async function () {
     .single();
 
   if (consultaAlvo) {
-    if (consultaAlvo.isPacote) {
-      const idDoPacote = consultaAlvo.pacoteId;
+    if (consultaAlvo.is_pacote) {
+      const idDoPacote = consultaAlvo.pacote_id;
 
       // 1. Cancela TUDO que for desse pacote
       await supabaseClient
         .from("consultas")
-        .update({ statusGeral: "cancelada_reembolso" })
+        .update({ status_geral: "cancelada_reembolso" })
         .eq("paciente_cpf", usuarioLogado.cpf)
-        .eq("statusGeral", "agendada")
-        .eq("pacoteId", idDoPacote);
+        .eq("status_geral", "agendada")
+        .eq("pacote_id", idDoPacote);
 
       // 2. Desativa o pacote na tabela de pacotes
       if (idDoPacote) {
@@ -1318,7 +1318,7 @@ window.efetivarCancelamento = async function () {
       // Cancela a consulta normal
       await supabaseClient
         .from("consultas")
-        .update({ statusGeral: "cancelada_reembolso" })
+        .update({ status_geral: "cancelada_reembolso" })
         .eq("id", consultaAlvo.id);
     }
   }
@@ -1359,15 +1359,15 @@ window.entrarNaChamada = async function (prof, data, hora) {
     .single();
 
   if (consulta) {
-    let meetLink = consulta.meetLink;
+    let meet_link = consulta.meet_link;
 
     // Atualiza status no banco para avisar o médico
     await supabaseClient
       .from("consultas")
-      .update({ statusPaciente: "na_sala" })
+      .update({ status_paciente: "na_sala" })
       .eq("id", consulta.id);
 
-    const novaAba = window.open(meetLink, '_blank', 'noopener,noreferrer');
+    const novaAba = window.open(meet_link, '_blank', 'noopener,noreferrer');
     if (!novaAba) alert("O navegador bloqueou a abertura da chamada. Permita os pop-ups.");
   }
 };
@@ -1385,10 +1385,10 @@ window.entrarNaChamadaProfissional = async function (prof, data, hora) {
     // Atualiza status no banco para avisar o paciente
     await supabaseClient
       .from("consultas")
-      .update({ statusProfissional: "na_sala" })
+      .update({ status_profissional: "na_sala" })
       .eq("id", consulta.id);
 
-    const novaAba = window.open(consulta.meetLink, '_blank', 'noopener,noreferrer');
+    const novaAba = window.open(consulta.meet_link, '_blank', 'noopener,noreferrer');
     if (!novaAba) alert("O navegador bloqueou a abertura da chamada.");
   }
 };
@@ -1400,7 +1400,7 @@ window.finalizarConsulta = async function (prof, data, hora) {
 
     await supabaseClient
       .from("consultas")
-      .update({ statusGeral: "finalizada" })
+      .update({ status_geral: "finalizada" })
       .eq("profissional", prof)
       .eq("data", data)
       .eq("hora", hora);
@@ -1413,7 +1413,7 @@ window.marcarAusencia = async function (prof, data, hora) {
   if (confirm("O paciente não compareceu. Deseja encerrar a consulta por falta?")) {
     await supabaseClient
       .from("consultas")
-      .update({ statusGeral: "ausente" })
+      .update({ status_geral: "ausente" })
       .eq("profissional", prof)
       .eq("data", data)
       .eq("hora", hora);
@@ -1644,12 +1644,12 @@ window.abrirModalReagendar = async function (profissionalNome, dataOriginal, hor
     .eq("profissional", profissionalNome)
     .eq("data", dataOriginal)
     .eq("hora", horaOriginal)
-    .eq("statusGeral", "agendada")
+    .eq("status_geral", "agendada")
     .single();
 
   if (!consultaAtual) return;
 
-  if (consultaAtual.isPacote === true) {
+  if (consultaAtual.is_pacote === true) {
     alert("⚠️ REAGENDAMENTO NEGADO\n\nConsultas agendadas através de Pacotes Promocionais não podem ser reagendadas.");
     return;
   }
@@ -1716,7 +1716,7 @@ window.confirmarReagendamento = async function (botaoElement) {
     .eq("profissional", profissionalReagendarAtual.nome)
     .eq("data", dataSelecionada)
     .eq("hora", horarioSelecionado)
-    .in("statusGeral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
+    .in("status_geral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
 
   if (choque && choque.length > 0) {
     alert("O horário selecionado acabou de ser ocupado. Por favor, escolha outro.");
@@ -1766,8 +1766,8 @@ window.confirmarReagendamento = async function (botaoElement) {
         data: dataSelecionada,
         hora: horarioSelecionado,
         numReagendamentos: novaContagem,
-        statusPaciente: null,
-        statusProfissional: null
+        status_paciente: null,
+        status_profissional: null
       })
       .eq("id", consultaParaReagendar.id);
 
@@ -1878,7 +1878,7 @@ window.mostrarHorariosReagendar = async function () {
     .select("hora")
     .eq("profissional", profissionalReagendarAtual.nome)
     .eq("data", dataSelecionada)
-    .eq("statusGeral", "agendada");
+    .eq("status_geral", "agendada");
 
   horariosDiv.innerHTML = "";
 
@@ -2009,7 +2009,7 @@ window.renderizarAdminProfissionais = async function () {
   if (!listaDiv) return;
 
   const { data: profissionais } = await supabaseClient.from("profissionais").select("*");
-  const { data: consultas } = await supabaseClient.from("consultas").select("profissional, statusGeral");
+  const { data: consultas } = await supabaseClient.from("consultas").select("profissional, status_geral");
 
   listaDiv.innerHTML = "";
   if (!profissionais || profissionais.length === 0) {
@@ -2019,8 +2019,8 @@ window.renderizarAdminProfissionais = async function () {
 
   profissionais.forEach(prof => {
     let consultasDoProf = consultas ? consultas.filter(c => c.profissional === prof.nome) : [];
-    let concluidas = consultasDoProf.filter(c => c.statusGeral === 'finalizada').length;
-    let futuras = consultasDoProf.filter(c => c.statusGeral === 'agendada').length;
+    let concluidas = consultasDoProf.filter(c => c.status_geral === 'finalizada').length;
+    let futuras = consultasDoProf.filter(c => c.status_geral === 'agendada').length;
 
     listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;">
@@ -2071,11 +2071,11 @@ window.renderizarAdminFinanceiro = async function () {
 
     let statusHTML = `<span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
 
-    if (consulta.statusGeral === 'finalizada') {
+    if (consulta.status_geral === 'finalizada') {
       statusHTML = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDA</span>`;
-    } else if (consulta.statusGeral === 'ausente') {
+    } else if (consulta.status_geral === 'ausente') {
       statusHTML = `<span style="background: #e67e22; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PACIENTE FALTOU</span>`;
-    } else if (consulta.statusGeral === 'cancelada_reembolso') {
+    } else if (consulta.status_geral === 'cancelada_reembolso') {
       statusHTML = `<span style="background: #e74c3c; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">🚨 CANCELADA - REEMBOLSAR</span>`;
     }
 
@@ -2679,14 +2679,14 @@ window.carregarMinhasConsultas = async function () {
   // 1. AUTO-LIMPEZA VISUAL (Sem tocar no banco a cada F5)
   const agora = new Date();
   minhasConsultas.forEach(c => {
-    if (c.statusGeral === 'agendada') {
+    if (c.status_geral === 'agendada') {
       const [ano, mes, dia] = c.data.split("-");
       const [h, m] = c.hora.split(":");
       const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (80 * 60 * 1000);
 
       // Se passou o tempo e o paciente não entrou na sala, marca como ausente visualmente.
-      if (agora.getTime() >= limiteTolerancia && c.statusPaciente !== 'na_sala') {
-        c.statusGeral = 'ausente';
+      if (agora.getTime() >= limiteTolerancia && c.status_paciente !== 'na_sala') {
+        c.status_geral = 'ausente';
         // Nota: Idealmente, uma Função do Supabase faz esse UPDATE oficial depois de x horas.
       }
     }
@@ -2697,8 +2697,8 @@ window.carregarMinhasConsultas = async function () {
   let contadorSessoes = {};
 
   minhasConsultas.forEach(c => {
-    if (c.isPacote) {
-      let chavePacote = c.pacoteId || c.profissional;
+    if (c.is_pacote) {
+      let chavePacote = c.pacote_id || c.profissional;
       if (!historicoPacotesIDs.includes(chavePacote)) historicoPacotesIDs.push(chavePacote);
       c.pacoteIndexGlobal = historicoPacotesIDs.indexOf(chavePacote) + 1;
 
@@ -2711,7 +2711,7 @@ window.carregarMinhasConsultas = async function () {
   // 3. ORDENAÇÃO E SEPARAÇÃO
   const ordenarHistorico = (lista) => {
     return lista.sort((a, b) => {
-      if (a.isPacote && b.isPacote) {
+      if (a.is_pacote && b.is_pacote) {
         if (a.pacoteIndexGlobal !== b.pacoteIndexGlobal) return b.pacoteIndexGlobal - a.pacoteIndexGlobal;
         return a.sessaoNumeroCalculada - b.sessaoNumeroCalculada;
       }
@@ -2719,11 +2719,11 @@ window.carregarMinhasConsultas = async function () {
     });
   };
 
-  let pacotes = ordenarHistorico(minhasConsultas.filter(c => c.isPacote && c.statusGeral === 'agendada'));
-  let individuais = ordenarHistorico(minhasConsultas.filter(c => !c.isPacote && c.statusGeral === 'agendada'));
-  let realizadas = ordenarHistorico(minhasConsultas.filter(c => c.statusGeral === 'finalizada'));
-  let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.statusGeral === 'cancelada' || c.statusGeral === 'cancelada_reembolso'));
-  let perdidas = ordenarHistorico(minhasConsultas.filter(c => c.statusGeral === 'ausente'));
+  let pacotes = ordenarHistorico(minhasConsultas.filter(c => c.is_pacote && c.status_geral === 'agendada'));
+  let individuais = ordenarHistorico(minhasConsultas.filter(c => !c.is_pacote && c.status_geral === 'agendada'));
+  let realizadas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'finalizada'));
+  let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
+  let perdidas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'ausente'));
 
   let menuAbas = `
     <div style="display: flex; overflow-x: auto; gap: 15px; border-bottom: 2px solid #ddd; padding-bottom: 0px; margin-bottom: 25px; scrollbar-width: thin;">
@@ -2754,7 +2754,7 @@ window.carregarMinhasConsultas = async function () {
     let classePassada = "";
     let avisoPacoteHTML = "";
 
-    if (c.isPacote) {
+    if (c.is_pacote) {
       if (isAbaPrincipalPacotes) {
         avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada}/4 do Pacote</div>`;
       } else {
@@ -2762,13 +2762,13 @@ window.carregarMinhasConsultas = async function () {
       }
     }
 
-    if (c.statusGeral === 'finalizada') {
+    if (c.status_geral === 'finalizada') {
       classePassada = "consulta-inativa consulta-finalizada";
       botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Concluída</p>`;
-    } else if (c.statusGeral === 'ausente') {
+    } else if (c.status_geral === 'ausente') {
       classePassada = "consulta-inativa consulta-ausente";
       botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
-    } else if (c.statusGeral === 'cancelada' || c.statusGeral === 'cancelada_reembolso') {
+    } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
       classePassada = "consulta-inativa";
       botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Consulta Cancelada</p>`;
     } else if (agora.getTime() >= tempoFim) {
@@ -2779,7 +2779,7 @@ window.carregarMinhasConsultas = async function () {
       let btnCancelar = "";
       let btnMeet = `<button style="flex: 1; margin: 0; background: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>Iniciar Consulta</button>`;
 
-      if (c.isPacote) {
+      if (c.is_pacote) {
         btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
       } else if (agora.getTime() >= tempo24hAntes) {
         btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
@@ -2787,17 +2787,17 @@ window.carregarMinhasConsultas = async function () {
         btnReagendar = `<button style="flex: 1; margin: 0; background-color: #5bc0de; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalReagendar('${c.profissional}', '${c.data}', '${c.hora}')">🔄 Reagendar</button>`;
       }
 
-      if (c.isPacote && c.sessaoNumeroCalculada !== 1) {
+      if (c.is_pacote && c.sessaoNumeroCalculada !== 1) {
         btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
       } else if (agora.getTime() >= tempo24hAntes) {
         btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
       } else {
-        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.profissional}', '${c.data}', '${c.hora}', ${c.isPacote}, ${c.sessaoNumeroCalculada || 0})">❌ Cancelar</button>`;
+        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.profissional}', '${c.data}', '${c.hora}', ${c.is_pacote}, ${c.sessaoNumeroCalculada || 0})">❌ Cancelar</button>`;
       }
 
       if (agora.getTime() >= dezMinAntes) {
-        if (c.statusProfissional === 'na_sala') {
-          if (c.statusPaciente === 'na_sala') {
+        if (c.status_profissional === 'na_sala') {
+          if (c.status_paciente === 'na_sala') {
             btnMeet = `<button style="flex: 1; margin: 0; background: #2E7D32; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Retornar à Chamada</button>`;
           } else {
             btnMeet = `<button style="flex: 1; margin: 0; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Entrar na Chamada</button>`;
@@ -2825,7 +2825,7 @@ window.carregarMinhasConsultas = async function () {
     if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhum pacote pendente no momento.</p>`;
     let gruposArray = [];
     lista.forEach(c => {
-      let chave = c.pacoteId || c.profissional;
+      let chave = c.pacote_id || c.profissional;
       let grupo = gruposArray.find(g => g.id === chave);
       if (!grupo) { grupo = { id: chave, consultas: [] }; gruposArray.push(grupo); }
       grupo.consultas.push(c);
