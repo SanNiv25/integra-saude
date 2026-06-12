@@ -219,11 +219,11 @@ window.atualizarDashboardPaciente = async function () {
         const tempo24hAntes = tempoConsulta - (24 * 60 * 60 * 1000);
 
         let btnReagendar = "";
-        let numReagendamentos = consulta.numReagendamentos || 0;
+        let num_reagendamentos = consulta.num_reagendamentos || 0;
 
         if (agora.getTime() >= tempo24hAntes) {
           btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled title="Não é possível reagendar com menos de 24h de antecedência.">🔄 Reagendar (Bloqueado)</button>`;
-        } else if (numReagendamentos >= 2) {
+        } else if (num_reagendamentos >= 2) {
           btnReagendar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; padding: 10px 5px;" onclick="abrirModalReagendar( '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}')">🔄 Reagendar (Bloqueado)</button>`;
         } else {
           btnReagendar = `<button style="flex: 1; margin: 0; background-color: #0E5F73; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; padding: 10px 5px;" onclick="abrirModalReagendar( '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}')">🔄 Reagendar</button>`;
@@ -927,7 +927,7 @@ window.abrirAgenda = async function (nomeProfissional) {
         .from('consultas')
         .select('*')
         .eq('paciente_cpf', usuarioLogado.cpf)
-        .gte('numReagendamentos', 2);
+        .gte('num_reagendamentos', 2);
 
       let especialidadeAlvo = (profissionalAtual.especialidade || "").toLowerCase();
       let bloqueado = false;
@@ -1069,7 +1069,7 @@ window.finalizarAgendamento = async function (botaoElement) {
   const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
     body: {
       consultaId: uniqueId,
-      paciente_cpf: usuarioLogado.cpf,
+      pacienteCpf: usuarioLogado.cpf,
       tipoAcao: is_pacote ? 'pacote' : 'consulta_normal',
       sessaoPacote: numSessao,
       valorConsulta: Number(profissionalAtual.valor)
@@ -1652,10 +1652,10 @@ window.abrirModalReagendar = async function (profissionalNome, dataOriginal, hor
     return;
   }
 
-  let numReagendamentos = consultaAtual.numReagendamentos || 0;
+  let num_reagendamentos = consultaAtual.num_reagendamentos || 0;
 
   // AVISO DE TAXA EM VEZ DE BLOQUEIO
-  if (numReagendamentos >= 2) {
+  if (num_reagendamentos >= 2) {
     alert("⚠️ ATENÇÃO:\nVocê já utilizou os seus 2 reagendamentos gratuitos.\n\nPara confirmar este novo reagendamento, será cobrada uma taxa de 30% do valor da consulta com o profissional selecionado.");
   }
 
@@ -1705,7 +1705,7 @@ window.confirmarReagendamento = async function (botaoElement) {
     return;
   }
 
-  let novaContagem = (consultaParaReagendar.numReagendamentos || 0) + 1;
+  let novaContagem = (consultaParaReagendar.num_reagendamentos || 0) + 1;
 
   // 1. Verifica choque de horário (AGORA BLOQUEANDO PENDENTES TAMBÉM)
   const { data: choque } = await supabaseClient
@@ -1727,7 +1727,7 @@ window.confirmarReagendamento = async function (botaoElement) {
     const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
       body: {
         consultaId: consultaParaReagendar.id,
-        paciente_cpf: usuarioLogado.cpf,
+        pacienteCpf: usuarioLogado.cpf,
         tipoAcao: 'reagendamento_taxa',
         novoProfissional: profissionalReagendarAtual.nome,
         novaData: dataSelecionada,
@@ -1763,7 +1763,7 @@ window.confirmarReagendamento = async function (botaoElement) {
         profissional: profissionalReagendarAtual.nome,
         data: dataSelecionada,
         hora: horarioSelecionado,
-        numReagendamentos: novaContagem,
+        num_reagendamentos: novaContagem,
         status_paciente: null,
         status_profissional: null
       })
