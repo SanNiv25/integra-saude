@@ -1020,9 +1020,7 @@ window.confirmarConsulta = function () {
    🔹 FINALIZAR AGENDAMENTO (Criação e Pagamento via Mercado Pago)
 ===================================================== */
 window.finalizarAgendamento = async function (botaoElement) {
-  alert("ENTREI NA FUNÇÃO NOVA");
 
-  console.log("FUNÇÃO NOVA EXECUTADA");
   // 1. Feedback visual para o paciente não clicar duas vezes
   if (botaoElement) {
     botaoElement.innerText = "Conectando ao Mercado Pago...";
