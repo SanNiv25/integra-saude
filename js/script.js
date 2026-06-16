@@ -3122,3 +3122,22 @@ window.salvarFotoPendente = async function () {
     }
   );
 };
+
+// =========================================
+// CARREGAR PSICOLOGIA POR PADRÃO
+// =========================================
+document.addEventListener("DOMContentLoaded", function () {
+  // Verifica se estamos na página que mostra a lista de profissionais
+  // (Se o nome do seu arquivo HTML for diferente, troque "profissionais" abaixo)
+  if (window.location.pathname.includes("profissionais")) {
+
+    // Dá um pequeno tempo de 200 milissegundos só para garantir que o container HTML já existe
+    setTimeout(() => {
+      if (typeof window.carregarProfissionais === "function") {
+        // Finge que o paciente clicou na aba Psicologia
+        window.carregarProfissionais('Psicologia');
+      }
+    }, 200);
+
+  }
+});
