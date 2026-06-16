@@ -167,7 +167,37 @@ window.atualizarDashboardPaciente = async function () {
   const menuPacote = document.getElementById('menuAgendarPacote');
 
   if (menuPacote) {
-    menuPacote.style.display = jaTeveConsultaFinalizada ? 'block' : 'none';
+    // 1. Garante que o item do menu fique sempre visível na tela
+    menuPacote.style.display = 'block';
+
+    // 2. Pega o link clicável que está dentro do menu
+    const linkPacote = menuPacote.querySelector('a');
+
+    if (linkPacote) {
+      if (!jaTeveConsultaFinalizada) {
+        // REGRA PARA PACIENTE NOVO (BOTÃO BLOQUEADO)
+        linkPacote.style.opacity = '0.5'; // Deixa o texto meio transparente
+        linkPacote.style.cursor = 'not-allowed'; // Ícone de mouse bloqueado
+        linkPacote.title = 'Disponível após finalizar a sua primeira consulta'; // Mensagem ao passar o mouse
+
+        // Corta a ação do clique original
+        linkPacote.onclick = function (event) {
+          event.preventDefault();
+          return false;
+        };
+      } else {
+        // REGRA PARA PACIENTE VETERANO (BOTÃO LIBERADO)
+        linkPacote.style.opacity = '1'; // Cor normal do texto
+        linkPacote.style.cursor = 'pointer'; // Ícone de mouse normal (mãozinha)
+        linkPacote.removeAttribute('title'); // Remove a mensagem flutuante
+
+        // Devolve a função de abrir o pacote ao clicar
+        linkPacote.onclick = function (event) {
+          event.preventDefault();
+          abrirTermosPacote();
+        };
+      }
+    }
   }
 
   const listaDiv = document.getElementById("listaConsultas");
