@@ -2850,12 +2850,7 @@ window.carregarMinhasConsultas = async function () {
   };
 
   const renderAbaPacotes = (lista) => {
-    if (lista.length === 0) return `
-    <div style="text-align: center; padding: 20px;">
-        <p style="color: #777; margin-bottom: 20px;">Nenhum pacote pendente no momento.</p>
-        <button class="btn-primary" onclick="abrirTermosPacote()">Solicitar Novo Pacote</button>
-    </div>
-`;
+    if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhum pacote pendente no momento.</p>`;
     let gruposArray = [];
     lista.forEach(c => {
       let chave = c.pacote_id || c.profissional;
