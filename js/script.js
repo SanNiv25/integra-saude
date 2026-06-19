@@ -2912,6 +2912,7 @@ window.carregarMinhasConsultas = async function () {
         ${renderAbaNormal(perdidas)}
     </div>
   `;
+  window.mudarAbaConsultas('tabIndividuais');
 };
 
 /* =====================================================
