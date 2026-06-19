@@ -1309,6 +1309,24 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
 /* =====================================================
    🔹 CONTINUAÇÃO: EFETIVAR CANCELAMENTO (SUPABASE)
 ===================================================== */
+
+window.abrirModalCancelar = function (profissional, data, hora) {
+  consultaParaCancelar = {
+    profissional: profissional,
+    data: data,
+    hora: hora
+  };
+
+  const divConfirmacao = document.getElementById("estadoConfirmacao");
+  const divSucesso = document.getElementById("estadoSucesso");
+
+  if (divConfirmacao) divConfirmacao.classList.remove("hidden");
+  if (divSucesso) divSucesso.classList.add("hidden");
+
+  const modalCanc = document.getElementById("modalCancelar");
+  if (modalCanc) modalCanc.classList.add("active");
+};
+
 window.efetivarCancelamento = async function () {
   const usuarioLogado = await getUsuarioLogado();
   if (!usuarioLogado || !consultaParaCancelar) return;
