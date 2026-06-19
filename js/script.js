@@ -1331,45 +1331,29 @@ window.efetivarCancelamento = async function () {
   const usuarioLogado = await getUsuarioLogado();
   if (!usuarioLogado || !consultaParaCancelar) return;
 
-  // Busca a consulta exata no banco
-  const { data: consultaAlvo } = await supabaseClient
-    .from("consultas")
-    .select("*")
-    .eq("paciente_cpf", usuarioLogado.cpf)
-    .eq("profissional", consultaParaCancelar.profissional)
-    .eq("data", consultaParaCancelar.data)
-    .eq("hora", consultaParaCancelar.hora)
-    .single();
+  // Mostra feedback visual para o paciente (pois o estorno pode levar uns 3 segundos)
+  const divConfirmacao = document.getElementById("estadoConfirmacao");
+  divConfirmacao.innerHTML = `<h3 style="color: #0F4C5C;">Processando reembolso automático...</h3><p style="color: #555;">Aguarde um momento.</p>`;
 
-  if (consultaAlvo) {
-    if (consultaAlvo.is_pacote) {
-      const idDoPacote = consultaAlvo.pacote_id;
-
-      // 1. Cancela TUDO que for desse pacote
-      await supabaseClient
-        .from("consultas")
-        .update({ status_geral: "cancelada_reembolso" })
-        .eq("paciente_cpf", usuarioLogado.cpf)
-        .eq("status_geral", "agendada")
-        .eq("pacote_id", idDoPacote);
-
-      // 2. Desativa o pacote na tabela de pacotes
-      if (idDoPacote) {
-        await supabaseClient
-          .from("pacotes")
-          .update({ ativo: false })
-          .eq("id", idDoPacote);
-      }
-    } else {
-      // Cancela a consulta normal
-      await supabaseClient
-        .from("consultas")
-        .update({ status_geral: "cancelada_reembolso" })
-        .eq("id", consultaAlvo.id);
+  // Aciona a Edge Function do Supabase
+  const { data, error } = await supabaseClient.functions.invoke('processar-reembolso', {
+    body: {
+      consultaId: consultaParaCancelar.id,
+      isPacote: consultaParaCancelar.is_pacote,
+      pacoteId: consultaParaCancelar.pacote_id
     }
+  });
+
+  if (error || (data && data.erro)) {
+    console.error("Erro no reembolso:", error || (data && data.erro));
+    alert("Não foi possível realizar o reembolso automático pelo Mercado Pago. Contate o suporte.");
+    // Restaura os botões originais do modal se der erro
+    fecharModalCancelar();
+    return;
   }
 
-  document.getElementById("estadoConfirmacao").classList.add("hidden");
+  // Se o Mercado Pago aprovou a devolução, mostra o aviso de Sucesso!
+  divConfirmacao.classList.add("hidden");
   document.getElementById("estadoSucesso").classList.remove("hidden");
 }
 
@@ -2838,7 +2822,7 @@ window.carregarMinhasConsultas = async function () {
       } else if (agora.getTime() >= tempo24hAntes) {
         btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
       } else {
-        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.profissional}', '${c.data}', '${c.hora}', ${c.is_pacote}, ${c.sessaoNumeroCalculada || 0})">❌ Cancelar</button>`;
+        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.id}', '${c.profissional}', '${c.data}', '${c.hora}', ${c.is_pacote}, ${c.sessaoNumeroCalculada || 0}, '${c.pacote_id || ''}')">❌ Cancelar</button>`;
       }
 
       if (agora.getTime() >= dezMinAntes) {
@@ -3194,24 +3178,24 @@ document.addEventListener("DOMContentLoaded", function () {
 /* =====================================================
    🔹 FUNÇÃO DE ABRIR MODAL DE CANCELAMENTO
 ===================================================== */
-window.abrirModalCancelar = function (profissional, data, hora, isPacote, sessaoNumero) {
-  // Salva os dados completos da consulta
+window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPacote, sessaoNumero, pacoteId) {
+  // Salva os dados completos usando o ID único!
   consultaParaCancelar = {
+    id: consultaId,
     profissional: profissional,
     data: data,
     hora: hora,
     is_pacote: isPacote,
-    sessaoNumero: sessaoNumero
+    sessaoNumero: sessaoNumero,
+    pacote_id: pacoteId
   };
 
-  // Garante que as mensagens de sucesso antigas estejam escondidas
   const divConfirmacao = document.getElementById("estadoConfirmacao");
   const divSucesso = document.getElementById("estadoSucesso");
 
   if (divConfirmacao) divConfirmacao.classList.remove("hidden");
   if (divSucesso) divSucesso.classList.add("hidden");
 
-  // Mostra a janela pop-up na tela
   const modalCanc = document.getElementById("modalCancelar");
   if (modalCanc) modalCanc.classList.add("active");
 };
