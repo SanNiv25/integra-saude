@@ -2755,8 +2755,8 @@ window.carregarMinhasConsultas = async function () {
 
   let menuAbas = `
     <div style="display: flex; overflow-x: auto; gap: 15px; border-bottom: 2px solid #ddd; padding-bottom: 0px; margin-bottom: 25px; scrollbar-width: thin;">
-        <button id="btn-tabPacotes" class="btn-aba-paciente" onclick="mudarAbaConsultas('tabPacotes')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid #0F766E; color: #0F766E; font-weight: bold;">📦 Pacotes Pendentes</button>
         <button id="btn-tabIndividuais" class="btn-aba-paciente" onclick="mudarAbaConsultas('tabIndividuais')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">📅 Individuais Pendentes</button>
+        <button id="btn-tabPacotes" class="btn-aba-paciente" onclick="mudarAbaConsultas('tabPacotes')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid #0F766E; color: #0F766E; font-weight: bold;">📦 Pacotes Pendentes</button>
         <button id="btn-tabRealizadas" class="btn-aba-paciente" onclick="mudarAbaConsultas('tabRealizadas')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">✅ Realizadas</button>
         <button id="btn-tabCanceladas" class="btn-aba-paciente" onclick="mudarAbaConsultas('tabCanceladas')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">🛑 Canceladas</button>
         <button id="btn-tabPerdidas" class="btn-aba-paciente" onclick="mudarAbaConsultas('tabPerdidas')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">⚠️ Perdidas</button>
