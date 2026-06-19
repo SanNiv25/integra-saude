@@ -3190,3 +3190,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
   }
 });
+
+/* =====================================================
+   🔹 FUNÇÃO DE ABRIR MODAL DE CANCELAMENTO
+===================================================== */
+window.abrirModalCancelar = function (profissional, data, hora, isPacote, sessaoNumero) {
+  // Salva os dados completos da consulta
+  consultaParaCancelar = {
+    profissional: profissional,
+    data: data,
+    hora: hora,
+    is_pacote: isPacote,
+    sessaoNumero: sessaoNumero
+  };
+
+  // Garante que as mensagens de sucesso antigas estejam escondidas
+  const divConfirmacao = document.getElementById("estadoConfirmacao");
+  const divSucesso = document.getElementById("estadoSucesso");
+
+  if (divConfirmacao) divConfirmacao.classList.remove("hidden");
+  if (divSucesso) divSucesso.classList.add("hidden");
+
+  // Mostra a janela pop-up na tela
+  const modalCanc = document.getElementById("modalCancelar");
+  if (modalCanc) modalCanc.classList.add("active");
+};
