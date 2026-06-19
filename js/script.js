@@ -2896,11 +2896,11 @@ window.carregarMinhasConsultas = async function () {
   };
 
   mural.innerHTML = menuAbas + `
-    <div id="tabPacotes" class="tab-content-paciente" style="display: block;">
-        ${renderAbaPacotes(pacotes)}
-    </div>
-    <div id="tabIndividuais" class="tab-content-paciente" style="display: none;">
+    <div id="tabIndividuais" class="tab-content-paciente" style="display: block;">
         ${renderAbaNormal(individuais)}
+    </div>
+    <div id="tabPacotes" class="tab-content-paciente" style="display: none;">
+        ${renderAbaPacotes(pacotes)}
     </div>
     <div id="tabRealizadas" class="tab-content-paciente" style="display: none;">
         ${renderAbaNormal(realizadas)}
