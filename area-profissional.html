@@ -66,22 +66,12 @@
                 <h1 class="saudacao" id="nomeProfDashboard">Olá, Profissional!</h1>
                 <p>Acompanhe os pacientes agendados para hoje.</p>
             </header>
-            <div class="dashboard-main-section">
-                <h2>Pacientes Agendados</h2>
-                <div class="menu-abas">
-                    <button class="btn-aba-prof ativo" id="btn-consultas-hoje"
-                        onclick="window.mudarAbaConsultasProf('consultas-hoje')"
-                        style="border-bottom: 3px solid #0F766E; color: #0F766E; font-weight: bold;">Consultas do
-                        Dia</button>
-                    <button class="btn-aba-prof" id="btn-proximas-consultas"
-                        onclick="window.mudarAbaConsultasProf('proximas-consultas')">Próximas Consultas</button>
-                    <button class="btn-aba-prof" id="btn-finalizadas-prof"
-                        onclick="window.mudarAbaConsultasProf('finalizadas-prof')">Finalizadas</button>
-                </div>
 
-                <div id="consultas-hoje" class="tab-content-prof" style="display: block;"></div>
-                <div id="proximas-consultas" class="tab-content-prof" style="display: none;"></div>
-                <div id="finalizadas-prof" class="tab-content-prof" style="display: none;"></div>
+            <div class="conteudo-principal" style="margin-top: 30px;">
+                <h2 style="color: #0F4C5C; margin-bottom: 15px;">Minha Agenda</h2>
+                <div id="listaConsultasProf">
+                    <p style="color: #777;">⏳ Buscando seus agendamentos no sistema...</p>
+                </div>
             </div>
         </main>
     </section>
