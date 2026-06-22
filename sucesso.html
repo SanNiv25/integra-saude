@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta Agendada - Integra Saúde</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .sucesso-container {
+      max-width: 600px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      border-top: 8px solid #2E7D32;
+    }
+
+    .sucesso-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+
+    .dados-consulta {
+      background: #f4f9f9;
+      border: 1px solid #cce3e6;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: left;
+      margin: 25px 0;
+    }
+
+    .dados-consulta p {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #444;
+    }
+
+    .dados-consulta strong {
+      color: #0F4C5C;
+    }
+  </style>
+</head>
+
+<body style="background-color: #f0f7f7;">
+
+  <header class="header">
+    <div class="header-icon"><img src="img/logo.png" alt="Logo"></div>
+  </header>
+
+  <div class="sucesso-container">
+    <div class="sucesso-icon">✅</div>
+    <h1 style="color: #2E7D32; margin-bottom: 10px;">Consulta Agendada com Sucesso!</h1>
+    <p style="color: #555; font-size: 16px;">O seu pagamento foi confirmado e o horário já está reservado.</p>
+
+    <div class="dados-consulta" id="detalhesConsulta">
+      <p style="text-align: center; color: #777;">⏳ Carregando detalhes do agendamento...</p>
+    </div>
+
+    <button onclick="window.location.href='area-paciente.html'" class="btn-primary"
+      style="width: 100%; padding: 15px; font-size: 16px;">Ir para o Painel do Paciente</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      const params = new URLSearchParams(window.location.search);
+      const consultaId = params.get("id");
+      const detalhesDiv = document.getElementById("detalhesConsulta");
+
+      if (!consultaId) {
+        detalhesDiv.innerHTML = "<p style='color: #d9534f; text-align: center;'>Não foi possível carregar os dados desta consulta.</p>";
+        return;
+      }
+
+      // Busca os dados diretamente do Supabase usando a conexão já existente
+      const { data: consulta, error } = await window.supabaseClient
+        .from("consultas")
+        .select("*")
+        .eq("id", consultaId)
+        .single();
+
+      if (error || !consulta) {
+        detalhesDiv.innerHTML = "<p style='color: #d9534f; text-align: center;'>Erro ao localizar a consulta.</p>";
+        return;
+      }
+
+      // Formata a data para padrão brasileiro
+      const [ano, mes, dia] = consulta.data.split("-");
+      const dataFormatada = `${dia}/${mes}/${ano}`;
+      const tipoAgendamento = consulta.is_pacote ? "📦 Pacote Promocional" : "📅 Consulta Individual";
+
+      detalhesDiv.innerHTML = `
+                <p><strong>Profissional:</strong> ${consulta.profissional}</p>
+                <p><strong>Especialidade:</strong> ${consulta.especialidade || "Não informada"}</p>
+                <p><strong>Data:</strong> ${dataFormatada}</p>
+                <p><strong>Horário:</strong> ${consulta.hora}</p>
+                <p><strong>Modalidade:</strong> ${tipoAgendamento}</p>
+            `;
+    });
+  </script>
+</body>
+
+</html>
