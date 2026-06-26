@@ -2593,70 +2593,63 @@ window.fecharModalExames = function () {
 };
 
 window.salvarExamePaciente = async function () {
-  const fileInput = document.getElementById('arquivoExame');
-  const btnSalvar = document.getElementById('btnSalvarExame');
-  const usuarioLogado = await getUsuarioLogado(); // Busca a sessão segura do Auth
+  // 1. Pega o arquivo do input de upload (Verifique se o ID do input no HTML é esse mesmo)
+  const inputArquivo = document.getElementById("seuInputDeArquivoID"); // 👈 Troque pelo ID real do seu input
+  const arquivoSelecionado = inputArquivo.files[0];
 
-  const CLOUD_NAME = "dyjjg0bje";
-  const UPLOAD_PRESET = "exames_integra_saude";
-
-  if (!usuarioLogado) return alert("Erro: Paciente não identificado ou sessão expirada.");
-  if (!fileInput.files || fileInput.files.length === 0) return alert("Selecione um arquivo.");
-
-  const file = fileInput.files;
-
-  if (file.size > 10 * 1024 * 1024) return alert("⚠️ Arquivo muito grande. O limite agora é 10MB.");
-
-  btnSalvar.innerText = "⏳ Subindo para a Nuvem...";
-  btnSalvar.disabled = true;
+  if (!arquivoSelecionado) {
+    alert("Por favor, selecione um arquivo primeiro.");
+    return;
+  }
 
   try {
-    // 1. Upload físico do arquivo pro Cloudinary (Inalterado)
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+    console.log("Iniciando upload para o Supabase...");
 
-    const resposta = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/upload`, {
-      method: "POST",
-      body: formData
-    });
+    // 2. Cria um nome único para o arquivo (evita que um exame sobrescreva o outro)
+    const extensao = arquivoSelecionado.name.split('.').pop();
+    const nomeUnico = `exame_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${extensao}`;
 
-    const dadosCloudinary = await resposta.json();
-    if (!dadosCloudinary.secure_url) throw new Error("Falha no upload para o Cloudinary");
+    // 3. Faz o upload direto para o bucket 'exames'
+    const { data: uploadData, error: uploadError } = await window.supabaseClient
+      .storage
+      .from('exames')
+      .upload(nomeUnico, arquivoSelecionado, {
+        cacheControl: '3600',
+        upsert: false // Não substitui se já existir algo com o mesmo nome
+      });
 
-    // 2. Salva o registro (link e metadados) na tabela do Supabase (em vez do LocalStorage)
-    const novoExame = {
-      paciente_cpf: usuarioLogado.cpf,
-      nomeArquivo: file.name,
-      tipo: file.type,
-      dataEnvio: new Date().toLocaleDateString('pt-BR'),
-      url: dadosCloudinary.secure_url
-    };
-
-    const { error } = await supabaseClient
-      .from("exames_pacientes") // Você precisa criar essa tabela
-      .insert([novoExame]);
-
-    if (error) {
-      console.error("Erro Supabase:", error);
-      throw new Error("Falha ao salvar metadados do exame no banco de dados.");
+    if (uploadError) {
+      console.error("Detalhe do erro do Supabase Storage:", uploadError);
+      throw new Error("Falha ao enviar o arquivo para o Supabase.");
     }
 
-    alert("✅ Exame enviado com sucesso!");
-    fecharModalExames();
-    fileInput.value = "";
+    // 4. Pega o link público (URL) do exame para você poder abrir depois
+    const { data: urlData } = window.supabaseClient
+      .storage
+      .from('exames')
+      .getPublicUrl(nomeUnico);
 
-    // (Opcional) Chame a função de atualizar a listagem de exames se o modal estiver na tela de prontuário
-    if (typeof carregarExamesDoPaciente === 'function') {
-      carregarExamesDoPaciente(usuarioLogado.cpf);
-    }
+    const linkDoExame = urlData.publicUrl;
+    console.log("✅ Upload concluído! Link do exame:", linkDoExame);
 
-  } catch (err) {
-    console.error("ERRO:", err);
+    // ==========================================
+    // 5. SALVAR NO BANCO DE DADOS
+    // ==========================================
+    // Aqui você insere a lógica que você já tinha para salvar o link na tabela correspondente.
+    // Exemplo:
+    // const { error: dbError } = await window.supabaseClient.from('tabela_de_exames').insert({
+    //   url_arquivo: linkDoExame,
+    //   paciente_cpf: usuarioLogado.cpf,
+    //   ...
+    // });
+
+    // if (dbError) throw dbError;
+
+    alert("Exame enviado com sucesso!");
+
+  } catch (error) {
+    console.error("ERRO:", error);
     alert("❌ Erro ao enviar. Verifique sua conexão e tente novamente.");
-  } finally {
-    btnSalvar.innerText = "📤 Enviar Exame";
-    btnSalvar.disabled = false;
   }
 };
 
