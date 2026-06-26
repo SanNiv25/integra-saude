@@ -1039,6 +1039,22 @@ window.confirmarConsulta = function () {
             <p style="margin-bottom: 8px;"><strong>Data:</strong> ${dataFormatada}</p>
             <p><strong>Horário:</strong> ${horarioSelecionado} às ${horaFimStr}</p>
           </div>
+          
+          <!-- SELEÇÃO DE FORMA DE PAGAMENTO -->
+          <div style="margin-bottom: 25px; text-align: left; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+            <h4 style="color: #0f4c5c; margin-bottom: 15px;">Forma de Pagamento:</h4>
+            
+            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; font-size: 15px; color: #444;">
+                <input type="radio" name="metodoPagamento" value="pix" checked style="width: 18px; height: 18px;">
+                💠 PIX (Aprovação imediata sem sair da tela)
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; color: #444;">
+                <input type="radio" name="metodoPagamento" value="cartao" style="width: 18px; height: 18px;">
+                💳 Cartão de Crédito (Via Mercado Pago)
+            </label>
+          </div>
+
           <button type="button" onclick="finalizarAgendamento(this)" class="btn-primary" style="margin-right: 15px;">Confirmar Consulta e Pagar</button>
           <button type="button" onclick="abrirAgenda(this.dataset.nome)" data-nome="${profissionalAtual.nome}" class="btn-secondary">Voltar e Alterar</button>
         </div>
@@ -1051,7 +1067,7 @@ window.confirmarConsulta = function () {
 ===================================================== */
 window.finalizarAgendamento = async function (botaoElement) {
 
-  // 1. Feedback visual para o paciente não clicar duas vezes
+  // 1. Feedback visual
   if (botaoElement) {
     botaoElement.innerText = "Conectando ao Mercado Pago...";
     botaoElement.disabled = true;
@@ -1095,6 +1111,9 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
+  // 👇 LÊ A BOLINHA QUE O PACIENTE MARCOU 👇
+  const metodoSelecionado = document.querySelector('input[name="metodoPagamento"]:checked').value;
+
   // 3. Chama a Edge Function
   const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
     body: {
@@ -1102,7 +1121,8 @@ window.finalizarAgendamento = async function (botaoElement) {
       pacienteCpf: usuarioLogado.cpf,
       tipoAcao: is_pacote ? 'pacote' : 'consulta_normal',
       sessaoPacote: numSessao,
-      valorConsulta: Number(profissionalAtual.valor)
+      valorConsulta: Number(profissionalAtual.valor),
+      metodoPagamento: metodoSelecionado // Envia a escolha pro servidor
     }
   });
 
@@ -1114,13 +1134,12 @@ window.finalizarAgendamento = async function (botaoElement) {
   }
 
   // ==========================================
-  // 4. LÓGICA DE REDIRECIONAMENTO CORRIGIDA
+  // 4. O SISTEMA DECIDE O QUE MOSTRAR NA TELA
   // ==========================================
 
-  // Caso A: É uma sessão gratuita de pacote
+  // CASO A: Pacote Grátis (Já aprovado)
   if (respostaPagamento && respostaPagamento.status === 'gratis') {
     await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("id", uniqueId);
-
     const agenda = document.getElementById("agendaContainer");
     if (agenda) {
       let titulo = is_pacote ? `✅ Consulta ${numSessao} Confirmada!` : "✅ Consulta Confirmada!";
@@ -1132,25 +1151,23 @@ window.finalizarAgendamento = async function (botaoElement) {
         </div>
       `;
     }
-    return; // Para a execução do código aqui
+    return;
   }
 
-  // Caso B: Checkout Transparente (PIX) recebido
+  // CASO B: PIX (Checkout Transparente - Desenha o QR Code na tela)
   if (respostaPagamento && respostaPagamento.isPixAPI) {
     const agenda = document.getElementById("agendaContainer");
-
-    // 1. Desenha o QR Code na tela
     agenda.innerHTML = `
       <div class="agenda-box" style="text-align: center; padding: 30px;">
         <h2 style="color: #0F4C5C;">Pague com PIX</h2>
         <p style="color: #555; margin-bottom: 20px;">Abra o app do seu banco e escaneie o código abaixo:</p>
         
-        <img src="data:image/png;base64,${respostaPagamento.qrCodeBase64}" alt="QR Code Pix" style="width: 250px; height: 250px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+        <img src="data:image/png;base64,${respostaPagamento.qrCodeBase64}" alt="QR Code Pix" style="width: 200px; height: 200px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
         
         <p style="font-size: 13px; color: #777;">Ou copie o código abaixo:</p>
         <div style="display: flex; gap: 5px; margin-bottom: 20px;">
-        <input type="text" id="pixCopiaCola" value="${respostaPagamento.qrCodeCopiaCola}" readonly style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ccc; font-size: 12px; border-radius: 4px;">
-        <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopiaCola').value); alert('Código copiado!');" style="background: #0F766E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Copiar</button>
+            <input type="text" id="pixCopiaCola" value="${respostaPagamento.qrCodeCopiaCola}" readonly style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ccc; font-size: 12px; border-radius: 4px;">
+            <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopiaCola').value); alert('Código copiado!');" style="background: #0F766E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Copiar</button>
         </div>
         
         <div id="statusPagamentoAoVivo">
@@ -1159,7 +1176,7 @@ window.finalizarAgendamento = async function (botaoElement) {
       </div>
     `;
 
-    // 2. O "Radar": Verifica o banco de dados a cada 3 segundos
+    // O "Radar" de 3 segundos
     const radarDePagamento = setInterval(async () => {
       const { data: statusConsulta } = await supabaseClient
         .from("consultas")
@@ -1167,27 +1184,29 @@ window.finalizarAgendamento = async function (botaoElement) {
         .eq("id", respostaPagamento.consultaId)
         .single();
 
-      // Se o Webhook mudou o status para 'agendada', o paciente pagou!
       if (statusConsulta && statusConsulta.status_geral === "agendada") {
         clearInterval(radarDePagamento); // Desliga o radar
-
-        // Dá um feedback visual rápido
         document.getElementById("statusPagamentoAoVivo").innerHTML = `<p style="color: #2E7D32; font-weight: bold; font-size: 18px;">✅ Pagamento Confirmado!</p>`;
 
-        // Pula sozinho para a página de sucesso após 1 segundo!
+        // Pula pra tela de sucesso sozinho!
         setTimeout(() => {
           window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`;
-        }, 1000);
+        }, 1500);
       }
-    }, 3000); // 3000 milissegundos = 3 segundos
+    }, 3000);
 
     return;
   }
-  // Caso C: Falha de comunicação
-  if (!respostaPagamento || (!respostaPagamento.status && !respostaPagamento.isPixAPI)) {
-    alert("Falha ao gerar o código PIX. Tente novamente.");
-    if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
+
+  // CASO C: Cartão de Crédito (Checkout Pro - Redireciona)
+  if (respostaPagamento && respostaPagamento.url) {
+    window.location.href = respostaPagamento.url;
+    return;
   }
+
+  // CASO D: Erro de comunicação
+  alert("Falha de comunicação com o Mercado Pago. Tente novamente.");
+  if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
 };
 
 window.fecharAgenda = function () {
