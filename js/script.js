@@ -2594,7 +2594,8 @@ window.fecharModalExames = function () {
 
 window.salvarExamePaciente = async function () {
   // 1. Pega o arquivo do input de upload (Verifique se o ID do input no HTML é esse mesmo)
-  const inputArquivo = document.getElementById("seuInputDeArquivoID"); // 👈 Troque pelo ID real do seu input
+  // Se o id no HTML for "arquivoExame"
+  const inputArquivo = document.getElementById("arquivoExame");
   const arquivoSelecionado = inputArquivo.files[0];
 
   if (!arquivoSelecionado) {
