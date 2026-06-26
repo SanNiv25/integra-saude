@@ -1135,16 +1135,59 @@ window.finalizarAgendamento = async function (botaoElement) {
     return; // Para a execução do código aqui
   }
 
-  // Caso B: Tem URL de pagamento (Checkout Pro)
-  if (respostaPagamento && respostaPagamento.url) {
-    window.location.href = respostaPagamento.url;
-    return; // Para a execução do código aqui
-  }
+  // Caso B: Checkout Transparente (PIX) recebido
+  if (respostaPagamento && respostaPagamento.isPixAPI) {
+    const agenda = document.getElementById("agendaContainer");
 
-  // Caso C: Falhou silenciosamente (Cai aqui se o backend não mandou 'gratis' nem 'url')
-  alert("Link de pagamento não recebido do servidor. Tente novamente.");
-  console.error("Resposta inválida do backend:", respostaPagamento);
-  if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
+    // 1. Desenha o QR Code na tela
+    agenda.innerHTML = `
+      <div class="agenda-box" style="text-align: center; padding: 30px;">
+        <h2 style="color: #0F4C5C;">Pague com PIX</h2>
+        <p style="color: #555; margin-bottom: 20px;">Abra o app do seu banco e escaneie o código abaixo:</p>
+        
+        <img src="data:image/png;base64,${respostaPagamento.qrCodeBase64}" alt="QR Code Pix" style="width: 250px; height: 250px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
+        
+        <p style="font-size: 13px; color: #777;">Ou copie o código abaixo:</p>
+        <div style="display: flex; gap: 5px; margin-bottom: 20px;">
+        <input type="text" id="pixCopiaCola" value="${respostaPagamento.qrCodeCopiaCola}" readonly style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ccc; font-size: 12px; border-radius: 4px;">
+        <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopiaCola').value); alert('Código copiado!');" style="background: #0F766E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Copiar</button>
+        </div>
+        
+        <div id="statusPagamentoAoVivo">
+            <p style="color: #d9534f; font-weight: bold;">⏳ Aguardando pagamento...</p>
+        </div>
+      </div>
+    `;
+
+    // 2. O "Radar": Verifica o banco de dados a cada 3 segundos
+    const radarDePagamento = setInterval(async () => {
+      const { data: statusConsulta } = await supabaseClient
+        .from("consultas")
+        .select("status_geral")
+        .eq("id", respostaPagamento.consultaId)
+        .single();
+
+      // Se o Webhook mudou o status para 'agendada', o paciente pagou!
+      if (statusConsulta && statusConsulta.status_geral === "agendada") {
+        clearInterval(radarDePagamento); // Desliga o radar
+
+        // Dá um feedback visual rápido
+        document.getElementById("statusPagamentoAoVivo").innerHTML = `<p style="color: #2E7D32; font-weight: bold; font-size: 18px;">✅ Pagamento Confirmado!</p>`;
+
+        // Pula sozinho para a página de sucesso após 1 segundo!
+        setTimeout(() => {
+          window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`;
+        }, 1000);
+      }
+    }, 3000); // 3000 milissegundos = 3 segundos
+
+    return;
+  }
+  // Caso C: Falha de comunicação
+  if (!respostaPagamento || (!respostaPagamento.status && !respostaPagamento.isPixAPI)) {
+    alert("Falha ao gerar o código PIX. Tente novamente.");
+    if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
+  }
 };
 
 window.fecharAgenda = function () {
