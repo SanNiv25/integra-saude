@@ -2680,7 +2680,7 @@ window.salvarExamePaciente = async function () {
   }
 };
 
-// 3. O Profissional puxa APENAS os exames mandados para ele
+// 3. O Profissional puxa APENAS os exames mandados para ele (Atualizado com nomes do BD)
 window.carregarExamesDoPaciente = async function (idpaciente_cpf) {
   const container = document.getElementById('listaExamesPaciente');
   if (!container) return;
@@ -2690,14 +2690,16 @@ window.carregarExamesDoPaciente = async function (idpaciente_cpf) {
 
   container.innerHTML = "<p style='font-size: 13px; color: #777;'>⏳ Buscando exames no servidor...</p>";
 
+  // 👇 CORREÇÃO 1: Ordenando pela coluna "criado_em" igual ao seu banco
   const { data: examesDoPaciente, error } = await supabaseClient
     .from("exames_pacientes")
     .select("*")
     .eq("paciente_cpf", idpaciente_cpf)
-    .eq("profissional", profLogado.nome) // 👈 Filtra pra não ver exames de outro médico
-    .order('created_at', { ascending: false });
+    .eq("profissional", profLogado.nome)
+    .order('criado_em', { ascending: false });
 
   if (error || !examesDoPaciente || examesDoPaciente.length === 0) {
+    if (error) console.error("Erro ao puxar exames:", error); // Ajuda a rastrear qualquer erro no F12
     container.innerHTML = "<p style='font-size: 13px; color: #777;'>Nenhum exame anexado para você por este paciente.</p>";
     return;
   }
@@ -2708,14 +2710,15 @@ window.carregarExamesDoPaciente = async function (idpaciente_cpf) {
     const div = document.createElement('div');
     div.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 8px;";
 
-    const icone = exame.tipo && exame.tipo.includes('pdf') ? '📄' : '🖼️';
+    // 👇 CORREÇÃO 2: Lendo os dados com os nomes exatos das colunas da tabela 👇
+    const icone = exame.tipo_arquivo && exame.tipo_arquivo.includes('pdf') ? '📄' : '🖼️';
 
     div.innerHTML = `
         <div>
-            <strong style="color: #0F4C5C;">${icone} ${exame.nomeArquivo}</strong><br>
-            <span style="font-size: 11px; color: #888;">Enviado em: ${exame.dataEnvio}</span>
+            <strong style="color: #0F4C5C;">${icone} ${exame.nome_arquivo}</strong><br>
+            <span style="font-size: 11px; color: #888;">Enviado em: ${exame.data_envio}</span>
         </div>
-        <a href="${exame.url}" target="_blank" style="background: #0F766E; color: white; padding: 6px 15px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">📥 Abrir Exame</a>
+        <a href="${exame.arquivo_url}" target="_blank" style="background: #0F766E; color: white; padding: 6px 15px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">📥 Abrir Exame</a>
     `;
     container.appendChild(div);
   });
