@@ -336,8 +336,13 @@
       <button onclick="fecharModalExames()"
         style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888;">✖</button>
       <h2 style="color: #0F4C5C; margin-bottom: 10px;">📁 Enviar Exame</h2>
-      <p style="font-size: 13px; color: #555; margin-bottom: 20px;">Envie exames em PDF ou Imagem (JPG/PNG) para o seu
-        profissional avaliar.</p>
+      <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Selecione o profissional e envie o exame em PDF ou
+        Imagem (JPG/PNG).</p>
+
+      <select id="selectProfissionalExame"
+        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 15px; font-family: 'Montserrat', sans-serif;">
+        <option value="">⏳ Carregando profissionais...</option>
+      </select>
 
       <input type="file" id="arquivoExame" accept=".pdf, image/png, image/jpeg"
         style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 20px;">

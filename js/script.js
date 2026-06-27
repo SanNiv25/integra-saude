@@ -2584,94 +2584,120 @@ window.soltarArquivoPDF = function (event) {
 /* =====================================================
    📁 SISTEMA DE EXAMES (CLOUDINARY + SUPABASE)
 ===================================================== */
-window.abrirModalExames = function () {
+// 1. Abre o modal e carrega a lista de médicos que o paciente tem consulta
+window.abrirModalExames = async function () {
+  const selectProf = document.getElementById("selectProfissionalExame");
+  selectProf.innerHTML = '<option value="">⏳ Carregando profissionais...</option>';
   document.getElementById('modalExames').style.display = 'flex';
+
+  const usuarioLogado = await getUsuarioLogado();
+  if (!usuarioLogado) return;
+
+  // Busca na agenda os médicos desse paciente
+  const { data: consultas } = await supabaseClient
+    .from("consultas")
+    .select("profissional")
+    .eq("paciente_cpf", usuarioLogado.cpf);
+
+  if (consultas && consultas.length > 0) {
+    // Tira os nomes duplicados (se ele marcou 2 vezes com o mesmo médico)
+    const profsUnicos = [...new Set(consultas.map(c => c.profissional))];
+    selectProf.innerHTML = '<option value="">Selecione o profissional...</option>';
+    profsUnicos.forEach(prof => {
+      selectProf.innerHTML += `<option value="${prof}">${prof}</option>`;
+    });
+  } else {
+    selectProf.innerHTML = '<option value="">Nenhuma consulta encontrada.</option>';
+  }
 };
 
 window.fecharModalExames = function () {
   document.getElementById('modalExames').style.display = 'none';
 };
 
+// 2. Faz o Upload e AGORA SALVA NO BANCO
 window.salvarExamePaciente = async function () {
-  // 1. Pega o arquivo do input de upload (Verifique se o ID do input no HTML é esse mesmo)
-  // Se o id no HTML for "arquivoExame"
+  const selectProf = document.getElementById("selectProfissionalExame");
+  const profissionalEscolhido = selectProf.value;
   const inputArquivo = document.getElementById("arquivoExame");
   const arquivoSelecionado = inputArquivo.files[0];
+
+  if (!profissionalEscolhido) {
+    alert("Por favor, selecione para qual profissional deseja enviar o exame.");
+    return;
+  }
 
   if (!arquivoSelecionado) {
     alert("Por favor, selecione um arquivo primeiro.");
     return;
   }
 
-  try {
-    console.log("Iniciando upload para o Supabase...");
+  const usuarioLogado = await getUsuarioLogado();
+  if (!usuarioLogado) return;
 
-    // 2. Cria um nome único para o arquivo (evita que um exame sobrescreva o outro)
+  const btnSalvar = document.getElementById("btnSalvarExame");
+  btnSalvar.innerText = "⏳ Enviando...";
+  btnSalvar.disabled = true;
+
+  try {
     const extensao = arquivoSelecionado.name.split('.').pop();
     const nomeUnico = `exame_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${extensao}`;
 
-    // 3. Faz o upload direto para o bucket 'exames'
+    // Upload pro Storage
     const { data: uploadData, error: uploadError } = await window.supabaseClient
-      .storage
-      .from('exames')
-      .upload(nomeUnico, arquivoSelecionado, {
-        cacheControl: '3600',
-        upsert: false // Não substitui se já existir algo com o mesmo nome
-      });
+      .storage.from('exames').upload(nomeUnico, arquivoSelecionado, { cacheControl: '3600', upsert: false });
 
-    if (uploadError) {
-      console.error("Detalhe do erro do Supabase Storage:", uploadError);
-      throw new Error("Falha ao enviar o arquivo para o Supabase.");
-    }
+    if (uploadError) throw new Error("Falha no upload para o Supabase Storage.");
 
-    // 4. Pega o link público (URL) do exame para você poder abrir depois
-    const { data: urlData } = window.supabaseClient
-      .storage
-      .from('exames')
-      .getPublicUrl(nomeUnico);
-
+    const { data: urlData } = window.supabaseClient.storage.from('exames').getPublicUrl(nomeUnico);
     const linkDoExame = urlData.publicUrl;
-    console.log("✅ Upload concluído! Link do exame:", linkDoExame);
 
-    // ==========================================
-    // 5. SALVAR NO BANCO DE DADOS
-    // ==========================================
-    // Aqui você insere a lógica que você já tinha para salvar o link na tabela correspondente.
-    // Exemplo:
-    // const { error: dbError } = await window.supabaseClient.from('tabela_de_exames').insert({
-    //   url_arquivo: linkDoExame,
-    //   paciente_cpf: usuarioLogado.cpf,
-    //   ...
-    // });
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
 
-    // if (dbError) throw dbError;
+    // 👇 AGORA SIM, ESTAMOS INSERINDO NA TABELA DO BANCO DE DADOS 👇
+    const { error: dbError } = await window.supabaseClient.from('exames_pacientes').insert({
+      url: linkDoExame,
+      paciente_cpf: usuarioLogado.cpf,
+      nomeArquivo: arquivoSelecionado.name,
+      tipo: arquivoSelecionado.type,
+      dataEnvio: dataHoje,
+      profissional: profissionalEscolhido // Guarda o nome do médico!
+    });
 
-    alert("Exame enviado com sucesso!");
+    if (dbError) throw dbError;
+
+    alert("Exame enviado com sucesso para o profissional selecionado!");
+    fecharModalExames();
 
   } catch (error) {
     console.error("ERRO:", error);
     alert("❌ Erro ao enviar. Verifique sua conexão e tente novamente.");
+  } finally {
+    btnSalvar.innerText = "📤 Enviar Exame";
+    btnSalvar.disabled = false;
+    inputArquivo.value = "";
   }
 };
 
-/* =====================================================
-   🔹 3. OTIMIZAÇÃO: BUSCA DE EXAMES PARA O PROFISSIONAL
-===================================================== */
+// 3. O Profissional puxa APENAS os exames mandados para ele
 window.carregarExamesDoPaciente = async function (idpaciente_cpf) {
   const container = document.getElementById('listaExamesPaciente');
   if (!container) return;
 
+  const profLogado = getProfissionalLogado();
+  if (!profLogado) return;
+
   container.innerHTML = "<p style='font-size: 13px; color: #777;'>⏳ Buscando exames no servidor...</p>";
 
-  // Busca os exames deste paciente na tabela criada no Bloco 10
   const { data: examesDoPaciente, error } = await supabaseClient
     .from("exames_pacientes")
     .select("*")
     .eq("paciente_cpf", idpaciente_cpf)
+    .eq("profissional", profLogado.nome) // 👈 Filtra pra não ver exames de outro médico
     .order('created_at', { ascending: false });
 
   if (error || !examesDoPaciente || examesDoPaciente.length === 0) {
-    container.innerHTML = "<p style='font-size: 13px; color: #777;'>Nenhum exame anexado por este paciente ainda.</p>";
+    container.innerHTML = "<p style='font-size: 13px; color: #777;'>Nenhum exame anexado para você por este paciente.</p>";
     return;
   }
 
@@ -2682,15 +2708,13 @@ window.carregarExamesDoPaciente = async function (idpaciente_cpf) {
     div.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 8px;";
 
     const icone = exame.tipo && exame.tipo.includes('pdf') ? '📄' : '🖼️';
-    const linkExame = exame.url; // Nuvem Cloudinary
-    const comportamentoAbertura = 'target="_blank"';
 
     div.innerHTML = `
         <div>
             <strong style="color: #0F4C5C;">${icone} ${exame.nomeArquivo}</strong><br>
             <span style="font-size: 11px; color: #888;">Enviado em: ${exame.dataEnvio}</span>
         </div>
-        <a href="${linkExame}" ${comportamentoAbertura} style="background: #0F766E; color: white; padding: 6px 15px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">📥 Abrir Exame</a>
+        <a href="${exame.url}" target="_blank" style="background: #0F766E; color: white; padding: 6px 15px; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">📥 Abrir Exame</a>
     `;
     container.appendChild(div);
   });
