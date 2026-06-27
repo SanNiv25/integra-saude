@@ -2652,16 +2652,17 @@ window.salvarExamePaciente = async function () {
     const { data: urlData } = window.supabaseClient.storage.from('exames').getPublicUrl(nomeUnico);
     const linkDoExame = urlData.publicUrl;
 
-    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    // Formata a data para o padrão YYYY-MM-DD que o banco de dados exige
+    const dataHoje = new Date().toISOString().split('T')[0];
 
-    // 👇 AGORA SIM, ESTAMOS INSERINDO NA TABELA DO BANCO DE DADOS 👇
+    // 👇 AGORA SIM, ESTAMOS INSERINDO NA TABELA COM O NOME E FORMATO CORRETOS 👇
     const { error: dbError } = await window.supabaseClient.from('exames_pacientes').insert({
       url: linkDoExame,
       paciente_cpf: usuarioLogado.cpf,
       nomeArquivo: arquivoSelecionado.name,
       tipo: arquivoSelecionado.type,
-      dataEnvio: dataHoje,
-      profissional: profissionalEscolhido // Guarda o nome do médico!
+      data_envio: dataHoje, // 👈 Nome corrigido com underline igual ao banco!
+      profissional: profissionalEscolhido
     });
 
     if (dbError) throw dbError;
