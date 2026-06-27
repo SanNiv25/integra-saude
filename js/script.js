@@ -2655,12 +2655,12 @@ window.salvarExamePaciente = async function () {
     // Formata a data para o padrão YYYY-MM-DD que o banco de dados exige
     const dataHoje = new Date().toISOString().split('T')[0];
 
-    // 👇 Inserindo na tabela com o nome_arquivo corrigido 👇
+    // 👇 Inserindo com as colunas EXATAS do seu banco de dados 👇
     const { error: dbError } = await window.supabaseClient.from('exames_pacientes').insert({
-      url: linkDoExame,
+      arquivo_url: linkDoExame,         // 👈 CORRIGIDO de "url"
       paciente_cpf: usuarioLogado.cpf,
-      nome_arquivo: arquivoSelecionado.name, // 👈 CORREÇÃO: troque de "nomeArquivo" para "nome_arquivo"
-      tipo: arquivoSelecionado.type,
+      nome_arquivo: arquivoSelecionado.name,
+      tipo_arquivo: arquivoSelecionado.type, // 👈 CORRIGIDO de "tipo"
       data_envio: dataHoje,
       profissional: profissionalEscolhido
     });
