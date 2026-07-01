@@ -334,16 +334,25 @@ window.atualizarDashboardProfissional = async function () {
   let minhasConsultas = agendamentosRaw;
   const agora = new Date();
 
-  // 1. AUTO-LIMPEZA VISUAL (Não mexe no banco, apenas atualiza a tela)
+  // 1. AUTO-LIMPEZA VISUAL E AUTOMÁTICA (Atualizado)
   minhasConsultas.forEach(c => {
     if (c.status_geral === 'agendada') {
       const [ano, mes, dia] = c.data.split("-");
       const [h, m] = c.hora.split(":");
-      const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (80 * 60 * 1000);
+      // 90 minutos = Tempo limite máximo para o sistema considerar a consulta "vencida"
+      const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (90 * 60 * 1000);
 
-      // Se passou o tempo e ele não está na sala, mostra como ausente na tela do profissional
-      if (agora.getTime() >= limiteTolerancia && c.status_profissional !== 'na_sala') {
-        c.status_geral = 'ausente';
+      if (agora.getTime() >= limiteTolerancia) {
+        if (c.status_profissional === 'na_sala') {
+          // O médico entrou na sala, mas esqueceu de clicar em "Finalizar"
+          c.status_geral = 'finalizada';
+          // Salva no banco de dados silenciosamente para arrumar a aba
+          supabaseClient.from("consultas").update({ status_geral: "finalizada" }).eq("id", c.id).then();
+        } else {
+          // O médico nunca entrou na sala
+          c.status_geral = 'ausente';
+          supabaseClient.from("consultas").update({ status_geral: "ausente" }).eq("id", c.id).then();
+        }
       }
     }
   });
@@ -2789,18 +2798,21 @@ window.carregarMinhasConsultas = async function () {
     return;
   }
 
-  // 1. AUTO-LIMPEZA VISUAL (Sem tocar no banco a cada F5)
+  // 1. AUTO-LIMPEZA VISUAL E AUTOMÁTICA (Atualizado)
   const agora = new Date();
   minhasConsultas.forEach(c => {
     if (c.status_geral === 'agendada') {
       const [ano, mes, dia] = c.data.split("-");
       const [h, m] = c.hora.split(":");
-      const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (80 * 60 * 1000);
+      const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (90 * 60 * 1000);
 
-      // Se passou o tempo e o paciente não entrou na sala, marca como ausente visualmente.
-      if (agora.getTime() >= limiteTolerancia && c.status_paciente !== 'na_sala') {
-        c.status_geral = 'ausente';
-        // Nota: Idealmente, uma Função do Supabase faz esse UPDATE oficial depois de x horas.
+      if (agora.getTime() >= limiteTolerancia) {
+        // Se o paciente ou o médico chegaram a entrar na sala, considera finalizada
+        if (c.status_paciente === 'na_sala' || c.status_profissional === 'na_sala') {
+          c.status_geral = 'finalizada';
+        } else {
+          c.status_geral = 'ausente';
+        }
       }
     }
   });
