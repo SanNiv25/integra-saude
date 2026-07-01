@@ -2798,7 +2798,7 @@ window.carregarMinhasConsultas = async function () {
     return;
   }
 
-  // 1. AUTO-LIMPEZA VISUAL E AUTOMÁTICA (Atualizado)
+  // 1. AUTO-LIMPEZA VISUAL E AUTOMÁTICA (Agora salvando no banco!)
   const agora = new Date();
   minhasConsultas.forEach(c => {
     if (c.status_geral === 'agendada') {
@@ -2807,11 +2807,21 @@ window.carregarMinhasConsultas = async function () {
       const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (90 * 60 * 1000);
 
       if (agora.getTime() >= limiteTolerancia) {
-        // Se o paciente ou o médico chegaram a entrar na sala, considera finalizada
         if (c.status_paciente === 'na_sala' || c.status_profissional === 'na_sala') {
-          c.status_geral = 'finalizada';
+          c.status_geral = 'finalizada'; // Muda na tela
+
+          // 👇 A LINHA MÁGICA QUE FALTAVA PARA SALVAR NO BANCO 👇
+          window.supabaseClient.from("consultas")
+            .update({ status_geral: "finalizada" })
+            .eq("id", c.id)
+            .then();
+
         } else {
-          c.status_geral = 'ausente';
+          c.status_geral = 'ausente'; // Muda na tela
+          window.supabaseClient.from("consultas")
+            .update({ status_geral: "ausente" })
+            .eq("id", c.id)
+            .then();
         }
       }
     }
