@@ -85,20 +85,19 @@ function getProfissionalLogado() {
 /* =====================================================
    🔹 VERIFICAÇÃO DE SESSÃO AUTOMÁTICA
 ===================================================== */
-// O Supabase já gerencia a validade do token (geralmente 1 hora, renovado automaticamente).
-// Não precisamos mais calcular timestamps manualmente.
 async function verificarSessao() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
+  const { data: { session } } = await window.supabaseClient.auth.getSession();
   const profissional = getProfissionalLogado();
 
   if (!session && !profissional) {
     return; // Ninguém logado, comportamento normal de visitante
   }
 
-  // Se o Supabase disser que a sessão expirou, ele desloga automaticamente
-  supabaseClient.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED_FAILED') {
-      alert("Sua sessão expirou por segurança.");
+  // O Supabase já gerencia a validade do token.
+  window.supabaseClient.auth.onAuthStateChange((event, session) => {
+    // 👇 CORREÇÃO: Tiramos o 'SIGNED_OUT' daqui para acabar com o loop infinito!
+    if (event === 'TOKEN_REFRESHED_FAILED') {
+      alert("Sua sessão expirou por segurança. Faça login novamente.");
       encerrarSessao();
     }
   });
