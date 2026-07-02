@@ -1047,34 +1047,58 @@ window.confirmarConsulta = function () {
   if (minFim >= 60) { hFim += 1; minFim -= 60; }
   const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
 
+  // Descobre qual é a sessão do pacote
+  const urlParams = new URLSearchParams(window.location.search);
+  const is_pacote = urlParams.get('tipo') === 'pacote';
+  let numSessao = 1;
+  if (is_pacote && typeof pacoteEmAndamento !== 'undefined' && pacoteEmAndamento) {
+    numSessao = pacoteEmAndamento.agendadas + 1;
+  }
+
+  // 👇 LÓGICA NOVA: Esconde o pagamento se for a sessão 1, 2 ou 3 do pacote 👇
+  let formPagamentoHTML = "";
+  let textoBotao = "Confirmar Consulta e Pagar";
+
+  if (is_pacote && numSessao < 4) {
+    formPagamentoHTML = `
+        <div style="margin-bottom: 25px; text-align: left; background: #e0f2f1; padding: 15px; border-radius: 8px; border: 1px solid #b2dfdb;">
+          <h4 style="color: #00695c; margin-bottom: 5px;">📦 Sessão ${numSessao}/4</h4>
+          <p style="font-size: 14px; color: #004d40;">Esta sessão será agendada agora. <strong>O pagamento do pacote só será cobrado na 4ª e última sessão.</strong></p>
+          <input type="hidden" name="metodoPagamento" value="gratis">
+        </div>
+      `;
+    textoBotao = `Confirmar Sessão ${numSessao}`;
+  } else {
+    formPagamentoHTML = `
+        <div style="margin-bottom: 25px; text-align: left; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+          <h4 style="color: #0f4c5c; margin-bottom: 15px;">Forma de Pagamento:</h4>
+          <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; font-size: 15px; color: #444;">
+              <input type="radio" name="metodoPagamento" value="pix" checked style="width: 18px; height: 18px;">
+              💠 PIX (Aprovação imediata sem sair da tela)
+          </label>
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; color: #444;">
+              <input type="radio" name="metodoPagamento" value="cartao" style="width: 18px; height: 18px;">
+              💳 Cartão de Crédito (Via Mercado Pago)
+          </label>
+        </div>
+      `;
+    if (is_pacote && numSessao === 4) textoBotao = "Pagar Pacote Completo";
+  }
+
   if (agenda) {
     agenda.innerHTML = `
         <div class="agenda-box">
           <h2 style="color: #0f4c5c;">Confirme seu Agendamento</h2>
           <div style="background: #f4f9f9; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: left; border: 1px solid #cce3e6;">
-            <p style="margin-bottom: 10px; font-size: 16px;">Você está prestes a agendar uma consulta com:</p>
+            <p style="margin-bottom: 10px; font-size: 16px;">Você está prestes a agendar com:</p>
             <h3 style="color: #0E5F73; margin-bottom: 15px; font-size: 22px;">${profissionalAtual.nome}</h3>
-            <p style="margin-bottom: 8px;"><strong>Especialidade:</strong> ${profissionalAtual.especialidade}</p>
             <p style="margin-bottom: 8px;"><strong>Data:</strong> ${dataFormatada}</p>
             <p><strong>Horário:</strong> ${horarioSelecionado} às ${horaFimStr}</p>
           </div>
           
-          <!-- SELEÇÃO DE FORMA DE PAGAMENTO -->
-          <div style="margin-bottom: 25px; text-align: left; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
-            <h4 style="color: #0f4c5c; margin-bottom: 15px;">Forma de Pagamento:</h4>
-            
-            <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; font-size: 15px; color: #444;">
-                <input type="radio" name="metodoPagamento" value="pix" checked style="width: 18px; height: 18px;">
-                💠 PIX (Aprovação imediata sem sair da tela)
-            </label>
-            
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; color: #444;">
-                <input type="radio" name="metodoPagamento" value="cartao" style="width: 18px; height: 18px;">
-                💳 Cartão de Crédito (Via Mercado Pago)
-            </label>
-          </div>
+          ${formPagamentoHTML}
 
-          <button type="button" onclick="finalizarAgendamento(this)" class="btn-primary" style="margin-right: 15px;">Confirmar Consulta e Pagar</button>
+          <button type="button" onclick="finalizarAgendamento(this)" class="btn-primary" style="margin-right: 15px;">${textoBotao}</button>
           <button type="button" onclick="abrirAgenda(this.dataset.nome)" data-nome="${profissionalAtual.nome}" class="btn-secondary">Voltar e Alterar</button>
         </div>
       `;
@@ -1120,20 +1144,31 @@ window.finalizarAgendamento = async function (botaoElement) {
   const { error: erroInsert } = await supabaseClient.from("consultas").insert([novaConsulta]);
   if (erroInsert) {
     alert("Erro ao reservar horário.");
-    if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
+    if (botaoElement) { botaoElement.innerText = "Confirmar Consulta"; botaoElement.disabled = false; }
     return;
   }
 
-  if (!profissionalAtual.valor) {
-    alert("Profissional sem valor cadastrado.");
-    if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
+  // Lê qual método foi escolhido (ou se está escondido como 'gratis')
+  const metodoInput = document.querySelector('input[name="metodoPagamento"]:checked') || document.querySelector('input[name="metodoPagamento"][type="hidden"]');
+  const metodoSelecionado = metodoInput ? metodoInput.value : 'pix';
+
+  // 👇 LÓGICA NOVA: Se for grátis, confirma a consulta e pula o Mercado Pago! 👇
+  if (metodoSelecionado === 'gratis') {
+    await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("id", uniqueId);
+    const agenda = document.getElementById("agendaContainer");
+    if (agenda) {
+      agenda.innerHTML = `
+          <div class="agenda-box" style="text-align: center; padding: 40px 20px;">
+            <h2 style="color: #2E7D32;">✅ Sessão ${numSessao} Confirmada!</h2>
+            <p style="margin-top: 15px;">Seu agendamento foi salvo. O pagamento ocorrerá na 4ª sessão.</p>
+            <button type="button" onclick="window.location.reload()" class="btn-primary" style="width: 100%; margin-top: 20px;">Ir para o Painel</button>
+          </div>
+        `;
+    }
     return;
   }
 
-  // 👇 LÊ A BOLINHA QUE O PACIENTE MARCOU 👇
-  const metodoSelecionado = document.querySelector('input[name="metodoPagamento"]:checked').value;
-
-  // 3. Chama a Edge Function
+  // 3. Se NÃO for grátis, chama a Edge Function de pagamento normal
   const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
     body: {
       consultaId: uniqueId,
@@ -1412,11 +1447,25 @@ window.efetivarCancelamento = async function () {
   const usuarioLogado = await getUsuarioLogado();
   if (!usuarioLogado || !consultaParaCancelar) return;
 
-  // Mostra feedback visual para o paciente (pois o estorno pode levar uns 3 segundos)
   const divConfirmacao = document.getElementById("estadoConfirmacao");
-  divConfirmacao.innerHTML = `<h3 style="color: #0F4C5C;">Processando reembolso automático...</h3><p style="color: #555;">Aguarde um momento.</p>`;
+  divConfirmacao.innerHTML = `<h3 style="color: #0F4C5C;">Processando cancelamento...</h3><p style="color: #555;">Aguarde um momento.</p>`;
 
-  // Aciona a Edge Function do Supabase
+  // 👇 LÓGICA NOVA: Se for pacote e não for a 4ª sessão, cancela direto sem acionar estorno 👇
+  if (consultaParaCancelar.is_pacote && consultaParaCancelar.sessaoNumero < 4) {
+    const { error } = await supabaseClient.from("consultas").update({ status_geral: 'cancelada' }).eq('id', consultaParaCancelar.id);
+
+    if (error) {
+      alert("Erro ao cancelar a consulta.");
+      fecharModalCancelar();
+      return;
+    }
+
+    divConfirmacao.classList.add("hidden");
+    document.getElementById("estadoSucesso").classList.remove("hidden");
+    return;
+  }
+
+  // Se for sessão paga (avulsa ou 4ª do pacote), chama o reembolso normal
   const { data, error } = await supabaseClient.functions.invoke('processar-reembolso', {
     body: {
       consultaId: consultaParaCancelar.id,
@@ -1428,12 +1477,10 @@ window.efetivarCancelamento = async function () {
   if (error || (data && data.erro)) {
     console.error("Erro no reembolso:", error || (data && data.erro));
     alert("Não foi possível realizar o reembolso automático pelo Mercado Pago. Contate o suporte.");
-    // Restaura os botões originais do modal se der erro
     fecharModalCancelar();
     return;
   }
 
-  // Se o Mercado Pago aprovou a devolução, mostra o aviso de Sucesso!
   divConfirmacao.classList.add("hidden");
   document.getElementById("estadoSucesso").classList.remove("hidden");
 }
