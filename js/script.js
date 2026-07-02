@@ -761,6 +761,10 @@ document.addEventListener("DOMContentLoaded", async function () {
           const descricao = prof.miniBio || "Profissional de excelência cadastrado na Integra Saúde.";
           const turnos = (prof.agenda && prof.agenda.turnos) ? prof.agenda.turnos : ["manha", "tarde", "noite"];
 
+          // 👇 FORMATAÇÃO DOS VALORES PARA MOSTRAR NA TELA 👇
+          const precoIndividual = parseFloat(prof.valor || 0).toFixed(2).replace('.', ',');
+          const precoPacote = parseFloat(prof.valor_pacote || 0).toFixed(2).replace('.', ',');
+
           const card = `
               <div class="prof-card">
                 <img src="${imagem}" alt="${prof.nome}" style="object-fit: contain; padding: 10px; background: #f4f9f9;">
@@ -769,6 +773,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                   <p style="font-size: 18px; font-weight: 600; margin-bottom: 2px;">${prof.especialidade}</p>
                   <p style="font-size: 16px; color: #555; margin-bottom: 10px;">${prof.registro}</p>
                   <p style="font-size: 16px; color: #000; margin: 8px 0;">${descricao}</p>
+                  
+                  <!-- 👇 CAIXINHA COM OS PREÇOS EXIBIDA PARA O PACIENTE 👇 -->
+                  <div style="margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                      <p style="margin: 5px 0; font-size: 14px;"><strong>Avulsa:</strong> R$ ${precoIndividual}</p>
+                      <p style="margin: 5px 0; font-size: 14px; color: #0F766E;"><strong>Pacote (4x):</strong> R$ ${precoPacote}</p>
+                  </div>
+
                   ${criarTurnosHTML(turnos)}
                   <a href="javascript:void(0)" class="btn-primary" style="display: block; text-align: center; margin-top: 15px;" onclick="abrirAgenda('${prof.nome}')">Agendar Consulta</a>
                 </div>
@@ -3303,4 +3314,59 @@ window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPa
 
   const modalCanc = document.getElementById("modalCancelar");
   if (modalCanc) modalCanc.classList.add("active");
+};
+
+/* =====================================================
+   🔹 CONFIGURAÇÃO DE VALORES (ÁREA DO PROFISSIONAL)
+===================================================== */
+window.abrirModalValores = async function () {
+  const profLogado = getProfissionalLogado();
+  if (!profLogado) return;
+
+  document.getElementById("modalValoresProf").style.display = "flex";
+
+  // Puxa os preços que já estão no banco para preencher a caixinha
+  const { data: prof, error } = await window.supabaseClient
+    .from('profissionais')
+    .select('valor, valor_pacote')
+    .eq('id', profLogado.id)
+    .single();
+
+  if (prof && !error) {
+    document.getElementById("inputValorConsulta").value = prof.valor || '';
+    document.getElementById("inputValorPacote").value = prof.valor_pacote || '';
+  }
+};
+
+window.fecharModalValores = function () {
+  document.getElementById("modalValoresProf").style.display = "none";
+};
+
+window.salvarValoresProf = async function () {
+  const profLogado = getProfissionalLogado();
+  if (!profLogado) return;
+
+  const btnSalvar = document.getElementById("btnSalvarValores");
+  btnSalvar.innerText = "⏳ Salvando...";
+  btnSalvar.disabled = true;
+
+  const valorConsulta = document.getElementById("inputValorConsulta").value;
+  const valorPacote = document.getElementById("inputValorPacote").value;
+
+  // Dispara o update para o Supabase
+  const { error } = await window.supabaseClient.from('profissionais').update({
+    valor: parseFloat(valorConsulta) || 0,
+    valor_pacote: parseFloat(valorPacote) || 0
+  }).eq('id', profLogado.id);
+
+  if (error) {
+    console.error("Erro ao salvar valores:", error);
+    alert("❌ Erro ao salvar valores. Tente novamente.");
+  } else {
+    alert("✅ Valores atualizados com sucesso!");
+    fecharModalValores();
+  }
+
+  btnSalvar.innerText = "Salvar Valores";
+  btnSalvar.disabled = false;
 };

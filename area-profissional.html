@@ -56,6 +56,13 @@
             </div>
             <ul class="sidebar-menu">
                 <li class="ativo"><a href="#">🏠 Minha Agenda</a></li>
+
+                <!-- 👇 NOVO BOTÃO DE CONFIGURAR VALORES 👇 -->
+                <li onclick="abrirModalValores()"
+                    style="cursor: pointer; padding: 10px 15px; margin-bottom: 5px; display: block;">
+                    <a style="color: #fff; text-decoration: none;">💰 Configurar Valores</a>
+                </li>
+
                 <li style="margin-top: 40px;"><a href="#" onclick="sairDaContaProf()" class="btn-sair-sidebar">🚪 Sair
                         da Conta</a></li>
             </ul>
@@ -168,6 +175,35 @@
         </div>
     </div>
 
+    <!-- ==========================================
+         MODAL DE VALORES DO PROFISSIONAL
+    ========================================== -->
+    <div id="modalValoresProf" class="popup-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center;">
+        <div class="popup-content"
+            style="background: #fff; width: 90%; max-width: 400px; padding: 25px; border-radius: 8px; position: relative; text-align: center;">
+            <button onclick="fecharModalValores()"
+                style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888;">✖</button>
+            <h2 style="color: #0F4C5C; margin-bottom: 20px;">💰 Meus Valores</h2>
+
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-size: 14px; font-weight: bold; color: #333;">Consulta Individual (R$):</label>
+                <input type="number" id="inputValorConsulta" placeholder="Ex: 100"
+                    style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; font-family: 'Montserrat', sans-serif;">
+            </div>
+
+            <div style="text-align: left; margin-bottom: 25px;">
+                <label style="font-size: 14px; font-weight: bold; color: #333;">Pacote c/ 4 Consultas (R$):</label>
+                <input type="number" id="inputValorPacote" placeholder="Ex: 350"
+                    style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; font-family: 'Montserrat', sans-serif;">
+            </div>
+
+            <button id="btnSalvarValores" onclick="salvarValoresProf()"
+                style="width: 100%; background: #0F766E; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: 'Montserrat', sans-serif;">Salvar
+                Valores</button>
+        </div>
+    </div>
+
     <footer class="footer-novo">
         <div class="footer-col" style="align-items: center; justify-content: center;">
             <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icon">
@@ -215,7 +251,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-    <script type="module" src="js/script.js?v=42"></script>
+    <script type="module" src="js/script.js?v=43"></script>
 </body>
 
 </html>
