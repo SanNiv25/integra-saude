@@ -1120,8 +1120,6 @@ window.confirmarConsulta = function () {
    🔹 FINALIZAR AGENDAMENTO (Criação e Pagamento via Mercado Pago)
 ===================================================== */
 window.finalizarAgendamento = async function (botaoElement) {
-
-  // 1. Feedback visual
   if (botaoElement) {
     botaoElement.innerText = "Processando...";
     botaoElement.disabled = true;
@@ -1133,10 +1131,9 @@ window.finalizarAgendamento = async function (botaoElement) {
   const urlParams = new URLSearchParams(window.location.search);
   const is_pacote = urlParams.get('tipo') === 'pacote';
   const uniqueId = Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-
   let numSessao = window.sessaoAtualPacote || 1;
 
-  // 👇 1. TRAVA ABSOLUTA DE HORÁRIO (Bloqueia consultas na mesma hora) 👇
+  // TRAVA DE HORÁRIO
   const { data: conflito } = await supabaseClient.from("consultas")
     .select("id")
     .eq("profissional", profissionalAtual.nome)
@@ -1150,7 +1147,7 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
-  // 👇 2. CRIA UM VÍNCULO ENTRE AS 4 CONSULTAS DO PACOTE 👇
+  // ID DO PACOTE
   let meuPacoteId = null;
   if (is_pacote) {
     if (numSessao === 1) {
@@ -1168,9 +1165,9 @@ window.finalizarAgendamento = async function (botaoElement) {
     data: dataSelecionada,
     hora: horarioSelecionado,
     paciente_cpf: usuarioLogado.cpf,
-    status_geral: "pendente_pagamento",
+    status_geral: "pendente_pagamento", // 👈 AGORA SEMPRE NASCE PENDENTE!
     is_pacote: is_pacote,
-    pacote_id: meuPacoteId, // Salva o vínculo no banco
+    pacote_id: meuPacoteId,
     meet_link: `https://meet.jit.si/IntegraSaude_${uniqueId}`
   };
 
@@ -1184,15 +1181,14 @@ window.finalizarAgendamento = async function (botaoElement) {
   const metodoInput = document.querySelector('input[name="metodoPagamento"]:checked') || document.querySelector('input[name="metodoPagamento"][type="hidden"]');
   const metodoSelecionado = metodoInput ? metodoInput.value : 'pix';
 
-  // 👇 3. NOVO FLUXO: CONTINUA NA MESMA TELA PARA A PRÓXIMA SESSÃO 👇
+  // LÓGICA DAS SESSÕES 1, 2 e 3 (Não atualiza para agendada, apenas avança)
   if (metodoSelecionado === 'gratis') {
-    await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("id", uniqueId);
     const agenda = document.getElementById("agendaContainer");
     if (agenda) {
       agenda.innerHTML = `
           <div class="agenda-box" style="text-align: center; padding: 40px 20px;">
-            <h2 style="color: #2E7D32;">✅ Sessão ${numSessao} de 4 Confirmada!</h2>
-            <p style="margin-top: 15px; color: #555;">Seu agendamento foi salvo com sucesso.</p>
+            <h2 style="color: #2E7D32;">Sessão ${numSessao} de 4 reservada!</h2>
+            <p style="margin-top: 15px; color: #555;">O agendamento final ocorrerá após o pagamento da 4ª sessão.</p>
             <button type="button" onclick="abrirAgenda('${profissionalAtual.nome}')" class="btn-primary" style="width: 100%; margin-top: 25px; background-color: #0E5F73;">📅 Agendar a Próxima Sessão</button>
           </div>
         `;
@@ -1200,7 +1196,6 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
-  // Se for a 4ª sessão, o pacote fechou, limpa o ID
   if (is_pacote && numSessao === 4) {
     localStorage.removeItem('pacoteIdEmAndamento');
   }
@@ -1219,7 +1214,6 @@ window.finalizarAgendamento = async function (botaoElement) {
   });
 
   if (erroPagamento) {
-    console.error(erroPagamento);
     alert("Erro ao gerar pagamento.");
     if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
     return;
@@ -1230,23 +1224,26 @@ window.finalizarAgendamento = async function (botaoElement) {
     agenda.innerHTML = `
       <div class="agenda-box" style="text-align: center; padding: 30px;">
         <h2 style="color: #0F4C5C;">Pague com PIX</h2>
-        <p style="color: #555; margin-bottom: 20px;">Abra o app do seu banco e escaneie o código abaixo:</p>
-        <img src="data:image/png;base64,${respostaPagamento.qrCodeBase64}" alt="QR Code Pix" style="width: 200px; height: 200px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
-        <p style="font-size: 13px; color: #777;">Ou copie o código abaixo:</p>
+        <img src="data:image/png;base64,${respostaPagamento.qrCodeBase64}" style="width: 200px; margin-bottom: 20px;">
         <div style="display: flex; gap: 5px; margin-bottom: 20px;">
-            <input type="text" id="pixCopiaCola" value="${respostaPagamento.qrCodeCopiaCola}" readonly style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ccc; font-size: 12px; border-radius: 4px;">
-            <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopiaCola').value); alert('Código copiado!');" style="background: #0F766E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Copiar</button>
+            <input type="text" id="pixCopiaCola" value="${respostaPagamento.qrCodeCopiaCola}" readonly style="flex: 1; padding: 10px; font-size: 12px;">
+            <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopiaCola').value)" style="background: #0F766E; color: white; padding: 10px;">Copiar</button>
         </div>
-        <div id="statusPagamentoAoVivo">
-            <p style="color: #d9534f; font-weight: bold;">⏳ Aguardando pagamento...</p>
-        </div>
+        <div id="statusPagamentoAoVivo"><p style="color: #d9534f; font-weight: bold;">⏳ Aguardando pagamento...</p></div>
       </div>
     `;
 
     const radarDePagamento = setInterval(async () => {
       const { data: statusConsulta } = await supabaseClient.from("consultas").select("status_geral").eq("id", respostaPagamento.consultaId).single();
+
       if (statusConsulta && statusConsulta.status_geral === "agendada") {
         clearInterval(radarDePagamento);
+
+        // 👇 O PULO DO GATO: Se o Pix for pago, confirma as 4 consultas ao mesmo tempo!
+        if (is_pacote) {
+          await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("pacote_id", meuPacoteId);
+        }
+
         document.getElementById("statusPagamentoAoVivo").innerHTML = `<p style="color: #2E7D32; font-weight: bold; font-size: 18px;">✅ Pagamento Confirmado!</p>`;
         setTimeout(() => { window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`; }, 1500);
       }
@@ -1258,9 +1255,6 @@ window.finalizarAgendamento = async function (botaoElement) {
     window.location.href = respostaPagamento.url;
     return;
   }
-
-  alert("Falha de comunicação com o Mercado Pago. Tente novamente.");
-  if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
 };
 
 window.fecharAgenda = function () {
@@ -1359,23 +1353,24 @@ window.mostrarHorarios = async function () {
 
     div.innerText = hora === "12:00" ? "12:00 (Almoço)" : `${hora} - ${horaFimStr}`;
 
-    if (hora === "12:00") {
-      div.classList.add("horario-indisponivel"); div.style.gridColumn = "span 2";
-    } else if (dataHoraSlot < limiteTempo) {
-      div.classList.add("horario-indisponivel");
-    } else {
-      let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
+    // 👇 A MÁGICA DO BOTÃO CINZA ACONTECE AQUI 👇
+    let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
 
-      if (ocupado) {
-        div.classList.add("horario-indisponivel");
-      } else {
-        div.classList.add("horario-disponivel");
-        div.onclick = (e) => {
-          horarioSelecionado = hora;
-          document.querySelectorAll("#horarios .horario").forEach(el => el.style.outline = "none");
-          e.target.style.outline = "3px solid #000";
-        };
-      }
+    if (hora === "12:00" || dataHoraSlot < limiteTempo || ocupado) {
+      div.classList.add("horario-indisponivel");
+      // Força o CSS para ficar cinza e com cursor de bloqueado
+      div.style.backgroundColor = "#e0e0e0";
+      div.style.color = "#999";
+      div.style.borderColor = "#ccc";
+      div.style.cursor = "not-allowed";
+      div.onclick = null; // Impede qualquer clique
+    } else {
+      div.classList.add("horario-disponivel");
+      div.onclick = (e) => {
+        horarioSelecionado = hora;
+        document.querySelectorAll("#horarios .horario").forEach(el => el.style.outline = "none");
+        e.target.style.outline = "3px solid #000";
+      };
     }
     horariosDiv.appendChild(div);
   });
@@ -2072,13 +2067,13 @@ window.mostrarHorariosReagendar = async function () {
   let slots = window.gerarSlotsProfissional();
   profissionalAtual = profSalvo;
 
-  // 👇 OTIMIZAÇÃO: Consulta no banco as ocupações do médico NO DIA SELECIONADO
+  // Consulta no banco as ocupações do médico NO DIA SELECIONADO
   const { data: consultasDoDia } = await supabaseClient
     .from("consultas")
     .select("hora")
     .eq("profissional", profissionalReagendarAtual.nome)
     .eq("data", dataSelecionada)
-    .eq("status_geral", "agendada");
+    .in("status_geral", ["agendada", "pendente_pagamento"]);
 
   horariosDiv.innerHTML = "";
 
@@ -2095,26 +2090,27 @@ window.mostrarHorariosReagendar = async function () {
 
     div.innerText = hora === "12:00" ? "12:00 (Almoço)" : `${hora} - ${horaFimStr}`;
 
-    if (hora === "12:00") {
-      div.classList.add("horario-indisponivel"); div.style.gridColumn = "span 2";
-    } else if (dataHoraSlot < limiteTempo) {
+    let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
+    // Checa se o horário na tela é exatamente o horário antigo que ele está tentando mudar (para destacar de azul)
+    let isHorarioAntigo = (profissionalReagendarAtual.nome === consultaParaReagendar.profissional && dataSelecionada === consultaParaReagendar.data && hora === consultaParaReagendar.hora);
+
+    // 👇 DEIXA CINZA E BLOQUEIA SE ESTIVER OCUPADO, PASSADO OU FOR ALMOÇO 👇
+    if (hora === "12:00" || dataHoraSlot < limiteTempo || (ocupado && !isHorarioAntigo)) {
       div.classList.add("horario-indisponivel");
+      div.style.backgroundColor = "#e0e0e0";
+      div.style.color = "#999";
+      div.style.borderColor = "#ccc";
+      div.style.cursor = "not-allowed";
+      div.onclick = null; // Remove a função de clique
     } else {
-      let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
-      let isHorarioAntigo = (profissionalReagendarAtual.nome === consultaParaReagendar.profissional && dataSelecionada === consultaParaReagendar.data && hora === consultaParaReagendar.hora);
+      div.classList.add("horario-disponivel");
+      if (isHorarioAntigo) div.style.backgroundColor = "#2a9fec"; // Mantém o azul no horário antigo
 
-      if (ocupado && !isHorarioAntigo) {
-        div.classList.add("horario-indisponivel");
-      } else {
-        div.classList.add("horario-disponivel");
-        if (isHorarioAntigo) div.style.backgroundColor = "#2a9fec";
-
-        div.onclick = (e) => {
-          horarioSelecionado = hora;
-          document.querySelectorAll("#horariosReagendar .horario").forEach(el => el.style.outline = "none");
-          e.target.style.outline = "3px solid #000";
-        };
-      }
+      div.onclick = (e) => {
+        horarioSelecionado = hora;
+        document.querySelectorAll("#horariosReagendar .horario").forEach(el => el.style.outline = "none");
+        e.target.style.outline = "3px solid #000";
+      };
     }
     horariosDiv.appendChild(div);
   });
@@ -2203,7 +2199,7 @@ window.renderizarAdminVisaoGeral = async function () {
   if (document.getElementById("totalConsultasAdmin")) document.getElementById("totalConsultasAdmin").innerText = countConsultas || 0;
 }
 
-// OTIMIZADO: Lista profissionais direto do banco
+// OTIMIZADO: Lista profissionais e permite ao Admin editar os valores
 window.renderizarAdminProfissionais = async function () {
   const listaDiv = document.getElementById("listaProfissionaisAdmin");
   if (!listaDiv) return;
@@ -2222,12 +2218,21 @@ window.renderizarAdminProfissionais = async function () {
     let concluidas = consultasDoProf.filter(c => c.status_geral === 'finalizada').length;
     let futuras = consultasDoProf.filter(c => c.status_geral === 'agendada').length;
 
+    // Valores atuais do profissional (ou 0 se não tiver)
+    let valInd = parseFloat(prof.valor || 0).toFixed(2);
+    let valPac = parseFloat(prof.valor_pacote || 0).toFixed(2);
+
     listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;">
         <div>
           <h3 style="color: #0F4C5C; margin-bottom: 5px; font-size: 18px;">${prof.nome} <span style="font-size: 13px; color: #777;">(${prof.especialidade})</span></h3>
-          <p style="font-size: 13px; color: #555;"><strong>Registro:</strong> ${prof.registro} | <strong>Contato:</strong> ${prof.telefone || 'Não informado'}</p>
-          <button onclick="removerProfissional('${prof.registro}')" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; margin-top: 10px;">🗑️ Remover Profissional</button>
+          <p style="font-size: 13px; color: #555; margin-bottom: 8px;"><strong>Registro:</strong> ${prof.registro} | <strong>Contato:</strong> ${prof.telefone || 'Não informado'}</p>
+          <p style="font-size: 13px; color: #0F766E; font-weight: bold;">Avulsa: R$ ${valInd} | Pacote: R$ ${valPac}</p>
+          
+          <div style="margin-top: 10px; display: flex; gap: 10px;">
+              <button onclick="abrirModalValoresAdmin('${prof.registro}', '${prof.nome}', ${prof.valor || 0}, ${prof.valor_pacote || 0})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">💰 Editar Valores</button>
+              <button onclick="removerProfissional('${prof.registro}')" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️ Remover</button>
+          </div>
         </div>
         <div style="text-align: right; font-size: 13px; color: #444;">
           <p><strong>Consultas Futuras:</strong> ${futuras}</p>
@@ -2236,6 +2241,59 @@ window.renderizarAdminProfissionais = async function () {
       </div>
     `;
   });
+}
+
+/* =====================================================
+   🔹 CONTROLE DE PREÇOS PELO ADMINISTRADOR
+===================================================== */
+window.abrirModalValoresAdmin = function (registro, nome, valorAtual, valorPacoteAtual) {
+  // Remove qualquer modal antigo que tenha ficado preso na tela
+  const modalAntigo = document.getElementById('modalAdminValores');
+  if (modalAntigo) modalAntigo.remove();
+
+  const modalHtml = `
+        <div id="modalAdminValores" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: flex; justify-content: center; align-items: center;">
+            <div style="background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; text-align: left;">
+                <h3 style="color: #0F4C5C; margin-bottom: 15px; font-size: 18px;">Precificação: <span style="color: #555;">${nome}</span></h3>
+                
+                <label style="font-size: 14px; font-weight: bold; color: #333;">Consulta Individual (R$):</label>
+                <input type="number" id="adminInputValor" value="${valorAtual}" step="0.01" style="width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 4px;">
+                
+                <label style="font-size: 14px; font-weight: bold; color: #333;">Pacote c/ 4 Sessões (R$):</label>
+                <input type="number" id="adminInputPacote" value="${valorPacoteAtual}" step="0.01" style="width: 100%; padding: 10px; margin: 5px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
+                
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="salvarValoresAdmin('${registro}')" id="btnSalvarValoresAdmin" style="flex: 1; background: #0F766E; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Salvar Preços</button>
+                    <button onclick="document.getElementById('modalAdminValores').remove()" style="flex: 1; background: #888; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">❌ Cancelar</button>
+                </div>
+            </div>
+        </div>
+    `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+window.salvarValoresAdmin = async function (registro) {
+  const btnSalvar = document.getElementById("btnSalvarValoresAdmin");
+  btnSalvar.innerText = "⏳ Salvando...";
+  btnSalvar.disabled = true;
+
+  const valNovo = parseFloat(document.getElementById("adminInputValor").value) || 0;
+  const pacNovo = parseFloat(document.getElementById("adminInputPacote").value) || 0;
+
+  const { error } = await supabaseClient.from("profissionais").update({
+    valor: valNovo,
+    valor_pacote: pacNovo
+  }).eq("registro", registro);
+
+  if (error) {
+    alert("❌ Erro ao atualizar os valores no banco de dados.");
+    btnSalvar.innerText = "💾 Salvar Preços";
+    btnSalvar.disabled = false;
+  } else {
+    alert("✅ Valores atualizados com sucesso!");
+    document.getElementById('modalAdminValores').remove();
+    window.renderizarAdminProfissionais(); // Atualiza a lista na hora
+  }
 }
 
 window.removerProfissional = async function (registro) {
@@ -3397,59 +3455,4 @@ window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPa
 
   const modalCanc = document.getElementById("modalCancelar");
   if (modalCanc) modalCanc.classList.add("active");
-};
-
-/* =====================================================
-   🔹 CONFIGURAÇÃO DE VALORES (ÁREA DO PROFISSIONAL)
-===================================================== */
-window.abrirModalValores = async function () {
-  const profLogado = getProfissionalLogado();
-  if (!profLogado) return;
-
-  document.getElementById("modalValoresProf").style.display = "flex";
-
-  // Puxa os preços que já estão no banco para preencher a caixinha
-  const { data: prof, error } = await window.supabaseClient
-    .from('profissionais')
-    .select('valor, valor_pacote')
-    .eq('id', profLogado.id)
-    .single();
-
-  if (prof && !error) {
-    document.getElementById("inputValorConsulta").value = prof.valor || '';
-    document.getElementById("inputValorPacote").value = prof.valor_pacote || '';
-  }
-};
-
-window.fecharModalValores = function () {
-  document.getElementById("modalValoresProf").style.display = "none";
-};
-
-window.salvarValoresProf = async function () {
-  const profLogado = getProfissionalLogado();
-  if (!profLogado) return;
-
-  const btnSalvar = document.getElementById("btnSalvarValores");
-  btnSalvar.innerText = "⏳ Salvando...";
-  btnSalvar.disabled = true;
-
-  const valorConsulta = document.getElementById("inputValorConsulta").value;
-  const valorPacote = document.getElementById("inputValorPacote").value;
-
-  // Dispara o update para o Supabase
-  const { error } = await window.supabaseClient.from('profissionais').update({
-    valor: parseFloat(valorConsulta) || 0,
-    valor_pacote: parseFloat(valorPacote) || 0
-  }).eq('id', profLogado.id);
-
-  if (error) {
-    console.error("Erro ao salvar valores:", error);
-    alert("❌ Erro ao salvar valores. Tente novamente.");
-  } else {
-    alert("✅ Valores atualizados com sucesso!");
-    fecharModalValores();
-  }
-
-  btnSalvar.innerText = "Salvar Valores";
-  btnSalvar.disabled = false;
 };

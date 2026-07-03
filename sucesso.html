@@ -66,6 +66,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
+  <script type="module" src="js/script.js?v=105"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async function () {
       const params = new URLSearchParams(window.location.search);
@@ -77,7 +78,7 @@
         return;
       }
 
-      // Busca os dados diretamente do Supabase usando a conexão já existente
+      // Busca a consulta principal (a que gerou o ID do Mercado Pago)
       const { data: consulta, error } = await window.supabaseClient
         .from("consultas")
         .select("*")
@@ -89,18 +90,46 @@
         return;
       }
 
-      // Formata a data para padrão brasileiro
-      const [ano, mes, dia] = consulta.data.split("-");
-      const dataFormatada = `${dia}/${mes}/${ano}`;
-      const tipoAgendamento = consulta.is_pacote ? "📦 Pacote Promocional" : "📅 Consulta Individual";
+      // 👇 SE FOR UM PACOTE COM ID AMARRADO, PUXA AS 4 DATAS 👇
+      if (consulta.is_pacote && consulta.pacote_id) {
 
-      detalhesDiv.innerHTML = `
-                <p><strong>Profissional:</strong> ${consulta.profissional}</p>
-                <p><strong>Especialidade:</strong> ${consulta.especialidade || "Não informada"}</p>
-                <p><strong>Data:</strong> ${dataFormatada}</p>
-                <p><strong>Horário:</strong> ${consulta.hora}</p>
-                <p><strong>Modalidade:</strong> ${tipoAgendamento}</p>
-            `;
+        // Garante que todas virem 'agendada' no banco de dados para ativar no painel
+        await window.supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("pacote_id", consulta.pacote_id);
+
+        // Puxa as 4 consultas do banco organizadas pela data
+        const { data: pacote } = await window.supabaseClient.from("consultas")
+          .select("data, hora")
+          .eq("pacote_id", consulta.pacote_id)
+          .order("data", { ascending: true });
+
+        let listaDatas = "";
+        if (pacote) {
+          pacote.forEach((sessao, index) => {
+            const [ano, mes, dia] = sessao.data.split("-");
+            listaDatas += `<p style="margin-bottom: 5px;"><strong>Sessão ${index + 1}:</strong> ${dia}/${mes}/${ano} às ${sessao.hora}</p>`;
+          });
+        }
+
+        detalhesDiv.innerHTML = `
+              <p><strong>Profissional:</strong> ${consulta.profissional}</p>
+              <p><strong>Modalidade:</strong> 📦 Pacote Promocional (4 Sessões)</p>
+              <hr style="border: 0; border-top: 1px solid #cce3e6; margin: 15px 0;">
+              <h4 style="color: #0F4C5C; margin-bottom: 10px;">Datas confirmadas:</h4>
+              ${listaDatas}
+          `;
+      }
+      // 👇 SE FOR CONSULTA INDIVIDUAL (Avulsa) SEGUE O FLUXO NORMAL 👇
+      else {
+        const [ano, mes, dia] = consulta.data.split("-");
+
+        detalhesDiv.innerHTML = `
+              <p><strong>Profissional:</strong> ${consulta.profissional}</p>
+              <p><strong>Especialidade:</strong> ${consulta.especialidade || "Não informada"}</p>
+              <p><strong>Data:</strong> ${dia}/${mes}/${ano}</p>
+              <p><strong>Horário:</strong> ${consulta.hora}</p>
+              <p><strong>Modalidade:</strong> 📅 Consulta Individual</p>
+          `;
+      }
     });
   </script>
 </body>
