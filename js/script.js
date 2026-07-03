@@ -370,21 +370,26 @@ window.atualizarDashboardProfissional = async function () {
   let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
   let ausentes = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'ausente'));
 
-  // 3. IDENTIFICAÇÃO GLOBAL DOS PACOTES
+  // 3. IDENTIFICAÇÃO GLOBAL DOS PACOTES E NUMERAÇÃO CRONOLÓGICA
   let historicoPacotesIDs = [];
   let contadorSessoes = {};
 
-  minhasConsultas.forEach(c => {
+  // 👇 Ordena no tempo (do mais antigo pro mais novo) antes de contar
+  let consultasCrescente = [...minhasConsultas].sort((a, b) => new Date(a.data + "T" + a.hora).getTime() - new Date(b.data + "T" + b.hora).getTime());
+
+  consultasCrescente.forEach(c => {
     if (c.is_pacote) {
       let chavePacote = c.pacote_id || c.paciente_cpf;
-      if (!historicoPacotesIDs.includes(chavePacote)) {
-        historicoPacotesIDs.push(chavePacote);
-      }
-      c.pacoteIndexGlobal = historicoPacotesIDs.indexOf(chavePacote) + 1;
+      if (!historicoPacotesIDs.includes(chavePacote)) historicoPacotesIDs.push(chavePacote);
 
       if (!contadorSessoes[chavePacote]) contadorSessoes[chavePacote] = 0;
       contadorSessoes[chavePacote]++;
-      c.sessaoNumeroCalculada = contadorSessoes[chavePacote];
+
+      let original = minhasConsultas.find(orig => orig.id === c.id);
+      if (original) {
+        original.pacoteIndexGlobal = historicoPacotesIDs.indexOf(chavePacote) + 1;
+        original.sessaoNumeroCalculada = contadorSessoes[chavePacote];
+      }
     }
   });
 
@@ -1329,7 +1334,7 @@ window.mostrarHorarios = async function () {
 
   let slots = window.gerarSlotsProfissional();
 
-  // Consulta no banco as ocupações do médico NO DIA SELECIONADO
+  // Consulta as ocupações no Supabase
   const { data: consultasDoDia } = await supabaseClient
     .from("consultas")
     .select("hora")
@@ -1353,17 +1358,16 @@ window.mostrarHorarios = async function () {
 
     div.innerText = hora === "12:00" ? "12:00 (Almoço)" : `${hora} - ${horaFimStr}`;
 
-    // 👇 A MÁGICA DO BOTÃO CINZA ACONTECE AQUI 👇
     let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
 
+    // 👇 FORÇA O CSS CINZA E DESLIGA O CLIQUE AQUI 👇
     if (hora === "12:00" || dataHoraSlot < limiteTempo || ocupado) {
       div.classList.add("horario-indisponivel");
-      // Força o CSS para ficar cinza e com cursor de bloqueado
       div.style.backgroundColor = "#e0e0e0";
       div.style.color = "#999";
       div.style.borderColor = "#ccc";
       div.style.cursor = "not-allowed";
-      div.onclick = null; // Impede qualquer clique
+      div.onclick = null; // Arranca a ação de clicar
     } else {
       div.classList.add("horario-disponivel");
       div.onclick = (e) => {
@@ -2985,19 +2989,27 @@ window.carregarMinhasConsultas = async function () {
     }
   });
 
-  // 2. IDENTIFICAÇÃO GLOBAL DOS PACOTES
+  // 2. IDENTIFICAÇÃO GLOBAL DOS PACOTES E NUMERAÇÃO CRONOLÓGICA
   let historicoPacotesIDs = [];
   let contadorSessoes = {};
 
-  minhasConsultas.forEach(c => {
+  // 👇 Ordena no tempo (do mais antigo pro mais novo) antes de contar
+  let consultasCrescente = [...minhasConsultas].sort((a, b) => new Date(a.data + "T" + a.hora).getTime() - new Date(b.data + "T" + b.hora).getTime());
+
+  consultasCrescente.forEach(c => {
     if (c.is_pacote) {
       let chavePacote = c.pacote_id || c.profissional;
       if (!historicoPacotesIDs.includes(chavePacote)) historicoPacotesIDs.push(chavePacote);
-      c.pacoteIndexGlobal = historicoPacotesIDs.indexOf(chavePacote) + 1;
 
       if (!contadorSessoes[chavePacote]) contadorSessoes[chavePacote] = 0;
       contadorSessoes[chavePacote]++;
-      c.sessaoNumeroCalculada = contadorSessoes[chavePacote];
+
+      // Devolve o número certo para a consulta original
+      let original = minhasConsultas.find(orig => orig.id === c.id);
+      if (original) {
+        original.pacoteIndexGlobal = historicoPacotesIDs.indexOf(chavePacote) + 1;
+        original.sessaoNumeroCalculada = contadorSessoes[chavePacote];
+      }
     }
   });
 
