@@ -1123,7 +1123,7 @@ window.finalizarAgendamento = async function (botaoElement) {
 
   // 1. Feedback visual
   if (botaoElement) {
-    botaoElement.innerText = "Conectando ao Mercado Pago...";
+    botaoElement.innerText = "Processando...";
     botaoElement.disabled = true;
   }
 
@@ -1134,8 +1134,32 @@ window.finalizarAgendamento = async function (botaoElement) {
   const is_pacote = urlParams.get('tipo') === 'pacote';
   const uniqueId = Date.now() + "_" + Math.random().toString(36).substr(2, 9);
 
-  // 👇 Puxa o número correto para salvar no banco 👇
   let numSessao = window.sessaoAtualPacote || 1;
+
+  // 👇 1. TRAVA ABSOLUTA DE HORÁRIO (Bloqueia consultas na mesma hora) 👇
+  const { data: conflito } = await supabaseClient.from("consultas")
+    .select("id")
+    .eq("profissional", profissionalAtual.nome)
+    .eq("data", dataSelecionada)
+    .eq("hora", horarioSelecionado)
+    .in("status_geral", ["agendada", "pendente_pagamento"]);
+
+  if (conflito && conflito.length > 0) {
+    alert("⚠️ Este horário acabou de ser ocupado! Por favor, escolha outro.");
+    if (botaoElement) { botaoElement.innerText = "Confirmar Consulta"; botaoElement.disabled = false; }
+    return;
+  }
+
+  // 👇 2. CRIA UM VÍNCULO ENTRE AS 4 CONSULTAS DO PACOTE 👇
+  let meuPacoteId = null;
+  if (is_pacote) {
+    if (numSessao === 1) {
+      meuPacoteId = "PAC_" + Date.now();
+      localStorage.setItem('pacoteIdEmAndamento', meuPacoteId);
+    } else {
+      meuPacoteId = localStorage.getItem('pacoteIdEmAndamento') || ("PAC_" + Date.now());
+    }
+  }
 
   const novaConsulta = {
     id: uniqueId,
@@ -1146,10 +1170,10 @@ window.finalizarAgendamento = async function (botaoElement) {
     paciente_cpf: usuarioLogado.cpf,
     status_geral: "pendente_pagamento",
     is_pacote: is_pacote,
+    pacote_id: meuPacoteId, // Salva o vínculo no banco
     meet_link: `https://meet.jit.si/IntegraSaude_${uniqueId}`
   };
 
-  // 2. Salva no banco imediatamente
   const { error: erroInsert } = await supabaseClient.from("consultas").insert([novaConsulta]);
   if (erroInsert) {
     alert("Erro ao reservar horário.");
@@ -1157,38 +1181,40 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
-  // Lê qual método foi escolhido (ou se está escondido como 'gratis')
   const metodoInput = document.querySelector('input[name="metodoPagamento"]:checked') || document.querySelector('input[name="metodoPagamento"][type="hidden"]');
   const metodoSelecionado = metodoInput ? metodoInput.value : 'pix';
 
-  // 👇 LÓGICA NOVA: Se for grátis, confirma a consulta e pula o Mercado Pago! 👇
+  // 👇 3. NOVO FLUXO: CONTINUA NA MESMA TELA PARA A PRÓXIMA SESSÃO 👇
   if (metodoSelecionado === 'gratis') {
     await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("id", uniqueId);
     const agenda = document.getElementById("agendaContainer");
     if (agenda) {
       agenda.innerHTML = `
           <div class="agenda-box" style="text-align: center; padding: 40px 20px;">
-            <h2 style="color: #2E7D32;">✅ Sessão ${numSessao} Confirmada!</h2>
-            <p style="margin-top: 15px;">Seu agendamento foi salvo. O pagamento ocorrerá na 4ª sessão.</p>
-            <button type="button" onclick="window.location.reload()" class="btn-primary" style="width: 100%; margin-top: 20px;">Ir para o Painel</button>
+            <h2 style="color: #2E7D32;">✅ Sessão ${numSessao} de 4 Confirmada!</h2>
+            <p style="margin-top: 15px; color: #555;">Seu agendamento foi salvo com sucesso.</p>
+            <button type="button" onclick="abrirAgenda('${profissionalAtual.nome}')" class="btn-primary" style="width: 100%; margin-top: 25px; background-color: #0E5F73;">📅 Agendar a Próxima Sessão</button>
           </div>
         `;
     }
     return;
   }
 
-  // 👇 CORREÇÃO: Define o valor correto baseado se é pacote ou não
+  // Se for a 4ª sessão, o pacote fechou, limpa o ID
+  if (is_pacote && numSessao === 4) {
+    localStorage.removeItem('pacoteIdEmAndamento');
+  }
+
   let valorFinal = is_pacote ? Number(profissionalAtual.valor_pacote) : Number(profissionalAtual.valor);
 
-  // 3. Se NÃO for grátis, chama a Edge Function de pagamento normal
   const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
     body: {
       consultaId: uniqueId,
       pacienteCpf: usuarioLogado.cpf,
       tipoAcao: is_pacote ? 'pacote' : 'consulta_normal',
       sessaoPacote: numSessao,
-      valorConsulta: valorFinal, // 👈 Agora ele manda o valor correto!
-      metodoPagamento: metodoSelecionado // Envia a escolha pro servidor
+      valorConsulta: valorFinal,
+      metodoPagamento: metodoSelecionado
     }
   });
 
@@ -1199,78 +1225,40 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
-  // ==========================================
-  // 4. O SISTEMA DECIDE O QUE MOSTRAR NA TELA
-  // ==========================================
-
-  // CASO A: Pacote Grátis (Já aprovado)
-  if (respostaPagamento && respostaPagamento.status === 'gratis') {
-    await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("id", uniqueId);
-    const agenda = document.getElementById("agendaContainer");
-    if (agenda) {
-      let titulo = is_pacote ? `✅ Consulta ${numSessao} Confirmada!` : "✅ Consulta Confirmada!";
-      agenda.innerHTML = `
-        <div class="agenda-box" style="text-align: center; padding: 40px 20px;">
-          <h2 style="color: #2E7D32;">${titulo}</h2>
-          <p style="margin-top: 15px;">Seu agendamento foi concluído sem custos adicionais nesta etapa.</p>
-          <button type="button" onclick="window.location.reload()" class="btn-primary" style="width: 100%; margin-top: 20px;">Ir para o Painel</button>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  // CASO B: PIX (Checkout Transparente - Desenha o QR Code na tela)
   if (respostaPagamento && respostaPagamento.isPixAPI) {
     const agenda = document.getElementById("agendaContainer");
     agenda.innerHTML = `
       <div class="agenda-box" style="text-align: center; padding: 30px;">
         <h2 style="color: #0F4C5C;">Pague com PIX</h2>
         <p style="color: #555; margin-bottom: 20px;">Abra o app do seu banco e escaneie o código abaixo:</p>
-        
         <img src="data:image/png;base64,${respostaPagamento.qrCodeBase64}" alt="QR Code Pix" style="width: 200px; height: 200px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px;">
-        
         <p style="font-size: 13px; color: #777;">Ou copie o código abaixo:</p>
         <div style="display: flex; gap: 5px; margin-bottom: 20px;">
             <input type="text" id="pixCopiaCola" value="${respostaPagamento.qrCodeCopiaCola}" readonly style="flex: 1; padding: 10px; text-align: center; border: 1px solid #ccc; font-size: 12px; border-radius: 4px;">
             <button onclick="navigator.clipboard.writeText(document.getElementById('pixCopiaCola').value); alert('Código copiado!');" style="background: #0F766E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Copiar</button>
         </div>
-        
         <div id="statusPagamentoAoVivo">
             <p style="color: #d9534f; font-weight: bold;">⏳ Aguardando pagamento...</p>
         </div>
       </div>
     `;
 
-    // O "Radar" de 3 segundos
     const radarDePagamento = setInterval(async () => {
-      const { data: statusConsulta } = await supabaseClient
-        .from("consultas")
-        .select("status_geral")
-        .eq("id", respostaPagamento.consultaId)
-        .single();
-
+      const { data: statusConsulta } = await supabaseClient.from("consultas").select("status_geral").eq("id", respostaPagamento.consultaId).single();
       if (statusConsulta && statusConsulta.status_geral === "agendada") {
-        clearInterval(radarDePagamento); // Desliga o radar
+        clearInterval(radarDePagamento);
         document.getElementById("statusPagamentoAoVivo").innerHTML = `<p style="color: #2E7D32; font-weight: bold; font-size: 18px;">✅ Pagamento Confirmado!</p>`;
-
-        // Pula pra tela de sucesso sozinho!
-        setTimeout(() => {
-          window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`;
-        }, 1500);
+        setTimeout(() => { window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`; }, 1500);
       }
     }, 3000);
-
     return;
   }
 
-  // CASO C: Cartão de Crédito (Checkout Pro - Redireciona)
   if (respostaPagamento && respostaPagamento.url) {
     window.location.href = respostaPagamento.url;
     return;
   }
 
-  // CASO D: Erro de comunicação
   alert("Falha de comunicação com o Mercado Pago. Tente novamente.");
   if (botaoElement) { botaoElement.innerText = "Confirmar Consulta e Pagar"; botaoElement.disabled = false; }
 };
@@ -1438,17 +1426,44 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
    🔹 CONTINUAÇÃO: EFETIVAR CANCELAMENTO (SUPABASE)
 ===================================================== */
 
-window.abrirModalCancelar = function (profissional, data, hora) {
+window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPacote, sessaoNumero, pacoteId) {
   consultaParaCancelar = {
+    id: consultaId,
     profissional: profissional,
     data: data,
-    hora: hora
+    hora: hora,
+    is_pacote: isPacote,
+    sessaoNumero: sessaoNumero,
+    pacote_id: pacoteId
   };
 
   const divConfirmacao = document.getElementById("estadoConfirmacao");
   const divSucesso = document.getElementById("estadoSucesso");
 
-  if (divConfirmacao) divConfirmacao.classList.remove("hidden");
+  if (divConfirmacao) {
+    divConfirmacao.classList.remove("hidden");
+    // 👇 Muda o texto dependendo se é Pacote ou Consulta Avulsa 👇
+    if (isPacote) {
+      divConfirmacao.innerHTML = `
+            <h3 style="color: #d9534f; margin-bottom: 10px;">Cancelar Pacote Inteiro</h3>
+            <p style="color: #555; margin-bottom: 25px; font-size: 14px;">Você está prestes a cancelar <strong>TODAS AS CONSULTAS</strong> deste pacote. Esta ação não pode ser desfeita.</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+              <button onclick="efetivarCancelamento()" class="btn-primary" style="background-color: #d9534f;">Sim, Cancelar Pacote</button>
+              <button onclick="fecharModalCancelar()" class="btn-secondary">Não</button>
+            </div>
+          `;
+    } else {
+      divConfirmacao.innerHTML = `
+            <h3 style="color: #d9534f; margin-bottom: 10px;">Cancelar e Reembolsar</h3>
+            <p style="color: #555; margin-bottom: 25px; font-size: 14px;">Tem certeza que deseja cancelar? O valor da consulta será estornado para a sua forma de pagamento original.</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+              <button onclick="efetivarCancelamento()" class="btn-primary" style="background-color: #d9534f;">Sim, Cancelar</button>
+              <button onclick="fecharModalCancelar()" class="btn-secondary">Não</button>
+            </div>
+          `;
+    }
+  }
+
   if (divSucesso) divSucesso.classList.add("hidden");
 
   const modalCanc = document.getElementById("modalCancelar");
@@ -1462,36 +1477,51 @@ window.efetivarCancelamento = async function () {
   const divConfirmacao = document.getElementById("estadoConfirmacao");
   divConfirmacao.innerHTML = `<h3 style="color: #0F4C5C;">Processando cancelamento...</h3><p style="color: #555;">Aguarde um momento.</p>`;
 
-  // 👇 LÓGICA NOVA: Se for pacote e não for a 4ª sessão, cancela direto sem acionar estorno 👇
-  if (consultaParaCancelar.is_pacote && consultaParaCancelar.sessaoNumero < 4) {
-    const { error } = await supabaseClient.from("consultas").update({ status_geral: 'cancelada' }).eq('id', consultaParaCancelar.id);
+  // 👇 SE FOR PACOTE, CANCELA AS 4 CONSULTAS DE UMA VEZ SÓ 👇
+  if (consultaParaCancelar.is_pacote) {
+
+    // Atualiza o banco de dados (muda o status de todas as 4)
+    const { error } = await supabaseClient.from("consultas")
+      .update({ status_geral: 'cancelada' })
+      .eq('pacote_id', consultaParaCancelar.pacote_id);
 
     if (error) {
-      alert("Erro ao cancelar a consulta.");
+      alert("Erro ao cancelar o pacote.");
       fecharModalCancelar();
       return;
     }
+
+    // Aciona o reembolso (a sua Edge Function vai cuidar de estornar se a 4ª já estiver paga)
+    await supabaseClient.functions.invoke('processar-reembolso', {
+      body: {
+        consultaId: consultaParaCancelar.id,
+        isPacote: true,
+        pacoteId: consultaParaCancelar.pacote_id
+      }
+    });
 
     divConfirmacao.classList.add("hidden");
     document.getElementById("estadoSucesso").classList.remove("hidden");
     return;
   }
 
-  // Se for sessão paga (avulsa ou 4ª do pacote), chama o reembolso normal
+  // 👇 SE FOR CONSULTA AVULSA, SEGUE O FLUXO NORMAL 👇
   const { data, error } = await supabaseClient.functions.invoke('processar-reembolso', {
     body: {
       consultaId: consultaParaCancelar.id,
-      isPacote: consultaParaCancelar.is_pacote,
-      pacoteId: consultaParaCancelar.pacote_id
+      isPacote: false
     }
   });
 
   if (error || (data && data.erro)) {
     console.error("Erro no reembolso:", error || (data && data.erro));
-    alert("Não foi possível realizar o reembolso automático pelo Mercado Pago. Contate o suporte.");
+    alert("Não foi possível realizar o cancelamento. Contate o suporte.");
     fecharModalCancelar();
     return;
   }
+
+  // Atualiza o status da avulsa no banco
+  await supabaseClient.from("consultas").update({ status_geral: 'cancelada' }).eq('id', consultaParaCancelar.id);
 
   divConfirmacao.classList.add("hidden");
   document.getElementById("estadoSucesso").classList.remove("hidden");
