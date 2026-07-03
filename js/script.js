@@ -1016,8 +1016,10 @@ window.abrirAgenda = async function (nomeProfissional) {
     if (!profissionalAtual.agenda) profissionalAtual.agenda = { turnos: ["manha", "tarde", "noite"] };
 
     let avisoPacoteHtml = "";
-    if (is_pacote && pacoteEmAndamento) {
-      avisoPacoteHtml = `<div style="background: #FFF3CD; color: #856404; padding: 10px; text-align: center; font-weight: bold; border-radius: 6px; margin-bottom: 15px; border: 1px solid #FFEEBA;">📦 MODO PACOTE ATIVADO - Suas escolhas seguirão a regra de 30 dias.</div>`;
+
+    // 👇 CORREÇÃO: Tiramos a variável velha e usamos apenas 'is_pacote'
+    if (is_pacote) {
+      avisoPacoteHtml = `<div style="background: #FFF3CD; color: #856404; padding: 10px; text-align: center; font-weight: bold; border-radius: 6px; margin-bottom: 15px; border: 1px solid #FFEEBA;">📦 MODO PACOTE ATIVADO (Sessão ${window.sessaoAtualPacote}/4) - Suas escolhas seguirão a regra de 30 dias.</div>`;
     }
 
     const agenda = document.getElementById("agendaContainer");
