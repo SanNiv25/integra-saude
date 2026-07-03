@@ -944,28 +944,38 @@ window.abrirAgenda = async function (nomeProfissional) {
     const is_pacote = urlParams.get('tipo') === 'pacote';
     const hoje = new Date();
 
-    // 👇 OTIMIZAÇÃO: Busca pacotes ativos do paciente no Supabase
-    let pacoteEmAndamento = null;
+    // 👇 CONTAGEM DINÂMICA DE SESSÕES 👇
+    window.sessaoAtualPacote = 1;
+
     if (is_pacote) {
-      const { data: pacotes } = await supabaseClient
-        .from('pacotes')
-        .select('*')
-        .eq('paciente_cpf', usuarioLogado.cpf)
-        .eq('ativo', true);
-
-      // Filtra os que ainda estão no prazo e não esgotaram as 4 sessões
-      if (pacotes) {
-        pacoteEmAndamento = pacotes.find(p => p.vencimentoCru > hoje.getTime() && p.agendadas > 0 && p.agendadas < 4);
-      }
-
       let esp = (profissionalAtual.especialidade || "").toLowerCase();
       if (!esp.includes('psic') && !esp.includes('fono')) {
-        alert("⚠️ ESPECIALIDADE INVÁLIDA\n\nPacotes de consultas estão disponíveis APENAS para Psicologia e Fonoaudiologia.");
+        alert("⚠️ ESPECIALIDADE INVÁLIDA\n\nPacotes estão disponíveis APENAS para Psicologia e Fonoaudiologia.");
         return;
       }
-      if (pacoteEmAndamento && pacoteEmAndamento.profissional !== profissionalAtual.nome) {
-        alert(`⚠️ PROFISSIONAL INCORRETO\n\nVocê tem um pacote em andamento com:\n🧑‍⚕️ ${pacoteEmAndamento.profissional}\n\nPor favor, volte e selecione a agenda dele(a).`);
-        return;
+
+      // Conta diretamente no banco quantas sessões o paciente já marcou
+      const { data: sessoesExistentes } = await supabaseClient
+        .from('consultas')
+        .select('id, profissional')
+        .eq('paciente_cpf', usuarioLogado.cpf)
+        .eq('is_pacote', true)
+        .in('status_geral', ['agendada', 'finalizada', 'ausente', 'pendente_pagamento']);
+
+      if (sessoesExistentes && sessoesExistentes.length > 0) {
+        const medicoDoPacote = sessoesExistentes[0].profissional;
+
+        // Se a divisão por 4 não for exata, o pacote está em andamento
+        if (sessoesExistentes.length % 4 !== 0) {
+          if (medicoDoPacote !== profissionalAtual.nome) {
+            alert(`⚠️ PROFISSIONAL INCORRETO\n\nVocê tem um pacote em andamento com:\n🧑‍⚕️ ${medicoDoPacote}\n\nPor favor, volte e selecione a agenda dele(a).`);
+            return;
+          }
+          window.sessaoAtualPacote = (sessoesExistentes.length % 4) + 1;
+        } else {
+          // Se já completou 4 sessões, inicia um pacote NOVO (Sessão 1)
+          window.sessaoAtualPacote = 1;
+        }
       }
     }
 
@@ -1050,10 +1060,9 @@ window.confirmarConsulta = function () {
   // Descobre qual é a sessão do pacote
   const urlParams = new URLSearchParams(window.location.search);
   const is_pacote = urlParams.get('tipo') === 'pacote';
-  let numSessao = 1;
-  if (is_pacote && typeof pacoteEmAndamento !== 'undefined' && pacoteEmAndamento) {
-    numSessao = pacoteEmAndamento.agendadas + 1;
-  }
+
+  // 👇 Puxa o número correto que o sistema acabou de calcular 👇
+  let numSessao = window.sessaoAtualPacote || 1;
 
   // 👇 LÓGICA NOVA: Esconde o pagamento se for a sessão 1, 2 ou 3 do pacote 👇
   let formPagamentoHTML = "";
@@ -1123,10 +1132,8 @@ window.finalizarAgendamento = async function (botaoElement) {
   const is_pacote = urlParams.get('tipo') === 'pacote';
   const uniqueId = Date.now() + "_" + Math.random().toString(36).substr(2, 9);
 
-  let numSessao = 1;
-  if (is_pacote && typeof pacoteEmAndamento !== 'undefined' && pacoteEmAndamento) {
-    numSessao = pacoteEmAndamento.agendadas + 1;
-  }
+  // 👇 Puxa o número correto para salvar no banco 👇
+  let numSessao = window.sessaoAtualPacote || 1;
 
   const novaConsulta = {
     id: uniqueId,
@@ -1168,6 +1175,9 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
+  // 👇 CORREÇÃO: Define o valor correto baseado se é pacote ou não
+  let valorFinal = is_pacote ? Number(profissionalAtual.valor_pacote) : Number(profissionalAtual.valor);
+
   // 3. Se NÃO for grátis, chama a Edge Function de pagamento normal
   const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
     body: {
@@ -1175,7 +1185,7 @@ window.finalizarAgendamento = async function (botaoElement) {
       pacienteCpf: usuarioLogado.cpf,
       tipoAcao: is_pacote ? 'pacote' : 'consulta_normal',
       sessaoPacote: numSessao,
-      valorConsulta: Number(profissionalAtual.valor),
+      valorConsulta: valorFinal, // 👈 Agora ele manda o valor correto!
       metodoPagamento: metodoSelecionado // Envia a escolha pro servidor
     }
   });
@@ -3069,14 +3079,12 @@ window.atualizarContadorPacote = async function () {
   const usuarioLogado = await getUsuarioLogado();
   if (!usuarioLogado) return;
 
-  const hoje = new Date().getTime();
-
-  // 👇 OTIMIZAÇÃO: Busca direto na tabela de pacotes
-  const { data: pacotes, error } = await supabaseClient
-    .from("pacotes")
-    .select("*")
+  const { data: sessoesExistentes } = await supabaseClient
+    .from("consultas")
+    .select("id")
     .eq("paciente_cpf", usuarioLogado.cpf)
-    .eq("ativo", true);
+    .eq("is_pacote", true)
+    .in("status_geral", ["agendada", "finalizada", "ausente", "pendente_pagamento"]);
 
   const painel = document.getElementById("painelStatusPacote");
   const txtSessao = document.getElementById("numSessao");
@@ -3084,16 +3092,12 @@ window.atualizarContadorPacote = async function () {
 
   if (!painel) return;
 
-  let pacoteAtivo = null;
-
-  if (pacotes && pacotes.length > 0) {
-    pacoteAtivo = pacotes.find(p => p.vencimentoCru > hoje && p.agendadas < 4);
-  }
-
-  if (pacoteAtivo) {
+  // Se o número de sessões não for um múltiplo exato de 4, o pacote está rolando!
+  if (sessoesExistentes && sessoesExistentes.length > 0 && (sessoesExistentes.length % 4 !== 0)) {
+    let proximaSessao = (sessoesExistentes.length % 4) + 1;
     painel.style.display = "block";
-    txtSessao.innerText = (pacoteAtivo.agendadas + 1);
-    txtValidade.innerText = "Vence em: " + pacoteAtivo.dataVencimento;
+    if (txtSessao) txtSessao.innerText = proximaSessao;
+    if (txtValidade) txtValidade.innerText = "Pacote em andamento";
   } else {
     painel.style.display = "none";
   }
