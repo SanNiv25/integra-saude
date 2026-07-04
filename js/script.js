@@ -796,7 +796,45 @@ document.addEventListener("DOMContentLoaded", async function () {
         container.innerHTML = `<p style="text-align: center; width: 100%; font-size: 18px; color: #555; padding: 40px;">Nenhum profissional de <strong>${especialidade}</strong> cadastrado no momento.</p>`;
       }
     }
-    window.mostrarEspecialidade = function (especialidade) { window.carregarProfissionais(especialidade); };
+    window.mostrarEspecialidade = function (especialidade, botaoClicado) {
+      // 1. Carrega a lista de médicos
+      window.carregarProfissionais(especialidade);
+
+      // 2. Destaca visualmente o botão escolhido
+      const botoes = document.querySelectorAll('.filtro-btn');
+
+      if (botoes.length > 0) {
+        // Tira o destaque de todos primeiro
+        botoes.forEach(btn => {
+          btn.style.backgroundColor = ""; // Volta pro verde original do seu CSS
+          btn.style.filter = "brightness(1)";
+          btn.style.fontWeight = "normal";
+          btn.style.border = "none";
+        });
+
+        // Função interna para pintar o botão de escuro
+        const destacar = (btn) => {
+          btn.style.filter = "brightness(0.7)"; // Escurece a cor atual
+          btn.style.fontWeight = "bold";
+          btn.style.border = "2px solid #0F4C5C"; // Borda escura
+        };
+
+        if (botaoClicado) {
+          // Se o usuário clicou fisicamente no botão
+          destacar(botaoClicado);
+        } else {
+          // Se veio da URL (da página inicial), procura o botão certo para destacar
+          botoes.forEach(btn => {
+            let texto = btn.innerText.toLowerCase();
+            let busca = especialidade.toLowerCase();
+
+            if (busca === 'psicologia' && texto.includes('psic')) destacar(btn);
+            if (busca === 'nutricao' && texto.includes('nutri')) destacar(btn);
+            if (busca === 'fono' && texto.includes('fono')) destacar(btn);
+          });
+        }
+      }
+    };
   }
 
   /* =====================================================
@@ -3425,21 +3463,26 @@ window.salvarFotoPendente = async function () {
 };
 
 // =========================================
-// CARREGAR PSICOLOGIA POR PADRÃO
+// CARREGAR FILTRO LENDO A URL DA HOME
 // =========================================
 document.addEventListener("DOMContentLoaded", function () {
-  // Verifica se estamos na página que mostra a lista de profissionais
-  // (Se o nome do seu arquivo HTML for diferente, troque "profissionais" abaixo)
   if (window.location.pathname.includes("profissionais")) {
-
-    // Dá um pequeno tempo de 200 milissegundos só para garantir que o container HTML já existe
     setTimeout(() => {
-      if (typeof window.carregarProfissionais === "function") {
-        // Finge que o paciente clicou na aba Psicologia
-        window.carregarProfissionais('Psicologia');
+      if (typeof window.mostrarEspecialidade === "function") {
+
+        // Lê o que veio no final do link (ex: ?esp=nutricao)
+        const urlParams = new URLSearchParams(window.location.search);
+        const espDaUrl = urlParams.get('esp');
+
+        if (espDaUrl) {
+          // Se o paciente veio clicando na Home
+          window.mostrarEspecialidade(espDaUrl);
+        } else {
+          // Se ele entrou na página de outra forma, abre Psicologia por padrão
+          window.mostrarEspecialidade('psicologia');
+        }
       }
     }, 200);
-
   }
 });
 
