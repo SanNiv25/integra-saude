@@ -2469,7 +2469,7 @@ window.renderizarHistoricoProntuario = async function () {
     .from("prontuarios")
     .select("*")
     .eq("paciente_cpf", pacienteProntuarioAtual.cpf)
-    .eq("profissional_id", profLogado.registro) // 👇 AQUI ESTÁ A CORREÇÃO (profissional_id)
+    .eq("profissional_id", profLogado.id) // 👈 USA O ID NUMÉRICO DO BANCO
     .order("created_at", { ascending: false });
 
   historicoDiv.innerHTML = "";
@@ -2514,10 +2514,10 @@ window.salvarRegistroProntuario = async function (tipo, enviarEmail) {
     const novoRegistro = {
       id: documentoId,
       paciente_cpf: pacienteProntuarioAtual.cpf,
-      profissional_id: profLogado.registro, // 👇 AQUI ESTÁ A CORREÇÃO (profissional_id)
+      profissional_id: profLogado.id, // 👈 ENVIA O ID NUMÉRICO
       tipo: tipo,
       texto: texto,
-      data_hora: dataHoraStr
+      data_hora: dataHoraStr // 👈 NOME EXATO DA COLUNA NO BANCO
     };
 
     const { error } = await supabaseClient
@@ -2580,7 +2580,6 @@ if (window.location.pathname.includes("validar.html")) {
 
     if (box) box.innerHTML = `<p style="color: #666;">Consultando servidor de autenticação...</p>`;
 
-    // 👇 OTIMIZAÇÃO: Busca o documento específico direto do banco
     const { data: documento, error: errDoc } = await supabaseClient
       .from("prontuarios")
       .select("*")
@@ -2596,7 +2595,6 @@ if (window.location.pathname.includes("validar.html")) {
       return;
     }
 
-    // Busca o nome do paciente no banco
     const { data: paciente } = await supabaseClient
       .from("pacientes")
       .select("nome")
@@ -2605,19 +2603,16 @@ if (window.location.pathname.includes("validar.html")) {
 
     let nomePac = paciente ? paciente.nome : "Paciente não identificado";
 
-    // Busca o nome do profissional no banco
+    // 👈 BUSCA PROFISSIONAL PELO ID
     const { data: prof } = await supabaseClient
       .from("profissionais")
-      .select("nome")
-      .eq("registro", documento.profissionalRegistro)
+      .select("nome, registro")
+      .eq("id", documento.profissional_id)
       .single();
 
     let nomeProf = prof ? prof.nome : "Profissional não identificado";
+    let regProf = prof ? prof.registro : "Não identificado";
 
-    /* =====================================================
-       🔹 CONTINUAÇÃO: SISTEMA DE VALIDAÇÃO DE DOCUMENTOS
-    ===================================================== */
-    // ... Continuação do if(documento) do Bloco 9 ...
     let tipoNome = documento.tipo === 'evolucao' ? 'Evolução Clínica (Prontuário)' : 'Prescrição de Exames/Medicamentos';
 
     if (box) box.innerHTML = `
@@ -2627,9 +2622,9 @@ if (window.location.pathname.includes("validar.html")) {
           <div class="doc-info">
             <p><strong>Código de Autenticação:</strong> <span style="color:#0F4C5C;">${documento.id}</span></p>
             <p><strong>Tipo de Documento:</strong> ${tipoNome}</p>
-            <p><strong>Data de Emissão:</strong> ${documento.dataHora}</p>
+            <p><strong>Data de Emissão:</strong> ${documento.data_hora}</p>
             <p><strong>Paciente:</strong> ${nomePac} (CPF: ${documento.paciente_cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")})</p>
-            <p><strong>Emitido por:</strong> ${nomeProf} (${documento.profissionalRegistro})</p>
+            <p><strong>Emitido por:</strong> ${nomeProf} (${regProf})</p>
           </div>
           
           <p style="font-size: 13px; color: #777; margin-bottom: 20px;">Este documento foi assinado e salvo de forma definitiva e imutável no banco de dados da Integra Saúde.</p>
@@ -2651,7 +2646,6 @@ if (window.location.pathname.includes("prescricao.html")) {
       return;
     }
 
-    // OTIMIZAÇÃO: Busca o documento e as partes relacionadas no Supabase
     const { data: documento, error } = await supabaseClient
       .from("prontuarios")
       .select("*")
@@ -2663,12 +2657,11 @@ if (window.location.pathname.includes("prescricao.html")) {
       return;
     }
 
-    // Buscar paciente
     const { data: paciente } = await supabaseClient.from("pacientes").select("*").eq("cpf", documento.paciente_cpf).single();
-    // Buscar profissional
-    const { data: prof } = await supabaseClient.from("profissionais").select("*").eq("registro", documento.profissionalRegistro).single();
 
-    // 🔹 Preencher tela
+    // 👈 BUSCA PROFISSIONAL PELO ID
+    const { data: prof } = await supabaseClient.from("profissionais").select("*").eq("id", documento.profissional_id).single();
+
     document.getElementById("nome").innerText = paciente?.nome || "-";
     let cpf = documento.paciente_cpf || "00000000000";
     cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
@@ -2679,10 +2672,10 @@ if (window.location.pathname.includes("prescricao.html")) {
       : "-";
 
     document.getElementById("nascimento").innerText = nasc;
-    document.getElementById("atendimento").innerText = documento.dataHora;
+    document.getElementById("atendimento").innerText = documento.data_hora;
     document.getElementById("prescricao").innerText = documento.texto;
     document.getElementById("profissional").innerText = prof?.nome || "-";
-    document.getElementById("registro").innerText = documento.profissionalRegistro;
+    document.getElementById("registro").innerText = prof?.registro || "-";
 
     let conselho = "Conselho Regional";
     let esp = (prof?.especialidade || "").toLowerCase();
@@ -2693,7 +2686,6 @@ if (window.location.pathname.includes("prescricao.html")) {
 
     document.getElementById("conselho").innerText = conselho;
 
-    // 🔹 QR CODE
     const baseUrl = window.location.origin;
     const linkValidacao = baseUrl + "/validar.html?id=" + documento.id;
 
