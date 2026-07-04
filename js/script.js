@@ -358,17 +358,17 @@ window.atualizarDashboardProfissional = async function () {
   });
 
   // 2. ORDENAÇÃO E SEPARAÇÃO EM ABAS
-  const ordenarHistorico = (lista) => {
-    return lista.sort((a, b) => new Date(b.data + "T" + b.hora).getTime() - new Date(a.data + "T" + a.hora).getTime());
-  };
   const ordenarFuturas = (lista) => {
-    return lista.sort((a, b) => new Date(a.data + "T" + a.hora).getTime() - new Date(b.data + "T" + b.hora).getTime());
+    return lista.sort((a, b) => new Date(a.data + "T" + a.hora.substring(0, 5)).getTime() - new Date(b.data + "T" + b.hora.substring(0, 5)).getTime());
+  };
+  const ordenarPassadas = (lista) => {
+    return lista.sort((a, b) => new Date(b.data + "T" + b.hora.substring(0, 5)).getTime() - new Date(a.data + "T" + a.hora.substring(0, 5)).getTime());
   };
 
   let pendentes = ordenarFuturas(minhasConsultas.filter(c => c.status_geral === 'agendada'));
-  let realizadas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'finalizada'));
-  let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
-  let ausentes = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'ausente'));
+  let realizadas = ordenarPassadas(minhasConsultas.filter(c => c.status_geral === 'finalizada'));
+  let canceladas = ordenarPassadas(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
+  let ausentes = ordenarPassadas(minhasConsultas.filter(c => c.status_geral === 'ausente'));
 
   // 3. IDENTIFICAÇÃO GLOBAL DOS PACOTES E NUMERAÇÃO CRONOLÓGICA
   let historicoPacotesIDs = [];
@@ -1326,7 +1326,7 @@ window.selecionarDia = function (dataStr, elementoClicado) {
 
 window.mostrarHorarios = async function () {
   const horariosDiv = document.getElementById("horarios");
-  horariosDiv.innerHTML = "Carregando horários..."; // Feedback visual
+  horariosDiv.innerHTML = "Carregando horários...";
 
   const agora = new Date();
   const limiteTempo = new Date(agora.getTime());
@@ -1334,7 +1334,6 @@ window.mostrarHorarios = async function () {
 
   let slots = window.gerarSlotsProfissional();
 
-  // Consulta as ocupações no Supabase
   const { data: consultasDoDia } = await supabaseClient
     .from("consultas")
     .select("hora")
@@ -1358,16 +1357,18 @@ window.mostrarHorarios = async function () {
 
     div.innerText = hora === "12:00" ? "12:00 (Almoço)" : `${hora} - ${horaFimStr}`;
 
-    let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
+    // 👇 SOLUÇÃO: Lê apenas os 5 primeiros caracteres (HH:MM) para ignorar os segundos do banco 👇
+    let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora.substring(0, 5) === hora.substring(0, 5)) : false;
 
-    // 👇 FORÇA O CSS CINZA E DESLIGA O CLIQUE AQUI 👇
     if (hora === "12:00" || dataHoraSlot < limiteTempo || ocupado) {
       div.classList.add("horario-indisponivel");
-      div.style.backgroundColor = "#e0e0e0";
-      div.style.color = "#999";
-      div.style.borderColor = "#ccc";
-      div.style.cursor = "not-allowed";
-      div.onclick = null; // Arranca a ação de clicar
+      // 👇 SOLUÇÃO: Força bruta do CSS com !important para garantir a cor cinza 👇
+      div.style.setProperty('background-color', '#e0e0e0', 'important');
+      div.style.setProperty('color', '#999999', 'important');
+      div.style.setProperty('border-color', '#cccccc', 'important');
+      div.style.setProperty('cursor', 'not-allowed', 'important');
+      div.style.setProperty('text-decoration', 'line-through', 'important');
+      div.onclick = null;
     } else {
       div.classList.add("horario-disponivel");
       div.onclick = (e) => {
@@ -2062,7 +2063,7 @@ window.selecionarDiaReagendar = function (dataStr, elementoClicado) {
 
 window.mostrarHorariosReagendar = async function () {
   const horariosDiv = document.getElementById("horariosReagendar");
-  horariosDiv.innerHTML = "Carregando horários..."; // Feedback visual
+  horariosDiv.innerHTML = "Carregando horários...";
 
   const agora = new Date(); const limiteTempo = new Date(agora.getTime());
   let [ano, mes, dia] = dataSelecionada.split("-");
@@ -2071,7 +2072,6 @@ window.mostrarHorariosReagendar = async function () {
   let slots = window.gerarSlotsProfissional();
   profissionalAtual = profSalvo;
 
-  // Consulta no banco as ocupações do médico NO DIA SELECIONADO
   const { data: consultasDoDia } = await supabaseClient
     .from("consultas")
     .select("hora")
@@ -2094,22 +2094,20 @@ window.mostrarHorariosReagendar = async function () {
 
     div.innerText = hora === "12:00" ? "12:00 (Almoço)" : `${hora} - ${horaFimStr}`;
 
-    let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
-    // Checa se o horário na tela é exatamente o horário antigo que ele está tentando mudar (para destacar de azul)
-    let isHorarioAntigo = (profissionalReagendarAtual.nome === consultaParaReagendar.profissional && dataSelecionada === consultaParaReagendar.data && hora === consultaParaReagendar.hora);
+    let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora.substring(0, 5) === hora.substring(0, 5)) : false;
+    let isHorarioAntigo = (profissionalReagendarAtual.nome === consultaParaReagendar.profissional && dataSelecionada === consultaParaReagendar.data && hora === consultaParaReagendar.hora.substring(0, 5));
 
-    // 👇 DEIXA CINZA E BLOQUEIA SE ESTIVER OCUPADO, PASSADO OU FOR ALMOÇO 👇
     if (hora === "12:00" || dataHoraSlot < limiteTempo || (ocupado && !isHorarioAntigo)) {
       div.classList.add("horario-indisponivel");
-      div.style.backgroundColor = "#e0e0e0";
-      div.style.color = "#999";
-      div.style.borderColor = "#ccc";
-      div.style.cursor = "not-allowed";
-      div.onclick = null; // Remove a função de clique
+      div.style.setProperty('background-color', '#e0e0e0', 'important');
+      div.style.setProperty('color', '#999999', 'important');
+      div.style.setProperty('border-color', '#cccccc', 'important');
+      div.style.setProperty('cursor', 'not-allowed', 'important');
+      div.style.setProperty('text-decoration', 'line-through', 'important');
+      div.onclick = null;
     } else {
       div.classList.add("horario-disponivel");
-      if (isHorarioAntigo) div.style.backgroundColor = "#2a9fec"; // Mantém o azul no horário antigo
-
+      if (isHorarioAntigo) div.style.setProperty('background-color', '#2a9fec', 'important');
       div.onclick = (e) => {
         horarioSelecionado = hora;
         document.querySelectorAll("#horariosReagendar .horario").forEach(el => el.style.outline = "none");
@@ -3014,21 +3012,22 @@ window.carregarMinhasConsultas = async function () {
   });
 
   // 3. ORDENAÇÃO E SEPARAÇÃO
-  const ordenarHistorico = (lista) => {
-    return lista.sort((a, b) => {
-      if (a.is_pacote && b.is_pacote) {
-        if (a.pacoteIndexGlobal !== b.pacoteIndexGlobal) return b.pacoteIndexGlobal - a.pacoteIndexGlobal;
-        return a.sessaoNumeroCalculada - b.sessaoNumeroCalculada;
-      }
-      return new Date(b.data + "T" + b.hora).getTime() - new Date(a.data + "T" + a.hora).getTime();
-    });
+  // Consultas futuras: Da mais próxima (hoje) para a mais distante
+  const ordenarFuturas = (lista) => {
+    return lista.sort((a, b) => new Date(a.data + "T" + a.hora.substring(0, 5)).getTime() - new Date(b.data + "T" + b.hora.substring(0, 5)).getTime());
   };
 
-  let pacotes = ordenarHistorico(minhasConsultas.filter(c => c.is_pacote && c.status_geral === 'agendada'));
-  let individuais = ordenarHistorico(minhasConsultas.filter(c => !c.is_pacote && c.status_geral === 'agendada'));
-  let realizadas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'finalizada'));
-  let canceladas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
-  let perdidas = ordenarHistorico(minhasConsultas.filter(c => c.status_geral === 'ausente'));
+  // Consultas passadas: Da mais recente que aconteceu para a mais antiga
+  const ordenarPassadas = (lista) => {
+    return lista.sort((a, b) => new Date(b.data + "T" + b.hora.substring(0, 5)).getTime() - new Date(a.data + "T" + a.hora.substring(0, 5)).getTime());
+  };
+
+  let pacotes = ordenarFuturas(minhasConsultas.filter(c => c.is_pacote && c.status_geral === 'agendada'));
+  let individuais = ordenarFuturas(minhasConsultas.filter(c => !c.is_pacote && c.status_geral === 'agendada'));
+
+  let realizadas = ordenarPassadas(minhasConsultas.filter(c => c.status_geral === 'finalizada'));
+  let canceladas = ordenarPassadas(minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso'));
+  let perdidas = ordenarPassadas(minhasConsultas.filter(c => c.status_geral === 'ausente'));
 
   let menuAbas = `
     <div style="display: flex; overflow-x: auto; gap: 15px; border-bottom: 2px solid #ddd; padding-bottom: 0px; margin-bottom: 25px; scrollbar-width: thin;">
