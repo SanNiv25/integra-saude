@@ -748,6 +748,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     // 👇 OTIMIZAÇÃO: A vitrine agora puxa direto do banco de dados 👇
     window.carregarProfissionais = async function (especialidade) {
       const profissionais = await buscarProfissionais();
+      const container = document.getElementById("profissionaisContainer");
+      if (!container) return;
       container.innerHTML = "";
 
       let filtrados = profissionais.filter(p => {
@@ -760,15 +762,36 @@ document.addEventListener("DOMContentLoaded", async function () {
         return esp === busca;
       });
 
+      // 👇 Verifica se o paciente está no MODO PACOTE 👇
+      const urlParams = new URLSearchParams(window.location.search);
+      const is_pacote = urlParams.get('tipo') === 'pacote';
+
       if (filtrados.length > 0) {
         filtrados.forEach(prof => {
           const imagem = prof.imagem_url || "img/logo-integra.png";
           const descricao = prof.miniBio || "Profissional de excelência cadastrado na Integra Saúde.";
           const turnos = (prof.agenda && prof.agenda.turnos) ? prof.agenda.turnos : ["manha", "tarde", "noite"];
 
-          // 👇 FORMATAÇÃO DOS VALORES PARA MOSTRAR NA TELA 👇
           const precoIndividual = parseFloat(prof.valor || 0).toFixed(2).replace('.', ',');
           const precoPacote = parseFloat(prof.valor_pacote || 0).toFixed(2).replace('.', ',');
+
+          let ehNutricao = (prof.especialidade || "").toLowerCase().includes("nutri");
+
+          // 👇 Se for Nutrição, esconde a linha do pacote 👇
+          let htmlPacote = "";
+          if (!ehNutricao) {
+            htmlPacote = `<p style="margin: 5px 0; font-size: 14px; color: #0F766E;"><strong>Pacote (4x):</strong> R$ ${precoPacote}</p>`;
+          } else if (is_pacote) {
+            // Se for pacote e o médico for nutricionista, avisa na vitrine!
+            htmlPacote = `<p style="margin: 5px 0; font-size: 12px; color: #d9534f; font-weight: bold;">🚫 Indisponível para Pacotes</p>`;
+          }
+
+          // 👇 Se for pacote e o médico for nutricionista, bloqueia o botão! 👇
+          let botaoAgendarHtml = `<a href="javascript:void(0)" class="btn-primary" style="display: block; text-align: center; margin-top: 15px;" onclick="abrirAgenda('${prof.nome}')">Agendar Consulta</a>`;
+
+          if (is_pacote && ehNutricao) {
+            botaoAgendarHtml = `<a href="javascript:void(0)" class="btn-primary" style="display: block; text-align: center; margin-top: 15px; background: #999; cursor: not-allowed; text-decoration: none;" onclick="alert('Pacotes promocionais são válidos apenas para Psicologia e Fonoaudiologia.')">Indisponível</a>`;
+          }
 
           const card = `
               <div class="prof-card">
@@ -779,14 +802,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                   <p style="font-size: 16px; color: #555; margin-bottom: 10px;">${prof.registro}</p>
                   <p style="font-size: 16px; color: #000; margin: 8px 0;">${descricao}</p>
                   
-                  <!-- 👇 CAIXINHA COM OS PREÇOS EXIBIDA PARA O PACIENTE 👇 -->
                   <div style="margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
                       <p style="margin: 5px 0; font-size: 14px;"><strong>Avulsa:</strong> R$ ${precoIndividual}</p>
-                      <p style="margin: 5px 0; font-size: 14px; color: #0F766E;"><strong>Pacote (4x):</strong> R$ ${precoPacote}</p>
+                      ${htmlPacote}
                   </div>
 
                   ${criarTurnosHTML(turnos)}
-                  <a href="javascript:void(0)" class="btn-primary" style="display: block; text-align: center; margin-top: 15px;" onclick="abrirAgenda('${prof.nome}')">Agendar Consulta</a>
+                  ${botaoAgendarHtml}
                 </div>
               </div>
             `;
@@ -796,6 +818,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         container.innerHTML = `<p style="text-align: center; width: 100%; font-size: 18px; color: #555; padding: 40px;">Nenhum profissional de <strong>${especialidade}</strong> cadastrado no momento.</p>`;
       }
     }
+
     window.mostrarEspecialidade = function (especialidade, botaoClicado) {
       // 1. Carrega a lista de médicos
       window.carregarProfissionais(especialidade);
