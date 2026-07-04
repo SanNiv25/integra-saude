@@ -2460,17 +2460,16 @@ window.renderizarHistoricoProntuario = async function () {
   const historicoDiv = document.getElementById("historicoProntuario");
   if (!historicoDiv) return;
 
-  const profLogado = getProfissionalLogado(); // No futuro, isso usará o await getUsuarioLogado() do Supabase Auth
+  const profLogado = getProfissionalLogado();
   if (!profLogado || !pacienteProntuarioAtual) return;
 
   historicoDiv.innerHTML = "<p style='color: #888; font-size: 14px;'>Carregando prontuários...</p>";
 
-  // 👇 OTIMIZAÇÃO: Busca no Supabase apenas os prontuários DESTE paciente e DESTE profissional
   const { data: registros, error } = await supabaseClient
     .from("prontuarios")
     .select("*")
     .eq("paciente_cpf", pacienteProntuarioAtual.cpf)
-    .eq("profissionalRegistro", profLogado.registro)
+    .eq("profissional_id", profLogado.registro) // 👇 AQUI ESTÁ A CORREÇÃO (profissional_id)
     .order("created_at", { ascending: false });
 
   historicoDiv.innerHTML = "";
@@ -2489,7 +2488,7 @@ window.renderizarHistoricoProntuario = async function () {
             <div style="border-left: 4px solid ${corBorda}; background: white; padding: 12px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                     <strong style="color: ${corBorda}; font-size: 14px;">${icone}</strong>
-                    <span style="font-size: 12px; color: #888; font-weight: bold;">${reg.dataHora}</span>
+                    <span style="font-size: 12px; color: #888; font-weight: bold;">${reg.data_hora}</span>
                 </div>
                 <p style="font-size: 13px; color: #333; margin: 0; white-space: pre-wrap;">${reg.texto}</p>
             </div>
@@ -2507,33 +2506,32 @@ window.salvarRegistroProntuario = async function (tipo, enviarEmail) {
   }
 
   if (confirm("⚠️ ATENÇÃO: Este registro é definitivo e não poderá ser editado. Deseja prosseguir?")) {
-    const profLogado = getProfissionalLogado(); // No futuro: Supabase Auth
+    const profLogado = getProfissionalLogado();
     const agora = new Date();
     const dataHoraStr = `${agora.getDate().toString().padStart(2, '0')}/${(agora.getMonth() + 1).toString().padStart(2, '0')}/${agora.getFullYear()} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
     const documentoId = "DOC-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
 
     const novoRegistro = {
-      id: documentoId, // No futuro, UUID gerado pelo Supabase
+      id: documentoId,
       paciente_cpf: pacienteProntuarioAtual.cpf,
-      profissionalRegistro: profLogado.registro,
+      profissional_id: profLogado.registro, // 👇 AQUI ESTÁ A CORREÇÃO (profissional_id)
       tipo: tipo,
       texto: texto,
-      dataHora: dataHoraStr
+      data_hora: dataHoraStr
     };
 
-    // 👇 Salva direto no Supabase em vez de localStorage
     const { error } = await supabaseClient
       .from("prontuarios")
       .insert([novoRegistro]);
 
     if (error) {
       console.error(error);
-      alert("Erro ao salvar o registro no servidor.");
+      alert("Erro ao salvar o registro no servidor. Verifique o console para mais detalhes.");
       return;
     }
 
-    document.getElementById(campoId).value = ""; // Limpa o campo
-    window.renderizarHistoricoProntuario(); // Recarrega a lista do servidor
+    document.getElementById(campoId).value = "";
+    window.renderizarHistoricoProntuario();
 
     if (enviarEmail && typeof window.enviarEmailProntuario === 'function') {
       window.enviarEmailProntuario(tipo, texto, profLogado, documentoId, dataHoraStr);
