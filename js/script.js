@@ -2469,8 +2469,8 @@ window.renderizarHistoricoProntuario = async function () {
     .from("prontuarios")
     .select("*")
     .eq("paciente_cpf", pacienteProntuarioAtual.cpf)
-    .eq("profissional_id", profLogado.id) // 👈 USA O ID NUMÉRICO DO BANCO
-    .order("created_at", { ascending: false });
+    .eq("profissional_id", profLogado.id)
+    .order("criado_em", { ascending: false }); // 👈 AQUI ESTÁ A CORREÇÃO: "criado_em"
 
   historicoDiv.innerHTML = "";
 
@@ -2547,15 +2547,80 @@ window.salvarRegistroProntuario = async function (tipo, enviarEmail) {
 // (Eu vou encurtar a visualização dessa função aqui no chat para focar na lógica de banco, 
 //  mas no seu código você DEVE MANTER toda a lógica do jsPDF que você já criou perfeitamente).
 window.enviarEmailProntuario = function (tipo, texto, profLogado, documentoId, dataHoraStr) {
-  // ... [MANTENHA TODO O CÓDIGO DA BIBLIOTECA jsPDF QUE ESTAVA AQUI] ...
-  // O PDF é gerado puramente pelo Frontend usando JavaScript no navegador.
-  // Como ele não consulta nem grava nada no banco de dados durante a geração (apenas usa as vars que passamos),
-  // a migração para o Supabase não altera nenhuma linha dessa função de criar PDF.
   try {
-    // Aqui ficaria o seu código: const doc = new jsPDF(); etc.
-    alert(`Lembrete: Mantenha o seu código de jsPDF intacto aqui.`);
+    // Inicializa a biblioteca jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const margemEsquerda = 20;
+    let linhaAtual = 20;
+
+    // 1. Cabeçalho / Logo da Integra Saúde
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(15, 76, 92); // Cor padrão do site (#0F4C5C)
+    doc.text("INTEGRA SAÚDE", margemEsquerda, linhaAtual);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    linhaAtual += 6;
+    doc.text("Cuidado que integra. Saúde que transforma.", margemEsquerda, linhaAtual);
+
+    // 2. Título do Documento
+    linhaAtual += 20;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    const tituloDoc = tipo === 'evolucao' ? 'EVOLUÇÃO CLÍNICA' : 'PRESCRIÇÃO / SOLICITAÇÃO';
+    doc.text(tituloDoc, margemEsquerda, linhaAtual);
+
+    // 3. Dados do Paciente e Profissional
+    linhaAtual += 15;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    let nomePac = pacienteProntuarioAtual ? pacienteProntuarioAtual.nome : "Paciente não identificado";
+    let cpfPac = pacienteProntuarioAtual ? pacienteProntuarioAtual.cpf : "00000000000";
+    cpfPac = cpfPac.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"); // Formata CPF
+
+    doc.text(`Paciente: ${nomePac}`, margemEsquerda, linhaAtual);
+    linhaAtual += 8;
+    doc.text(`CPF do Paciente: ${cpfPac}`, margemEsquerda, linhaAtual);
+    linhaAtual += 8;
+    doc.text(`Profissional: ${profLogado.nome}`, margemEsquerda, linhaAtual);
+    linhaAtual += 8;
+    doc.text(`Registro/Conselho: ${profLogado.registro}`, margemEsquerda, linhaAtual);
+    linhaAtual += 8;
+    doc.text(`Data do Atendimento: ${dataHoraStr}`, margemEsquerda, linhaAtual);
+
+    // Linha divisória cinza
+    linhaAtual += 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margemEsquerda, linhaAtual, 190, linhaAtual);
+
+    // 4. Texto principal do prontuário
+    linhaAtual += 15;
+    doc.setFont("helvetica", "normal");
+
+    // O comando "splitTextToSize" quebra o texto em várias linhas para não vazar da folha
+    const linhasTexto = doc.splitTextToSize(texto, 170);
+    doc.text(linhasTexto, margemEsquerda, linhaAtual);
+
+    // 5. Rodapé de Autenticação (Fica colado no fim da página)
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    const linkValidacao = window.location.origin + "/validar.html?id=" + documentoId;
+
+    doc.text("Documento assinado digitalmente e salvo no banco de dados da Integra Saúde.", margemEsquerda, 275);
+    doc.text(`Código de Autenticação: ${documentoId}`, margemEsquerda, 280);
+    doc.text(`Para validar a autenticidade, acesse: ${linkValidacao}`, margemEsquerda, 285);
+
+    // 6. Faz o download do arquivo no computador
+    const nomeArquivo = `${tipo === 'evolucao' ? 'Evolucao' : 'Prescricao'}_${nomePac.replace(/\s+/g, '_')}.pdf`;
+    doc.save(nomeArquivo);
+
   } catch (erro) {
     console.error("Erro na geração do PDF:", erro);
+    alert("Ocorreu um erro ao gerar o arquivo PDF. Verifique a aba Console para mais detalhes.");
   }
 };
 
