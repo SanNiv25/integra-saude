@@ -2546,77 +2546,171 @@ window.salvarRegistroProntuario = async function (tipo, enviarEmail) {
 // =====================================================
 // (Eu vou encurtar a visualização dessa função aqui no chat para focar na lógica de banco, 
 //  mas no seu código você DEVE MANTER toda a lógica do jsPDF que você já criou perfeitamente).
-window.enviarEmailProntuario = function (tipo, texto, profLogado, documentoId, dataHoraStr) {
+window.enviarEmailProntuario = async function (tipo, texto, profLogado, documentoId, dataHoraStr) {
   try {
-    // Inicializa a biblioteca jsPDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    // 1. CARREGAR A LOGO PARA O PDF
+    // Converte a imagem do seu site (img/logo.png) em Base64 para o jsPDF conseguir desenhar
+    const carregarLogoBase64 = () => {
+      return new Promise((resolve) => {
+        let img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          let canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          let ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = () => resolve(null); // Segue em frente mesmo se a logo falhar
+        img.src = 'img/logo.png';
+      });
+    };
+
+    const logoBase64 = await carregarLogoBase64();
+
+    // 2. GERAR O QR CODE
+    const linkValidacao = window.location.origin + "/validar.html?id=" + documentoId;
+    const qr = new QRious({
+      value: linkValidacao,
+      size: 150
+    });
+    const qrBase64 = qr.toDataURL('image/png');
+
+    // 3. CONFIGURAÇÕES DA PÁGINA
     const margemEsquerda = 20;
+    const larguraPagina = doc.internal.pageSize.getWidth();
+    const alturaPagina = doc.internal.pageSize.getHeight();
+    const maxLinha = alturaPagina - 40; // Se o texto passar daqui, o sistema cria uma página nova
+
+    // Função para criar o design padrão dos cabeçalhos das caixas ("Dados do Paciente", etc)
+    const desenharCaixaTitulo = (titulo, y) => {
+      doc.setFillColor(15, 76, 92); // Cor principal do site
+      doc.rect(margemEsquerda, y, larguraPagina - (margemEsquerda * 2), 7, 'F');
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text(titulo, margemEsquerda + 3, y + 5);
+      doc.setTextColor(0, 0, 0); // Volta a tinta para preto
+      return y + 12; // Retorna onde a próxima linha de texto deve começar
+    };
+
+    // Função que desenha o fundo das folhas (Marca d'água e Rodapé de autenticação)
+    const aplicarFundoDaFolha = () => {
+      // Desenha a Marca D'água no centro
+      if (logoBase64) {
+        doc.setGState(new doc.GState({ opacity: 0.1 })); // 10% de opacidade
+        const logoW = 100, logoH = 100;
+        doc.addImage(logoBase64, 'PNG', (larguraPagina - logoW) / 2, (alturaPagina - logoH) / 2, logoW, logoH);
+        doc.setGState(new doc.GState({ opacity: 1.0 })); // Restaura opacidade para o texto não ficar transparente
+      }
+
+      // Desenha o Rodapé (QR Code na esquerda, Texto na direita)
+      doc.addImage(qrBase64, 'PNG', margemEsquerda, alturaPagina - 25, 20, 20);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      const textoCodigo = `CÓDIGO DE AUTENTICAÇÃO: ${documentoId}`;
+      doc.text(textoCodigo, larguraPagina - margemEsquerda - doc.getTextWidth(textoCodigo), alturaPagina - 15);
+    };
+
+    // ==========================================
+    // INÍCIO DA ESCRITA DO DOCUMENTO
+    // ==========================================
+    aplicarFundoDaFolha();
     let linhaAtual = 20;
 
-    // 1. Cabeçalho / Logo da Integra Saúde
+    // TOPO: Logo + Integra Saúde
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', (larguraPagina - 20) / 2, linhaAtual, 20, 20);
+      linhaAtual += 25;
+    }
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(15, 76, 92); // Cor padrão do site (#0F4C5C)
-    doc.text("INTEGRA SAÚDE", margemEsquerda, linhaAtual);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    linhaAtual += 6;
-    doc.text("Cuidado que integra. Saúde que transforma.", margemEsquerda, linhaAtual);
-
-    // 2. Título do Documento
-    linhaAtual += 20;
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    const tituloDoc = tipo === 'evolucao' ? 'EVOLUÇÃO CLÍNICA' : 'PRESCRIÇÃO / SOLICITAÇÃO';
-    doc.text(tituloDoc, margemEsquerda, linhaAtual);
-
-    // 3. Dados do Paciente e Profissional
+    doc.setFontSize(14);
+    doc.setTextColor(15, 76, 92);
+    const nomeSite = "INTEGRA SAÚDE";
+    doc.text(nomeSite, (larguraPagina - doc.getTextWidth(nomeSite)) / 2, linhaAtual);
     linhaAtual += 15;
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
+
+    // BLOCO 1: DADOS DO PACIENTE E DATA
+    linhaAtual = desenharCaixaTitulo("DADOS DO PACIENTE", linhaAtual);
 
     let nomePac = pacienteProntuarioAtual ? pacienteProntuarioAtual.nome : "Paciente não identificado";
     let cpfPac = pacienteProntuarioAtual ? pacienteProntuarioAtual.cpf : "00000000000";
-    cpfPac = cpfPac.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4"); // Formata CPF
+    cpfPac = cpfPac.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
-    doc.text(`Paciente: ${nomePac}`, margemEsquerda, linhaAtual);
-    linhaAtual += 8;
-    doc.text(`CPF do Paciente: ${cpfPac}`, margemEsquerda, linhaAtual);
-    linhaAtual += 8;
-    doc.text(`Profissional: ${profLogado.nome}`, margemEsquerda, linhaAtual);
-    linhaAtual += 8;
-    doc.text(`Registro/Conselho: ${profLogado.registro}`, margemEsquerda, linhaAtual);
-    linhaAtual += 8;
-    doc.text(`Data do Atendimento: ${dataHoraStr}`, margemEsquerda, linhaAtual);
-
-    // Linha divisória cinza
-    linhaAtual += 10;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margemEsquerda, linhaAtual, 190, linhaAtual);
-
-    // 4. Texto principal do prontuário
-    linhaAtual += 15;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Nome:`, margemEsquerda, linhaAtual);
     doc.setFont("helvetica", "normal");
+    doc.text(nomePac, margemEsquerda + 14, linhaAtual);
 
-    // O comando "splitTextToSize" quebra o texto em várias linhas para não vazar da folha
-    const linhasTexto = doc.splitTextToSize(texto, 170);
-    doc.text(linhasTexto, margemEsquerda, linhaAtual);
+    linhaAtual += 6;
+    doc.setFont("helvetica", "bold");
+    doc.text(`CPF:`, margemEsquerda, linhaAtual);
+    doc.setFont("helvetica", "normal");
+    doc.text(cpfPac, margemEsquerda + 10, linhaAtual);
 
-    // 5. Rodapé de Autenticação (Fica colado no fim da página)
-    doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
-    const linkValidacao = window.location.origin + "/validar.html?id=" + documentoId;
+    // Data do atendimento calculada e alinhada perfeitamente à direita (entre o nome e o CPF)
+    doc.setFont("helvetica", "normal");
+    const txtData = dataHoraStr;
+    doc.text(txtData, larguraPagina - margemEsquerda - doc.getTextWidth(txtData), linhaAtual - 3);
 
-    doc.text("Documento assinado digitalmente e salvo no banco de dados da Integra Saúde.", margemEsquerda, 275);
-    doc.text(`Código de Autenticação: ${documentoId}`, margemEsquerda, 280);
-    doc.text(`Para validar a autenticidade, acesse: ${linkValidacao}`, margemEsquerda, 285);
+    linhaAtual += 15;
 
-    // 6. Faz o download do arquivo no computador
-    const nomeArquivo = `${tipo === 'evolucao' ? 'Evolucao' : 'Prescricao'}_${nomePac.replace(/\s+/g, '_')}.pdf`;
-    doc.save(nomeArquivo);
+    // BLOCO 2: CONTEÚDO ESCRITO PELO MÉDICO
+    const tituloDoc = tipo === 'evolucao' ? 'EVOLUÇÃO DO PACIENTE' : 'PRESCRIÇÃO / SOLICITAÇÃO';
+    linhaAtual = desenharCaixaTitulo(tituloDoc, linhaAtual);
+
+    doc.setFont("helvetica", "normal");
+    // Quebra o texto automaticamente se chegar na borda direita da folha
+    const linhasTexto = doc.splitTextToSize(texto, larguraPagina - (margemEsquerda * 2));
+
+    // Motor de Paginação Inteligente
+    for (let i = 0; i < linhasTexto.length; i++) {
+      // Se a linha atual passar do limite, vira a página
+      if (linhaAtual > maxLinha) {
+        doc.addPage();
+        aplicarFundoDaFolha();
+        linhaAtual = 20;
+      }
+      doc.text(linhasTexto[i], margemEsquerda, linhaAtual);
+      linhaAtual += 6;
+    }
+
+    linhaAtual += 10;
+
+    // BLOCO 3: DADOS DO PROFISSIONAL (Final do Documento)
+    // Se não tiver espaço para a caixa inteira do profissional, joga pra próxima folha
+    if (linhaAtual + 30 > maxLinha) {
+      doc.addPage();
+      aplicarFundoDaFolha();
+      linhaAtual = 20;
+    }
+
+    linhaAtual = desenharCaixaTitulo("DADOS DO PROFISSIONAL", linhaAtual);
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Nome:`, margemEsquerda, linhaAtual);
+    doc.setFont("helvetica", "normal");
+    doc.text(profLogado.nome, margemEsquerda + 14, linhaAtual);
+
+    linhaAtual += 6;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Registro:`, margemEsquerda, linhaAtual);
+    doc.setFont("helvetica", "normal");
+    doc.text(profLogado.registro, margemEsquerda + 19, linhaAtual);
+
+    // ==========================================
+    // PROCESSAMENTO FINAL E DOWNLOAD
+    // ==========================================
+    const sufixoArquivo = tipo === 'evolucao' ? 'Evolucao' : 'Prescricao';
+    const nomeArquivoLimpo = nomePac.replace(/\s+/g, '_');
+    doc.save(`${sufixoArquivo}_${nomeArquivoLimpo}.pdf`);
 
   } catch (erro) {
     console.error("Erro na geração do PDF:", erro);
