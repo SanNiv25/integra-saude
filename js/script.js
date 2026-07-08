@@ -2551,8 +2551,7 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // 1. CARREGAR A LOGO PARA O PDF
-    // Converte a imagem do seu site (img/logo.png) em Base64 para o jsPDF conseguir desenhar
+    // 1. CARREGAR A LOGO PARA O PDF (Preserva a proporção original da imagem)
     const carregarLogoBase64 = () => {
       return new Promise((resolve) => {
         let img = new Image();
@@ -2563,14 +2562,14 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
           canvas.height = img.height;
           let ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL('image/png'));
+          resolve({ data: canvas.toDataURL('image/png'), w: img.width, h: img.height });
         };
-        img.onerror = () => resolve(null); // Segue em frente mesmo se a logo falhar
+        img.onerror = () => resolve(null);
         img.src = 'img/logo.png';
       });
     };
 
-    const logoBase64 = await carregarLogoBase64();
+    const logoObj = await carregarLogoBase64();
 
     // 2. GERAR O QR CODE
     const linkValidacao = window.location.origin + "/validar.html?id=" + documentoId;
@@ -2581,114 +2580,141 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
     const qrBase64 = qr.toDataURL('image/png');
 
     // 3. CONFIGURAÇÕES DA PÁGINA
-    const margemEsquerda = 20;
-    const larguraPagina = doc.internal.pageSize.getWidth();
-    const alturaPagina = doc.internal.pageSize.getHeight();
-    const maxLinha = alturaPagina - 40; // Se o texto passar daqui, o sistema cria uma página nova
+    const margemEsquerda = 15;
+    const larguraPagina = 210;
+    const alturaPagina = 297;
+    const larguraUtil = larguraPagina - (margemEsquerda * 2);
+    const maxLinha = 235; // Limite de texto antes de pular para a próxima página (para não invadir o rodapé)
 
-    // Função para criar o design padrão dos cabeçalhos das caixas ("Dados do Paciente", etc)
+    // Função que desenha as faixas escuras com títulos em branco (Ex: "DADOS DO PACIENTE")
     const desenharCaixaTitulo = (titulo, y) => {
-      doc.setFillColor(15, 76, 92); // Cor principal do site
-      doc.rect(margemEsquerda, y, larguraPagina - (margemEsquerda * 2), 7, 'F');
+      doc.setFillColor(15, 76, 92);
+      doc.rect(margemEsquerda, y, larguraUtil, 8, 'F');
       doc.setFontSize(11);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text(titulo, margemEsquerda + 3, y + 5);
-      doc.setTextColor(0, 0, 0); // Volta a tinta para preto
-      return y + 12; // Retorna onde a próxima linha de texto deve começar
+      doc.text(titulo, margemEsquerda + 3, y + 5.5);
+      doc.setTextColor(0, 0, 0);
+      return y + 14;
     };
 
-    // Função que desenha o fundo das folhas (Marca d'água e Rodapé de autenticação)
-    const aplicarFundoDaFolha = () => {
-      // Desenha a Marca D'água no centro
-      if (logoBase64) {
-        doc.setGState(new doc.GState({ opacity: 0.1 })); // 10% de opacidade
-        const logoW = 100, logoH = 100;
-        doc.addImage(logoBase64, 'PNG', (larguraPagina - logoW) / 2, (alturaPagina - logoH) / 2, logoW, logoH);
-        doc.setGState(new doc.GState({ opacity: 1.0 })); // Restaura opacidade para o texto não ficar transparente
+    // Função que desenha a marca d'água e o rodapé em CADA folha
+    const aplicarFundoERodape = () => {
+      // Marca D'água (Centralizada)
+      if (logoObj) {
+        doc.setGState(new doc.GState({ opacity: 0.1 })); // 10% de visibilidade
+        const logoW = 120;
+        const logoH = (logoObj.h * logoW) / logoObj.w;
+        doc.addImage(logoObj.data, 'PNG', (larguraPagina - logoW) / 2, (alturaPagina - logoH) / 2, logoW, logoH);
+        doc.setGState(new doc.GState({ opacity: 1.0 }));
       }
 
-      // Desenha o Rodapé (QR Code na esquerda, Texto na direita)
-      doc.addImage(qrBase64, 'PNG', margemEsquerda, alturaPagina - 25, 20, 20);
-
+      // Caixa do Rodapé - Validação
+      let yRodape = 250;
+      doc.setFillColor(15, 76, 92);
+      doc.rect(margemEsquerda, yRodape, larguraUtil, 7, 'F');
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
+      doc.text("Validação do documento", margemEsquerda + 3, yRodape + 5);
+
+      // Textos de Isenção
+      yRodape += 11;
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      doc.setTextColor(100, 100, 100);
-      const textoCodigo = `CÓDIGO DE AUTENTICAÇÃO: ${documentoId}`;
-      doc.text(textoCodigo, larguraPagina - margemEsquerda - doc.getTextWidth(textoCodigo), alturaPagina - 15);
+      doc.text("Documento emitido por meio da plataforma Integra Saúde.", margemEsquerda, yRodape);
+      doc.text("A responsabilidade clínica é exclusiva do profissional emissor.", margemEsquerda, yRodape + 5);
+
+      // QR Code posicionado à esquerda
+      doc.addImage(qrBase64, 'PNG', margemEsquerda, yRodape + 8, 22, 22);
+
+      // Código de Autenticação ao lado do QR Code
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(`CÓDIGO DE AUTENTICAÇÃO: ${documentoId}`, margemEsquerda + 27, yRodape + 21);
     };
 
     // ==========================================
-    // INÍCIO DA ESCRITA DO DOCUMENTO
+    // PREENCHENDO O DOCUMENTO (Igual ao modelo)
     // ==========================================
-    aplicarFundoDaFolha();
-    let linhaAtual = 20;
+    let linhaAtual = 15;
 
-    // TOPO: Logo + Integra Saúde
-    if (logoBase64) {
-      doc.addImage(logoBase64, 'PNG', (larguraPagina - 20) / 2, linhaAtual, 20, 20);
-      linhaAtual += 25;
+    // Logo no Topo (Centralizado)
+    if (logoObj) {
+      const wTopo = 50;
+      const hTopo = (logoObj.h * wTopo) / logoObj.w;
+      doc.addImage(logoObj.data, 'PNG', (larguraPagina - wTopo) / 2, linhaAtual, wTopo, hTopo);
+      linhaAtual += hTopo + 10;
+    } else {
+      linhaAtual += 20;
     }
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(15, 76, 92);
-    const nomeSite = "INTEGRA SAÚDE";
-    doc.text(nomeSite, (larguraPagina - doc.getTextWidth(nomeSite)) / 2, linhaAtual);
-    linhaAtual += 15;
-
-    // BLOCO 1: DADOS DO PACIENTE E DATA
+    // BLOCO 1: DADOS DO PACIENTE
     linhaAtual = desenharCaixaTitulo("DADOS DO PACIENTE", linhaAtual);
 
-    let nomePac = pacienteProntuarioAtual ? pacienteProntuarioAtual.nome : "Paciente não identificado";
+    let nomePac = pacienteProntuarioAtual ? pacienteProntuarioAtual.nome : "Não identificado";
     let cpfPac = pacienteProntuarioAtual ? pacienteProntuarioAtual.cpf : "00000000000";
     cpfPac = cpfPac.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
+    // Tratamento para data de nascimento (se existir)
+    let nasc = (pacienteProntuarioAtual && pacienteProntuarioAtual.nascimento)
+      ? pacienteProntuarioAtual.nascimento.split('-').reverse().join('/')
+      : "Não informada";
+
+    const colunaEsq = margemEsquerda;
+    const colunaDir = 120; // Ponto da tela onde os dados da direita vão começar
+
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text(`Nome:`, margemEsquerda, linhaAtual);
+    doc.text(`Nome:`, colunaEsq, linhaAtual);
     doc.setFont("helvetica", "normal");
-    doc.text(nomePac, margemEsquerda + 14, linhaAtual);
+    doc.text(nomePac, colunaEsq + 13, linhaAtual);
 
-    linhaAtual += 6;
     doc.setFont("helvetica", "bold");
-    doc.text(`CPF:`, margemEsquerda, linhaAtual);
+    doc.text(`Data de nascimento:`, colunaDir, linhaAtual);
     doc.setFont("helvetica", "normal");
-    doc.text(cpfPac, margemEsquerda + 10, linhaAtual);
+    doc.text(nasc, colunaDir + 35, linhaAtual);
 
-    // Data do atendimento calculada e alinhada perfeitamente à direita (entre o nome e o CPF)
+    linhaAtual += 7;
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`CPF:`, colunaEsq, linhaAtual);
     doc.setFont("helvetica", "normal");
-    const txtData = dataHoraStr;
-    doc.text(txtData, larguraPagina - margemEsquerda - doc.getTextWidth(txtData), linhaAtual - 3);
+    doc.text(cpfPac, colunaEsq + 10, linhaAtual);
 
-    linhaAtual += 15;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Data do atendimento:`, colunaDir, linhaAtual);
+    doc.setFont("helvetica", "normal");
+    doc.text(dataHoraStr, colunaDir + 38, linhaAtual);
 
-    // BLOCO 2: CONTEÚDO ESCRITO PELO MÉDICO
+    linhaAtual += 12;
+
+    // BLOCO 2: CORPO DO DOCUMENTO (Evolução / Prescrição)
     const tituloDoc = tipo === 'evolucao' ? 'EVOLUÇÃO DO PACIENTE' : 'PRESCRIÇÃO / SOLICITAÇÃO';
     linhaAtual = desenharCaixaTitulo(tituloDoc, linhaAtual);
 
     doc.setFont("helvetica", "normal");
-    // Quebra o texto automaticamente se chegar na borda direita da folha
-    const linhasTexto = doc.splitTextToSize(texto, larguraPagina - (margemEsquerda * 2));
+    const linhasTexto = doc.splitTextToSize(texto, larguraUtil);
 
-    // Motor de Paginação Inteligente
+    // Paginação: Se o texto for longo, ele cria uma folha nova e repete o rodapé automaticamente
     for (let i = 0; i < linhasTexto.length; i++) {
-      // Se a linha atual passar do limite, vira a página
       if (linhaAtual > maxLinha) {
+        aplicarFundoERodape();
         doc.addPage();
-        aplicarFundoDaFolha();
         linhaAtual = 20;
       }
       doc.text(linhasTexto[i], margemEsquerda, linhaAtual);
       linhaAtual += 6;
     }
 
-    linhaAtual += 10;
+    linhaAtual += 8;
 
-    // BLOCO 3: DADOS DO PROFISSIONAL (Final do Documento)
-    // Se não tiver espaço para a caixa inteira do profissional, joga pra próxima folha
+    // BLOCO 3: DADOS DO PROFISSIONAL
+    // Se não tiver espaço para a caixa do profissional no final, ele joga pra próxima página
     if (linhaAtual + 30 > maxLinha) {
+      aplicarFundoERodape();
       doc.addPage();
-      aplicarFundoDaFolha();
       linhaAtual = 20;
     }
 
@@ -2697,16 +2723,19 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
     doc.setFont("helvetica", "bold");
     doc.text(`Nome:`, margemEsquerda, linhaAtual);
     doc.setFont("helvetica", "normal");
-    doc.text(profLogado.nome, margemEsquerda + 14, linhaAtual);
+    doc.text(profLogado.nome, margemEsquerda + 13, linhaAtual);
 
-    linhaAtual += 6;
+    linhaAtual += 7;
     doc.setFont("helvetica", "bold");
     doc.text(`Registro:`, margemEsquerda, linhaAtual);
     doc.setFont("helvetica", "normal");
-    doc.text(profLogado.registro, margemEsquerda + 19, linhaAtual);
+    doc.text(profLogado.registro, margemEsquerda + 17, linhaAtual);
+
+    // Finaliza aplicando o fundo e rodapé na última página preenchida
+    aplicarFundoERodape();
 
     // ==========================================
-    // PROCESSAMENTO FINAL E DOWNLOAD
+    // DOWNLOAD
     // ==========================================
     const sufixoArquivo = tipo === 'evolucao' ? 'Evolucao' : 'Prescricao';
     const nomeArquivoLimpo = nomePac.replace(/\s+/g, '_');
