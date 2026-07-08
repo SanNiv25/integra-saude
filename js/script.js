@@ -2551,7 +2551,7 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // 1. CARREGAR A LOGO PARA O PDF (Preserva a proporção original da imagem)
+    // 1. CARREGAR A LOGO PARA O PDF
     const carregarLogoBase64 = () => {
       return new Promise((resolve) => {
         let img = new Image();
@@ -2584,32 +2584,55 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
     const larguraPagina = 210;
     const alturaPagina = 297;
     const larguraUtil = larguraPagina - (margemEsquerda * 2);
-    const maxLinha = 235; // Limite de texto antes de pular para a próxima página (para não invadir o rodapé)
 
-    // Função que desenha as faixas escuras com títulos em branco (Ex: "DADOS DO PACIENTE")
-    const desenharCaixaTitulo = (titulo, y) => {
-      doc.setFillColor(15, 76, 92);
-      doc.rect(margemEsquerda, y, larguraUtil, 8, 'F');
+    // Limite da linha do texto (deixa espaço para os Dados do Profissional no final)
+    const maxLinha = 205;
+
+    // Novo design do título: Letra com a cor principal e linha fina de sublinhado
+    const desenharTituloSublinhado = (titulo, y) => {
       doc.setFontSize(11);
-      doc.setTextColor(255, 255, 255);
+      doc.setTextColor(15, 76, 92);
       doc.setFont("helvetica", "bold");
-      doc.text(titulo, margemEsquerda + 3, y + 5.5);
-      doc.setTextColor(0, 0, 0);
-      return y + 14;
+      doc.text(titulo, margemEsquerda, y);
+
+      // Linha do sublinhado
+      doc.setDrawColor(15, 76, 92);
+      doc.setLineWidth(0.4);
+      doc.line(margemEsquerda, y + 2, margemEsquerda + larguraUtil, y + 2);
+
+      doc.setTextColor(0, 0, 0); // Volta pro preto normal
+      return y + 10;
     };
 
     // Função que desenha a marca d'água e o rodapé em CADA folha
-    const aplicarFundoERodape = () => {
+    const aplicarFundoERodape = (isUltimaPagina = false) => {
       // Marca D'água (Centralizada)
       if (logoObj) {
-        doc.setGState(new doc.GState({ opacity: 0.1 })); // 10% de visibilidade
+        doc.setGState(new doc.GState({ opacity: 0.1 }));
         const logoW = 120;
         const logoH = (logoObj.h * logoW) / logoObj.w;
         doc.addImage(logoObj.data, 'PNG', (larguraPagina - logoW) / 2, (alturaPagina - logoH) / 2, logoW, logoH);
         doc.setGState(new doc.GState({ opacity: 1.0 }));
       }
 
-      // Caixa do Rodapé - Validação
+      // 🔹 Se for a última página, imprime os DADOS DO PROFISSIONAL no final
+      if (isUltimaPagina) {
+        let yProf = 220;
+        desenharTituloSublinhado("DADOS DO PROFISSIONAL", yProf);
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Nome:`, margemEsquerda, yProf + 8);
+        doc.setFont("helvetica", "normal");
+        doc.text(profLogado.nome, margemEsquerda + 13, yProf + 8);
+
+        doc.setFont("helvetica", "bold");
+        doc.text(`Registro:`, margemEsquerda, yProf + 15);
+        doc.setFont("helvetica", "normal");
+        doc.text(profLogado.registro, margemEsquerda + 19, yProf + 15);
+      }
+
+      // 🔹 Caixa do Rodapé - Validação
       let yRodape = 250;
       doc.setFillColor(15, 76, 92);
       doc.rect(margemEsquerda, yRodape, larguraUtil, 7, 'F');
@@ -2626,44 +2649,51 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
       doc.text("Documento emitido por meio da plataforma Integra Saúde.", margemEsquerda, yRodape);
       doc.text("A responsabilidade clínica é exclusiva do profissional emissor.", margemEsquerda, yRodape + 5);
 
-      // QR Code posicionado à esquerda
-      doc.addImage(qrBase64, 'PNG', margemEsquerda, yRodape + 8, 22, 22);
+      // QR Code posicionado à esquerda (Tamanho Reduzido para 16x16)
+      doc.addImage(qrBase64, 'PNG', margemEsquerda, yRodape + 8, 16, 16);
 
-      // Código de Autenticação ao lado do QR Code
+      // Código de Autenticação ao lado do QR Code (SEM NEGRITO)
       doc.setFontSize(11);
-      doc.setFont("helvetica", "bold");
-      doc.text(`CÓDIGO DE AUTENTICAÇÃO: ${documentoId}`, margemEsquerda + 27, yRodape + 21);
+      doc.setFont("helvetica", "normal");
+      doc.text(`CÓDIGO DE AUTENTICAÇÃO: ${documentoId}`, margemEsquerda + 22, yRodape + 18);
     };
 
     // ==========================================
-    // PREENCHENDO O DOCUMENTO (Igual ao modelo)
+    // PREENCHENDO O DOCUMENTO
     // ==========================================
     let linhaAtual = 15;
 
-    // Logo no Topo (Centralizado)
+    // Logo no Topo
     if (logoObj) {
       const wTopo = 50;
       const hTopo = (logoObj.h * wTopo) / logoObj.w;
       doc.addImage(logoObj.data, 'PNG', (larguraPagina - wTopo) / 2, linhaAtual, wTopo, hTopo);
-      linhaAtual += hTopo + 10;
+      linhaAtual += hTopo + 5;
     } else {
-      linhaAtual += 20;
+      linhaAtual += 15;
     }
 
+    // Texto INTEGRA SAÚDE abaixo da logo
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(15, 76, 92);
+    const nomeSite = "INTEGRA SAÚDE";
+    doc.text(nomeSite, (larguraPagina - doc.getTextWidth(nomeSite)) / 2, linhaAtual);
+    linhaAtual += 12;
+
     // BLOCO 1: DADOS DO PACIENTE
-    linhaAtual = desenharCaixaTitulo("DADOS DO PACIENTE", linhaAtual);
+    linhaAtual = desenharTituloSublinhado("DADOS DO PACIENTE", linhaAtual);
 
     let nomePac = pacienteProntuarioAtual ? pacienteProntuarioAtual.nome : "Não identificado";
     let cpfPac = pacienteProntuarioAtual ? pacienteProntuarioAtual.cpf : "00000000000";
     cpfPac = cpfPac.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 
-    // Tratamento para data de nascimento (se existir)
     let nasc = (pacienteProntuarioAtual && pacienteProntuarioAtual.nascimento)
       ? pacienteProntuarioAtual.nascimento.split('-').reverse().join('/')
       : "Não informada";
 
     const colunaEsq = margemEsquerda;
-    const colunaDir = 120; // Ponto da tela onde os dados da direita vão começar
+    const colunaDir = 120;
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
@@ -2690,49 +2720,39 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
 
     linhaAtual += 12;
 
-    // BLOCO 2: CORPO DO DOCUMENTO (Evolução / Prescrição)
-    const tituloDoc = tipo === 'evolucao' ? 'EVOLUÇÃO DO PACIENTE' : 'PRESCRIÇÃO / SOLICITAÇÃO';
-    linhaAtual = desenharCaixaTitulo(tituloDoc, linhaAtual);
+    // BLOCO 2: CORPO DO DOCUMENTO COM TÍTULO DINÂMICO
+
+    // Captura a PRIMEIRA LINHA digitada pelo profissional para ser o Título
+    let linhasDoTexto = texto.split('\n');
+    let tituloDinamico = (linhasDoTexto.length > 0 && linhasDoTexto[0].trim() !== '') ? linhasDoTexto[0].trim().toUpperCase() : 'DOCUMENTO';
+
+    // Remove a primeira linha para não repeti-la no corpo do texto
+    if (linhasDoTexto.length > 0 && linhasDoTexto[0].trim() !== '') {
+      linhasDoTexto.shift();
+    }
+
+    let textoConteudo = linhasDoTexto.join('\n').trim();
+    if (!textoConteudo) textoConteudo = "Nenhuma observação adicional.";
+
+    // Desenha a primeira linha capturada com o formato do título principal
+    linhaAtual = desenharTituloSublinhado(tituloDinamico, linhaAtual);
 
     doc.setFont("helvetica", "normal");
-    const linhasTexto = doc.splitTextToSize(texto, larguraUtil);
+    const linhasQuebradas = doc.splitTextToSize(textoConteudo, larguraUtil);
 
-    // Paginação: Se o texto for longo, ele cria uma folha nova e repete o rodapé automaticamente
-    for (let i = 0; i < linhasTexto.length; i++) {
+    // Paginação: Se o texto for longo, ele cria uma folha nova
+    for (let i = 0; i < linhasQuebradas.length; i++) {
       if (linhaAtual > maxLinha) {
-        aplicarFundoERodape();
+        aplicarFundoERodape(false); // Rodapé da página incompleta (sem Dados do Profissional)
         doc.addPage();
         linhaAtual = 20;
       }
-      doc.text(linhasTexto[i], margemEsquerda, linhaAtual);
+      doc.text(linhasQuebradas[i], margemEsquerda, linhaAtual);
       linhaAtual += 6;
     }
 
-    linhaAtual += 8;
-
-    // BLOCO 3: DADOS DO PROFISSIONAL
-    // Se não tiver espaço para a caixa do profissional no final, ele joga pra próxima página
-    if (linhaAtual + 30 > maxLinha) {
-      aplicarFundoERodape();
-      doc.addPage();
-      linhaAtual = 20;
-    }
-
-    linhaAtual = desenharCaixaTitulo("DADOS DO PROFISSIONAL", linhaAtual);
-
-    doc.setFont("helvetica", "bold");
-    doc.text(`Nome:`, margemEsquerda, linhaAtual);
-    doc.setFont("helvetica", "normal");
-    doc.text(profLogado.nome, margemEsquerda + 13, linhaAtual);
-
-    linhaAtual += 7;
-    doc.setFont("helvetica", "bold");
-    doc.text(`Registro:`, margemEsquerda, linhaAtual);
-    doc.setFont("helvetica", "normal");
-    doc.text(profLogado.registro, margemEsquerda + 17, linhaAtual);
-
-    // Finaliza aplicando o fundo e rodapé na última página preenchida
-    aplicarFundoERodape();
+    // Aplica o rodapé final na última página (onde ficarão os DADOS DO PROFISSIONAL)
+    aplicarFundoERodape(true);
 
     // ==========================================
     // DOWNLOAD
