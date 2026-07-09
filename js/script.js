@@ -2778,7 +2778,7 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
 /* =====================================================
    🔹 9. SISTEMA DE VALIDAÇÃO DE DOCUMENTOS (QR CODE)
 ===================================================== */
-if (window.location.pathname.includes("validar.html")) {
+if (window.location.pathname.includes("validar")) {
   // 👈 Executa imediatamente sem esperar (evita congelamentos)
   (async function () {
     const params = new URLSearchParams(window.location.search);
