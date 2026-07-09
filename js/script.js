@@ -2571,11 +2571,12 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
 
     const logoObj = await carregarLogoBase64();
 
-    // 2. GERAR O QR CODE
+    // 2. GERAR O QR CODE EM ALTA RESOLUÇÃO
     const linkValidacao = window.location.origin + "/validar.html?id=" + documentoId;
     const qr = new QRious({
       value: linkValidacao,
-      size: 150
+      size: 800, // 👈 Resolução aumentada de 150 para 800 pixels
+      level: 'H' // 👈 Nível de correção alto (garante leitura mesmo se imprimir um pouco falho)
     });
     const qrBase64 = qr.toDataURL('image/png');
 
@@ -2771,7 +2772,8 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
    🔹 9. SISTEMA DE VALIDAÇÃO DE DOCUMENTOS (QR CODE)
 ===================================================== */
 if (window.location.pathname.includes("validar.html")) {
-  document.addEventListener("DOMContentLoaded", async function () {
+  // 👈 Executa imediatamente sem esperar (evita congelamentos)
+  (async function () {
     const params = new URLSearchParams(window.location.search);
     const docId = params.get("id");
     const box = document.getElementById("resultadoBox");
@@ -2790,7 +2792,7 @@ if (window.location.pathname.includes("validar.html")) {
 
     try {
       // Busca o documento no banco
-      const { data: documento, error: errDoc } = await supabaseClient
+      const { data: documento, error: errDoc } = await window.supabaseClient
         .from("prontuarios")
         .select("*")
         .eq("id", docId)
@@ -2808,7 +2810,7 @@ if (window.location.pathname.includes("validar.html")) {
       // Busca o nome do Paciente com segurança
       let nomePac = "Paciente não identificado";
       if (documento.paciente_cpf) {
-        const { data: paciente } = await supabaseClient
+        const { data: paciente } = await window.supabaseClient
           .from("pacientes")
           .select("nome")
           .eq("cpf", documento.paciente_cpf)
@@ -2820,7 +2822,7 @@ if (window.location.pathname.includes("validar.html")) {
       let nomeProf = "Profissional não identificado";
       let regProf = "Não identificado";
       if (documento.profissional_id) {
-        const { data: prof } = await supabaseClient
+        const { data: prof } = await window.supabaseClient
           .from("profissionais")
           .select("nome, registro")
           .eq("id", documento.profissional_id)
@@ -2833,7 +2835,7 @@ if (window.location.pathname.includes("validar.html")) {
 
       let tipoNome = documento.tipo === 'evolucao' ? 'Evolução Clínica (Prontuário)' : 'Prescrição de Exames/Medicamentos';
 
-      // 👇 CORREÇÃO AQUI: Garante que o CPF vire TEXTO (String) antes de formatar com pontos e traços
+      // Garante que o CPF vire TEXTO (String) antes de formatar com pontos e traços
       let cpfFormatado = "000.000.000-00";
       if (documento.paciente_cpf) {
         cpfFormatado = String(documento.paciente_cpf).padStart(11, '0').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
@@ -2864,7 +2866,7 @@ if (window.location.pathname.includes("validar.html")) {
             <p>Ocorreu um problema ao processar os dados. Tente atualizar a página.</p>
         `;
     }
-  });
+  })();
 }
 
 // =====================================================
