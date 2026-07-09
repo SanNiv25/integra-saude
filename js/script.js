@@ -2571,12 +2571,19 @@ window.enviarEmailProntuario = async function (tipo, texto, profLogado, document
 
     const logoObj = await carregarLogoBase64();
 
-    // 2. GERAR O QR CODE EM ALTA RESOLUÇÃO
-    const linkValidacao = window.location.origin + "/validar.html?id=" + documentoId;
+    // 2. GERAR O QR CODE
+    let baseUrl = window.location.origin;
+
+    // Se o PDF for gerado em testes no computador local, força a URL oficial da internet
+    if (!baseUrl.startsWith("http") || baseUrl.includes("localhost") || baseUrl === "null") {
+      baseUrl = "https://integra-saude.moreirasantosv15.workers.dev";
+    }
+
+    const linkValidacao = baseUrl + "/validar.html?id=" + documentoId;
     const qr = new QRious({
       value: linkValidacao,
-      size: 800, // 👈 Resolução aumentada de 150 para 800 pixels
-      level: 'H' // 👈 Nível de correção alto (garante leitura mesmo se imprimir um pouco falho)
+      size: 800,
+      level: 'H'
     });
     const qrBase64 = qr.toDataURL('image/png');
 
