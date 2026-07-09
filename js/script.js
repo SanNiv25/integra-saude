@@ -2788,56 +2788,82 @@ if (window.location.pathname.includes("validar.html")) {
 
     if (box) box.innerHTML = `<p style="color: #666;">Consultando servidor de autenticação...</p>`;
 
-    const { data: documento, error: errDoc } = await supabaseClient
-      .from("prontuarios")
-      .select("*")
-      .eq("id", docId)
-      .single();
+    try {
+      // Busca o documento no banco
+      const { data: documento, error: errDoc } = await supabaseClient
+        .from("prontuarios")
+        .select("*")
+        .eq("id", docId)
+        .single();
 
-    if (errDoc || !documento) {
+      if (errDoc || !documento) {
+        if (box) box.innerHTML = `
+            <div class="status-icon invalid">❌</div>
+            <h2>Erro ao validar</h2>
+            <p>Documento não encontrado na base de dados ou acesso negado.</p>
+          `;
+        return;
+      }
+
+      // Busca o nome do Paciente com segurança
+      let nomePac = "Paciente não identificado";
+      if (documento.paciente_cpf) {
+        const { data: paciente } = await supabaseClient
+          .from("pacientes")
+          .select("nome")
+          .eq("cpf", documento.paciente_cpf)
+          .single();
+        if (paciente) nomePac = paciente.nome;
+      }
+
+      // Busca os dados do Profissional com segurança
+      let nomeProf = "Profissional não identificado";
+      let regProf = "Não identificado";
+      if (documento.profissional_id) {
+        const { data: prof } = await supabaseClient
+          .from("profissionais")
+          .select("nome, registro")
+          .eq("id", documento.profissional_id)
+          .single();
+        if (prof) {
+          nomeProf = prof.nome;
+          regProf = prof.registro;
+        }
+      }
+
+      let tipoNome = documento.tipo === 'evolucao' ? 'Evolução Clínica (Prontuário)' : 'Prescrição de Exames/Medicamentos';
+
+      // 👇 CORREÇÃO AQUI: Garante que o CPF vire TEXTO (String) antes de formatar com pontos e traços
+      let cpfFormatado = "000.000.000-00";
+      if (documento.paciente_cpf) {
+        cpfFormatado = String(documento.paciente_cpf).padStart(11, '0').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      }
+
+      // Exibe o selo de autenticidade
       if (box) box.innerHTML = `
-        <div class="status-icon invalid">❌</div>
-        <h2>Erro ao validar</h2>
-        <p>Documento não encontrado na base de dados.</p>
-      `;
-      return;
+              <div class="status-icon valid">✅</div>
+              <h2 style="color: #2E7D32; margin-bottom: 20px;">Documento Autêntico</h2>
+              
+              <div class="doc-info">
+                <p><strong>Código de Autenticação:</strong> <span style="color:#0F4C5C;">${documento.id}</span></p>
+                <p><strong>Tipo de Documento:</strong> ${tipoNome}</p>
+                <p><strong>Data de Emissão:</strong> ${documento.data_hora || "Data não registrada"}</p>
+                <p><strong>Paciente:</strong> ${nomePac} (CPF: ${cpfFormatado})</p>
+                <p><strong>Emitido por:</strong> ${nomeProf} (${regProf})</p>
+              </div>
+              
+              <p style="font-size: 13px; color: #777; margin-bottom: 20px;">Este documento foi assinado e salvo de forma definitiva e imutável no banco de dados da Integra Saúde.</p>
+              <button class="btn-primary" style="width:100%;" onclick="window.location.href='index.html'">Voltar para a Integra Saúde</button>
+           `;
+
+    } catch (err) {
+      console.error("Erro interno ao validar:", err);
+      if (box) box.innerHTML = `
+            <div class="status-icon invalid">❌</div>
+            <h2>Erro no Sistema</h2>
+            <p>Ocorreu um problema ao processar os dados. Tente atualizar a página.</p>
+        `;
     }
-
-    const { data: paciente } = await supabaseClient
-      .from("pacientes")
-      .select("nome")
-      .eq("cpf", documento.paciente_cpf)
-      .single();
-
-    let nomePac = paciente ? paciente.nome : "Paciente não identificado";
-
-    // 👈 BUSCA PROFISSIONAL PELO ID
-    const { data: prof } = await supabaseClient
-      .from("profissionais")
-      .select("nome, registro")
-      .eq("id", documento.profissional_id)
-      .single();
-
-    let nomeProf = prof ? prof.nome : "Profissional não identificado";
-    let regProf = prof ? prof.registro : "Não identificado";
-
-    let tipoNome = documento.tipo === 'evolucao' ? 'Evolução Clínica (Prontuário)' : 'Prescrição de Exames/Medicamentos';
-
-    if (box) box.innerHTML = `
-          <div class="status-icon valid">✅</div>
-          <h2 style="color: #2E7D32; margin-bottom: 20px;">Documento Autêntico</h2>
-          
-          <div class="doc-info">
-            <p><strong>Código de Autenticação:</strong> <span style="color:#0F4C5C;">${documento.id}</span></p>
-            <p><strong>Tipo de Documento:</strong> ${tipoNome}</p>
-            <p><strong>Data de Emissão:</strong> ${documento.data_hora}</p>
-            <p><strong>Paciente:</strong> ${nomePac} (CPF: ${documento.paciente_cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")})</p>
-            <p><strong>Emitido por:</strong> ${nomeProf} (${regProf})</p>
-          </div>
-          
-          <p style="font-size: 13px; color: #777; margin-bottom: 20px;">Este documento foi assinado e salvo de forma definitiva e imutável no banco de dados da Integra Saúde.</p>
-          <button class="btn-primary" style="width:100%;" onclick="window.location.href='index.html'">Voltar para a Integra Saúde</button>
-       `;
   });
 }
 
