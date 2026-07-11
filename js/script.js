@@ -1684,8 +1684,48 @@ window.marcarAusencia = async function (prof, data, hora) {
 };
 
 /* =====================================================
-   🔹 PAINEL DO ADMINISTRADOR E TRIAGEM (TRABALHE CONOSCO)
+   🔹 FORMULÁRIO DE CONTATO (SALVO NO SUPABASE)
 ===================================================== */
+const formContato = document.getElementById("formContato");
+
+if (formContato) {
+  formContato.addEventListener("submit", async function (e) {
+    e.preventDefault(); // Impede a página de recarregar
+
+    const btn = document.getElementById("btnEnviarContato");
+    const textoOriginal = btn.innerText;
+    btn.innerText = "⏳ Enviando...";
+    btn.disabled = true;
+
+    // Pega os dados preenchidos
+    const novaMensagem = {
+      nome: document.getElementById("nomeContato").value.trim(),
+      telefone: document.getElementById("telefoneContato").value.trim(),
+      email: document.getElementById("emailContato").value.trim(),
+      mensagem: document.getElementById("mensagemContato").value.trim()
+    };
+
+    // Salva na tabela 'mensagens_contato' do Supabase
+    // ⚠️ IMPORTANTE: Você precisará criar uma tabela chamada 'mensagens_contato' no Supabase
+    // com as colunas: id, created_at, nome, telefone, email, mensagem.
+    const { error } = await supabaseClient
+      .from("mensagens_contato")
+      .insert([novaMensagem]);
+
+    if (error) {
+      console.error(error);
+      alert("❌ Ocorreu um erro ao enviar sua mensagem. Tente novamente mais tarde.");
+      btn.innerText = textoOriginal;
+      btn.disabled = false;
+    } else {
+      alert("✅ Mensagem enviada com sucesso! A nossa equipa entrará em contacto em breve.");
+      formContato.reset(); // Limpa o formulário
+      btn.innerText = textoOriginal;
+      btn.disabled = false;
+    }
+  });
+}
+
 const formTrabalheConosco = document.getElementById("formTrabalheConosco");
 
 if (formTrabalheConosco) {

@@ -55,6 +55,8 @@
                         Casa</a></li>
                 <li id="menuFinanceiro"><a href="#" onclick="mudarAbaAdmin('financeiro')">💳 Financeiro e Consultas</a>
                 </li>
+                <li id="menuContatos"><a href="#" onclick="mudarAbaAdmin('contatos')">📩 Mensagens Recebidas</a></li>
+                <!-- 👈 BOTAO NOVO -->
                 <li style="margin-top: 40px;"><a href="#" onclick="sairAdmin()" class="btn-sair-sidebar">🚪 Sair do
                         Painel</a></li>
             </ul>
@@ -111,13 +113,23 @@
                 </div>
             </section>
 
+            <!-- 👇 NOVA ABA DE CONTATOS ABAIXO DO FINANCEIRO 👇 -->
+            <section id="abaContatos" class="hidden">
+                <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">📩
+                    Mensagens Recebidas</h2>
+                <p style="color: #666; margin-bottom: 20px;">Acompanhe aqui todas as dúvidas e mensagens enviadas pelos
+                    pacientes através da página de contato do site.</p>
+                <div id="listaContatosAdmin" style="display: flex; flex-direction: column; gap: 15px;">
+                </div>
+            </section>
+
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
 
-    <script src="js/script.js?v=12"></script>
+    <script src="js/script.js?v=13"></script>
 </body>
 
 </html>
