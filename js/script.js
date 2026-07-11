@@ -2266,6 +2266,10 @@ window.mudarAbaAdmin = function (aba) {
   document.getElementById("abaProfissionais").classList.add("hidden");
   document.getElementById("abaFinanceiro").classList.add("hidden");
 
+  if (document.getElementById("abaContatos")) {
+    document.getElementById("abaContatos").classList.add("hidden");
+  }
+
   document.querySelectorAll(".sidebar-admin button").forEach(btn => btn.classList.remove("ativo"));
 
   if (aba === 'visaoGeral') {
@@ -2284,22 +2288,28 @@ window.mudarAbaAdmin = function (aba) {
     document.getElementById("abaFinanceiro").classList.remove("hidden");
     document.getElementById("menuFinanceiro").classList.add("ativo");
     window.renderizarAdminFinanceiro();
+  } else if (aba === 'contatos') {
+    if (document.getElementById("abaContatos")) document.getElementById("abaContatos").classList.remove("hidden");
+    if (document.getElementById("menuContatos")) document.getElementById("menuContatos").classList.add("ativo");
+    window.renderizarAdminContatos();
   }
 }
 
 // OTIMIZADO: Busca totais através da contagem do Supabase
 window.renderizarAdminVisaoGeral = async function () {
-  const [{ count: countPacientes }, { count: countProfs }, { count: countFichas }, { count: countConsultas }] = await Promise.all([
+  const [{ count: countPacientes }, { count: countProfs }, { count: countFichas }, { count: countConsultas }, { count: countMensagens }] = await Promise.all([
     supabaseClient.from("pacientes").select('*', { count: 'exact', head: true }),
     supabaseClient.from("profissionais").select('*', { count: 'exact', head: true }),
     supabaseClient.from("candidatos_espera").select('*', { count: 'exact', head: true }),
-    supabaseClient.from("consultas").select('*', { count: 'exact', head: true })
+    supabaseClient.from("consultas").select('*', { count: 'exact', head: true }),
+    supabaseClient.from("mensagens_contato").select('*', { count: 'exact', head: true })
   ]);
 
   if (document.getElementById("totalPacientesAdmin")) document.getElementById("totalPacientesAdmin").innerText = countPacientes || 0;
   if (document.getElementById("totalProfissionaisAdmin")) document.getElementById("totalProfissionaisAdmin").innerText = countProfs || 0;
   if (document.getElementById("totalFichasAdmin")) document.getElementById("totalFichasAdmin").innerText = countFichas || 0;
   if (document.getElementById("totalConsultasAdmin")) document.getElementById("totalConsultasAdmin").innerText = countConsultas || 0;
+  if (document.getElementById("totalMensagensAdmin")) document.getElementById("totalMensagensAdmin").innerText = countMensagens || 0;
 }
 
 // OTIMIZADO: Lista profissionais e permite ao Admin editar os valores
@@ -2411,72 +2421,50 @@ window.removerProfissional = async function (registro) {
   }
 }
 
-// OTIMIZADO: Admin Financeiro
-window.renderizarAdminFinanceiro = async function () {
-  const listaDiv = document.getElementById("listaFinanceiroAdmin");
+// OTIMIZADO: Admin Contatos (Mensagens recebidas pelo site)
+window.renderizarAdminContatos = async function () {
+  const listaDiv = document.getElementById("listaContatosAdmin");
   if (!listaDiv) return;
 
-  listaDiv.innerHTML = "<p style='color: #666;'>Carregando transações...</p>";
+  listaDiv.innerHTML = "<p style='color: #666;'>Carregando mensagens...</p>";
 
-  // 👇 CORREÇÃO: Removido o 'created_at' e substituído por 'data' e 'hora'
-  const { data: consultas, error: errC } = await window.supabaseClient
-    .from("consultas")
+  // Busca as mensagens organizadas da mais nova para a mais antiga
+  const { data: mensagens, error } = await window.supabaseClient
+    .from("mensagens_contato")
     .select("*")
-    .order('data', { ascending: false })
-    .order('hora', { ascending: false });
-
-  const { data: pacientes } = await window.supabaseClient
-    .from("pacientes")
-    .select("cpf, nome");
+    .order('created_at', { ascending: false });
 
   listaDiv.innerHTML = "";
 
-  // Adicionada uma trava de segurança que avisa se der erro no banco
-  if (errC) {
-    console.error("Erro no Painel Financeiro:", errC);
-    listaDiv.innerHTML = "<p style='color: #d9534f;'>Erro ao carregar as transações. Verifique o console.</p>";
+  if (error) {
+    console.error("Erro ao carregar mensagens:", error);
+    listaDiv.innerHTML = "<p style='color: #d9534f;'>Erro ao carregar as mensagens. Verifique se a tabela foi criada no Supabase.</p>";
     return;
   }
 
-  if (!consultas || consultas.length === 0) {
-    listaDiv.innerHTML = "<p>Nenhuma transação ou consulta registrada no sistema.</p>";
+  if (!mensagens || mensagens.length === 0) {
+    listaDiv.innerHTML = "<p>Nenhuma mensagem de contato recebida até o momento.</p>";
     return;
   }
 
-  consultas.forEach(consulta => {
-    let paciente = pacientes ? pacientes.find(u => u.cpf === consulta.paciente_cpf) : null;
-    let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
-
-    // Mapeamento das cores e status do financeiro
-    let statusHTML = `<span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
-
-    if (consulta.status_geral === 'finalizada') {
-      statusHTML = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDA</span>`;
-    } else if (consulta.status_geral === 'ausente') {
-      statusHTML = `<span style="background: #e67e22; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PACIENTE FALTOU</span>`;
-    } else if (consulta.status_geral === 'cancelada_reembolso') {
-      statusHTML = `<span style="background: #e74c3c; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">🚨 CANCELADA - REEMBOLSAR</span>`;
-    } else if (consulta.status_geral === 'pendente_pagamento') {
-      statusHTML = `<span style="background: #f1c40f; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGUARDANDO PAGAMENTO</span>`;
-    } else if (consulta.status_geral === 'cancelada') {
-      statusHTML = `<span style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA</span>`;
-    }
-
-    let dataFormatada = "Data não definida";
-    if (consulta.data) {
-      let [ano, mes, dia] = consulta.data.split('-');
-      dataFormatada = `${dia}/${mes}/${ano}`;
+  mensagens.forEach(msg => {
+    let dataFormatada = "Data desconhecida";
+    if (msg.created_at) {
+      const dataObj = new Date(msg.created_at);
+      dataFormatada = dataObj.toLocaleDateString('pt-BR') + " às " + dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
 
     listaDiv.innerHTML += `
-      <div style="background: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 10px;">
-        <div>
-          <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${dataFormatada} às ${consulta.hora || '--:--'}</h3>
-          <p style="font-size: 13px; color: #555;"><strong>Profissional:</strong> ${consulta.profissional}</p>
-          <p style="font-size: 13px; color: #555;"><strong>Paciente:</strong> ${nomePac} (CPF: ${consulta.paciente_cpf})</p>
+      <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #0F766E; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div>
+                <h3 style="font-size: 18px; color: #0F4C5C; margin-bottom: 5px;">👤 ${escaparHTML(msg.nome)}</h3>
+                <p style="font-size: 13px; color: #555;"><strong>📞 Telefone:</strong> ${escaparHTML(msg.telefone)} &nbsp;|&nbsp; <strong>✉️ E-mail:</strong> ${escaparHTML(msg.email)}</p>
+            </div>
+            <span style="font-size: 12px; color: #888; font-weight: bold;">🗓️ ${dataFormatada}</span>
         </div>
-        <div style="text-align: right;">
-          ${statusHTML}
+        <div style="background: #f4f9f9; padding: 15px; border-radius: 6px; border: 1px solid #cce3e6;">
+            <p style="font-size: 14px; color: #333; line-height: 1.5; margin: 0; white-space: pre-wrap;">${escaparHTML(msg.mensagem)}</p>
         </div>
       </div>
     `;
