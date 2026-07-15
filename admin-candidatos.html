@@ -135,13 +135,53 @@
                             </select>
                         </div>
 
-                        <!-- Selecionar Data -->
+                        <!-- Tipo de Busca de Data -->
                         <div style="flex: 1; min-width: 150px;">
+                            <label
+                                style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Tipo
+                                de Busca por Data:</label>
+                            <select id="tipoFiltroData" onchange="alternarTipoFiltroData()"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                                <option value="especifica">Data Específica</option>
+                                <option value="periodo">Filtrar por Período</option>
+                            </select>
+                        </div>
+
+                        <!-- Data Específica (Padrão) -->
+                        <div id="containerDataEspecifica" style="flex: 1; min-width: 150px;">
                             <label
                                 style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Data
                                 Específica:</label>
                             <input type="date" id="filtroAdminData"
                                 style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                        </div>
+
+                        <!-- Filtrar por Período (Escondido por padrão) -->
+                        <div id="containerDataPeriodo" style="display: none; flex: 2; gap: 10px; min-width: 250px;">
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Ano:</label>
+                                <select id="filtroAno" onchange="atualizarMesesPeriodo()"
+                                    style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                                    <option value="">Selecione</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Mês:</label>
+                                <select id="filtroMes" onchange="atualizarDiasPeriodo()"
+                                    style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                                    <option value="">Selecione</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label
+                                    style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Dia:</label>
+                                <select id="filtroDia"
+                                    style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                                    <option value="">Selecione</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Botões -->
@@ -159,6 +199,7 @@
                     style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
                     <!-- Os cartões de consulta filtrados aparecerão aqui -->
                 </div>
+                <!-- 👆 FIM DO FILTRO AVANÇADO 👆 -->
             </section>
 
             <section id="abaTriagem" class="hidden">
@@ -203,7 +244,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
 
-    <script src="js/script.js?v=15"></script>
+    <script src="js/script.js?v=16"></script>
 </body>
 
 </html>

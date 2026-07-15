@@ -3893,51 +3893,171 @@ window.renderizarAdminFinanceiro = async function () {
 };
 
 // =====================================================
-// 🔍 SISTEMA DE FILTRO AVANÇADO DO ADMINISTRADOR
+// 🔍 SISTEMA DE FILTRO AVANÇADO E PERÍODOS (NOVO)
 // =====================================================
 
-// 1. Carrega os profissionais no select assim que entra na tela
+window.datasConsultasAdminCache = []; // Variável global para não sobrecarregar o banco de dados
+
+// 1. Alternar visualização entre "Data Específica" e "Filtrar por Período"
+window.alternarTipoFiltroData = function () {
+  const tipo = document.getElementById("tipoFiltroData").value;
+  const divEspecifica = document.getElementById("containerDataEspecifica");
+  const divPeriodo = document.getElementById("containerDataPeriodo");
+
+  if (tipo === 'especifica') {
+    divEspecifica.style.display = "block";
+    divPeriodo.style.display = "none";
+  } else {
+    divEspecifica.style.display = "none";
+    divPeriodo.style.display = "flex";
+    window.carregarDatasFiltroPeriodo(); // Inicia a mágica de buscar anos disponíveis
+  }
+}
+
+// 2. Busca no Supabase as datas e carrega a caixinha de "Anos"
+window.carregarDatasFiltroPeriodo = async function () {
+  const prof = document.getElementById("filtroAdminProf").value;
+  let query = window.supabaseClient.from("consultas").select("data");
+
+  if (prof) query = query.eq("profissional", prof);
+
+  const { data } = await query;
+  if (data) {
+    // Salva as datas na memória para organizar
+    window.datasConsultasAdminCache = data.map(d => d.data).filter(d => d);
+    window.atualizarAnosPeriodo();
+  }
+}
+
+// 3. Pega as datas salvas e preenche a lista de Anos
+window.atualizarAnosPeriodo = function () {
+  const selectAno = document.getElementById("filtroAno");
+  if (!selectAno) return;
+
+  // Filtra para mostrar apenas os anos únicos (sem repetição) e em ordem decrescente
+  const anos = [...new Set(window.datasConsultasAdminCache.map(d => d.split('-')[0]))].sort((a, b) => b - a);
+
+  selectAno.innerHTML = '<option value="">Ano</option>';
+  anos.forEach(ano => {
+    selectAno.innerHTML += `<option value="${ano}">${ano}</option>`;
+  });
+
+  document.getElementById("filtroMes").innerHTML = '<option value="">Mês</option>';
+  document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+}
+
+// 4. Ao escolher um Ano, preenche a lista de Meses em que ele trabalhou
+window.atualizarMesesPeriodo = function () {
+  const ano = document.getElementById("filtroAno").value;
+  const selectMes = document.getElementById("filtroMes");
+
+  if (!ano) {
+    selectMes.innerHTML = '<option value="">Mês</option>';
+    document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+    return;
+  }
+
+  const datasDoAno = window.datasConsultasAdminCache.filter(d => d.startsWith(ano));
+  const meses = [...new Set(datasDoAno.map(d => d.split('-')[1]))].sort(); // Mêses únicos
+
+  const nomesMeses = { "01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro" };
+
+  selectMes.innerHTML = '<option value="">Mês</option>';
+  meses.forEach(mes => {
+    selectMes.innerHTML += `<option value="${mes}">${nomesMeses[mes] || mes}</option>`;
+  });
+
+  document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+}
+
+// 5. Ao escolher um Mês, preenche os Dias específicos
+window.atualizarDiasPeriodo = function () {
+  const ano = document.getElementById("filtroAno").value;
+  const mes = document.getElementById("filtroMes").value;
+  const selectDia = document.getElementById("filtroDia");
+
+  if (!ano || !mes) {
+    selectDia.innerHTML = '<option value="">Dia</option>';
+    return;
+  }
+
+  const prefixo = `${ano}-${mes}`;
+  const datasDoMes = window.datasConsultasAdminCache.filter(d => d.startsWith(prefixo));
+  const dias = [...new Set(datasDoMes.map(d => d.split('-')[2]))].sort(); // Dias únicos
+
+  selectDia.innerHTML = '<option value="">Dia</option>';
+  dias.forEach(dia => {
+    selectDia.innerHTML += `<option value="${dia}">${dia}</option>`;
+  });
+}
+
+// 6. Carrega os profissionais no select principal
 window.carregarFiltroProfissionaisAdmin = async function () {
   const select = document.getElementById("filtroAdminProf");
   if (!select) return;
 
   const { data: profissionais } = await window.supabaseClient.from("profissionais").select("nome");
   if (profissionais) {
-    select.innerHTML = '<option value="">Todos os profissionais</option>'; // Zera a lista mantendo o padrão
+    select.innerHTML = '<option value="">Todos os profissionais</option>';
     profissionais.forEach(p => {
       select.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
     });
   }
+
+  // GATILHO INTELIGENTE: Se o Admin mudar o nome do profissional e estiver na aba de "Período",
+  // ele atualiza o calendário imediatamente para mostrar as datas daquele médico específico.
+  select.addEventListener('change', function () {
+    if (document.getElementById("tipoFiltroData").value === 'periodo') {
+      window.carregarDatasFiltroPeriodo();
+    }
+  });
 }
 
-// Para garantir que os profissionais carreguem junto com as caixinhas coloridas:
+// Inicializador da página
 const renderizarOriginal = window.renderizarAdminVisaoGeral;
 window.renderizarAdminVisaoGeral = async function () {
-  if (renderizarOriginal) await renderizarOriginal(); // Executa as estatísticas que já existiam
-  await window.carregarFiltroProfissionaisAdmin(); // Carrega os nomes no filtro
+  if (renderizarOriginal) await renderizarOriginal();
+  await window.carregarFiltroProfissionaisAdmin();
 }
 
-// 2. Busca e renderiza os resultados
+// 7. Busca e renderiza os resultados
 window.buscarFiltroConsultasAdmin = async function () {
   const prof = document.getElementById("filtroAdminProf").value;
   const status = document.getElementById("filtroAdminStatus").value;
-  const dataConsulta = document.getElementById("filtroAdminData").value;
+  const tipoData = document.getElementById("tipoFiltroData").value;
   const resultadosDiv = document.getElementById("resultadosFiltroAdmin");
 
   if (!resultadosDiv) return;
-
   resultadosDiv.innerHTML = "<p style='color: #666; background: #fff; padding: 20px; border-radius: 8px; text-align: center;'>⏳ Buscando consultas...</p>";
 
-  // Inicia a query básica: Puxa da mais recente para a mais antiga
   let query = window.supabaseClient.from("consultas")
     .select("*")
     .order('data', { ascending: false })
     .order('hora', { ascending: false });
 
-  // Se o admin preencheu algum filtro, adiciona a regra na query do banco!
+  // Aplica filtros básicos
   if (prof) query = query.eq("profissional", prof);
   if (status) query = query.eq("status_geral", status);
-  if (dataConsulta) query = query.eq("data", dataConsulta);
+
+  // Aplica o filtro de DATA ou PERÍODO
+  if (tipoData === 'especifica') {
+    const dataConsulta = document.getElementById("filtroAdminData").value;
+    if (dataConsulta) query = query.eq("data", dataConsulta);
+  } else {
+    const ano = document.getElementById("filtroAno").value;
+    const mes = document.getElementById("filtroMes").value;
+    const dia = document.getElementById("filtroDia").value;
+
+    if (ano && mes && dia) {
+      query = query.eq("data", `${ano}-${mes}-${dia}`); // Pesquisou o dia exato
+    } else if (ano && mes) {
+      // Pesquisou o Mês inteiro (maior ou igual ao dia 1, menor ou igual ao dia 31)
+      query = query.gte("data", `${ano}-${mes}-01`).lte("data", `${ano}-${mes}-31`);
+    } else if (ano) {
+      // Pesquisou o Ano inteiro
+      query = query.gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`);
+    }
+  }
 
   const { data: consultas, error } = await query;
 
@@ -3951,7 +4071,6 @@ window.buscarFiltroConsultasAdmin = async function () {
     return;
   }
 
-  // Busca os nomes dos pacientes de uma vez só para colocar nos cards
   const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
 
   resultadosDiv.innerHTML = `<p style="color: #0F4C5C; font-weight: bold; margin-bottom: 5px;">${consultas.length} consulta(s) encontrada(s):</p>`;
@@ -3960,7 +4079,6 @@ window.buscarFiltroConsultasAdmin = async function () {
     let paciente = pacientes ? pacientes.find(p => p.cpf === c.paciente_cpf) : null;
     let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
 
-    // Cria a etiqueta (badge) bonita baseada no status
     let statusHTML = "";
     if (c.status_geral === 'agendada') statusHTML = `<span style="background: #3498db; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
     else if (c.status_geral === 'finalizada') statusHTML = `<span style="background: #2ecc71; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDA</span>`;
@@ -3969,7 +4087,6 @@ window.buscarFiltroConsultasAdmin = async function () {
     else if (c.status_geral === 'pendente_pagamento') statusHTML = `<span style="background: #f1c40f; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">PAGAMENTO PENDENTE</span>`;
     else if (c.status_geral === 'cancelada') statusHTML = `<span style="background: #95a5a6; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA</span>`;
 
-    // Formata a data de AAAA-MM-DD para DD/MM/AAAA
     let dataFormatada = "Data indefinida";
     if (c.data) {
       let [ano, mes, dia] = c.data.split('-');
@@ -3990,10 +4107,17 @@ window.buscarFiltroConsultasAdmin = async function () {
   });
 }
 
-// 3. Limpa o filtro da tela
+// 8. Limpa o filtro da tela
 window.limparFiltroConsultasAdmin = function () {
   document.getElementById("filtroAdminProf").value = "";
   document.getElementById("filtroAdminStatus").value = "";
+  document.getElementById("tipoFiltroData").value = "especifica"; // Volta para o padrão
   document.getElementById("filtroAdminData").value = "";
-  document.getElementById("resultadosFiltroAdmin").innerHTML = ""; // Esvazia a tela de resultados
+  window.alternarTipoFiltroData(); // Restaura o visual
+
+  document.getElementById("filtroAno").value = "";
+  document.getElementById("filtroMes").innerHTML = '<option value="">Mês</option>';
+  document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+
+  document.getElementById("resultadosFiltroAdmin").innerHTML = "";
 }
