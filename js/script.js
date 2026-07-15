@@ -2272,20 +2272,6 @@ window.mudarAbaAdmin = function (aba) {
 
   document.querySelectorAll(".sidebar-menu li").forEach(li => li.classList.remove("ativo"));
 
-  // 👇 Controle da Barra de Pesquisa 👇
-  const barraPesquisa = document.getElementById("containerPesquisaAdmin");
-  const inputPesquisa = document.getElementById("inputPesquisaAdmin");
-  if (inputPesquisa) inputPesquisa.value = ""; // Limpa a pesquisa ao mudar de tela
-
-  if (barraPesquisa) {
-    if (aba === 'visaoGeral') {
-      barraPesquisa.style.display = "none"; // Esconde na Visão Geral
-    } else {
-      barraPesquisa.style.display = "flex"; // Mostra nas listas
-    }
-  }
-  // 👆 Fim do Controle da Barra 👇
-
   if (aba === 'visaoGeral') {
     document.getElementById("abaVisaoGeral").classList.remove("hidden");
     document.getElementById("menuVisaoGeral").classList.add("ativo");
@@ -3905,3 +3891,109 @@ window.renderizarAdminFinanceiro = async function () {
     `;
   });
 };
+
+// =====================================================
+// 🔍 SISTEMA DE FILTRO AVANÇADO DO ADMINISTRADOR
+// =====================================================
+
+// 1. Carrega os profissionais no select assim que entra na tela
+window.carregarFiltroProfissionaisAdmin = async function () {
+  const select = document.getElementById("filtroAdminProf");
+  if (!select) return;
+
+  const { data: profissionais } = await window.supabaseClient.from("profissionais").select("nome");
+  if (profissionais) {
+    select.innerHTML = '<option value="">Todos os profissionais</option>'; // Zera a lista mantendo o padrão
+    profissionais.forEach(p => {
+      select.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+    });
+  }
+}
+
+// Para garantir que os profissionais carreguem junto com as caixinhas coloridas:
+const renderizarOriginal = window.renderizarAdminVisaoGeral;
+window.renderizarAdminVisaoGeral = async function () {
+  if (renderizarOriginal) await renderizarOriginal(); // Executa as estatísticas que já existiam
+  await window.carregarFiltroProfissionaisAdmin(); // Carrega os nomes no filtro
+}
+
+// 2. Busca e renderiza os resultados
+window.buscarFiltroConsultasAdmin = async function () {
+  const prof = document.getElementById("filtroAdminProf").value;
+  const status = document.getElementById("filtroAdminStatus").value;
+  const dataConsulta = document.getElementById("filtroAdminData").value;
+  const resultadosDiv = document.getElementById("resultadosFiltroAdmin");
+
+  if (!resultadosDiv) return;
+
+  resultadosDiv.innerHTML = "<p style='color: #666; background: #fff; padding: 20px; border-radius: 8px; text-align: center;'>⏳ Buscando consultas...</p>";
+
+  // Inicia a query básica: Puxa da mais recente para a mais antiga
+  let query = window.supabaseClient.from("consultas")
+    .select("*")
+    .order('data', { ascending: false })
+    .order('hora', { ascending: false });
+
+  // Se o admin preencheu algum filtro, adiciona a regra na query do banco!
+  if (prof) query = query.eq("profissional", prof);
+  if (status) query = query.eq("status_geral", status);
+  if (dataConsulta) query = query.eq("data", dataConsulta);
+
+  const { data: consultas, error } = await query;
+
+  if (error) {
+    resultadosDiv.innerHTML = `<p style="color: #d9534f; background: #fff; padding: 20px; border-radius: 8px;">Erro ao buscar dados: ${error.message}</p>`;
+    return;
+  }
+
+  if (!consultas || consultas.length === 0) {
+    resultadosDiv.innerHTML = `<p style="color: #777; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center;">Nenhuma consulta encontrada com as opções selecionadas.</p>`;
+    return;
+  }
+
+  // Busca os nomes dos pacientes de uma vez só para colocar nos cards
+  const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
+
+  resultadosDiv.innerHTML = `<p style="color: #0F4C5C; font-weight: bold; margin-bottom: 5px;">${consultas.length} consulta(s) encontrada(s):</p>`;
+
+  consultas.forEach(c => {
+    let paciente = pacientes ? pacientes.find(p => p.cpf === c.paciente_cpf) : null;
+    let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
+
+    // Cria a etiqueta (badge) bonita baseada no status
+    let statusHTML = "";
+    if (c.status_geral === 'agendada') statusHTML = `<span style="background: #3498db; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
+    else if (c.status_geral === 'finalizada') statusHTML = `<span style="background: #2ecc71; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDA</span>`;
+    else if (c.status_geral === 'ausente') statusHTML = `<span style="background: #e67e22; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">FALTOU</span>`;
+    else if (c.status_geral === 'cancelada_reembolso') statusHTML = `<span style="background: #e74c3c; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA (ESTORNO)</span>`;
+    else if (c.status_geral === 'pendente_pagamento') statusHTML = `<span style="background: #f1c40f; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">PAGAMENTO PENDENTE</span>`;
+    else if (c.status_geral === 'cancelada') statusHTML = `<span style="background: #95a5a6; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA</span>`;
+
+    // Formata a data de AAAA-MM-DD para DD/MM/AAAA
+    let dataFormatada = "Data indefinida";
+    if (c.data) {
+      let [ano, mes, dia] = c.data.split('-');
+      dataFormatada = `${dia}/${mes}/${ano}`;
+    }
+
+    resultadosDiv.innerHTML += `
+        <div style="background: white; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #0F4C5C; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div>
+                <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">📅 ${dataFormatada} às ${c.hora.substring(0, 5)}</h3>
+                <p style="font-size: 13px; color: #555; margin-bottom: 3px;"><strong>🧑‍⚕️ Profissional:</strong> ${c.profissional}</p>
+                <p style="font-size: 13px; color: #555;"><strong>👤 Paciente:</strong> ${nomePac} (CPF: ${c.paciente_cpf})</p>
+            </div>
+            <div style="text-align: right;">
+                ${statusHTML}
+            </div>
+        </div>`;
+  });
+}
+
+// 3. Limpa o filtro da tela
+window.limparFiltroConsultasAdmin = function () {
+  document.getElementById("filtroAdminProf").value = "";
+  document.getElementById("filtroAdminStatus").value = "";
+  document.getElementById("filtroAdminData").value = "";
+  document.getElementById("resultadosFiltroAdmin").innerHTML = ""; // Esvazia a tela de resultados
+}
