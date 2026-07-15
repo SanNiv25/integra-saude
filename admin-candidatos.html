@@ -75,6 +75,8 @@
             <section id="abaVisaoGeral">
                 <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">📊
                     Visão Geral da Plataforma</h2>
+
+                <!-- Caixinhas de Estatísticas -->
                 <div class="dashboard-stats">
                     <div class="stat-card" style="border-left-color: #3498db;">
                         <h3>Pacientes Ativos</h3>
@@ -92,11 +94,70 @@
                         <h3>Total de Consultas</h3>
                         <p id="totalConsultasAdmin">0</p>
                     </div>
-                    <!-- 👇 CAIXINHA NOVA DAS MENSAGENS 👇 -->
                     <div class="stat-card" style="border-left-color: #e67e22;">
                         <h3>Mensagens Recebidas</h3>
                         <p id="totalMensagensAdmin">0</p>
                     </div>
+                </div>
+
+                <!-- 👇 NOVO: FILTRO AVANÇADO 👇 -->
+                <div
+                    style="margin-top: 40px; background: #fff; padding: 25px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <h3
+                        style="color: #0F4C5C; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        🔍 Buscar Consultas Específicas</h3>
+
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                        <!-- Selecionar Profissional -->
+                        <div style="flex: 1; min-width: 200px;">
+                            <label
+                                style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Profissional:</label>
+                            <select id="filtroAdminProf"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                                <option value="">Todos os profissionais</option>
+                                <!-- Preenchido automaticamente via JS -->
+                            </select>
+                        </div>
+
+                        <!-- Selecionar Status -->
+                        <div style="flex: 1; min-width: 150px;">
+                            <label
+                                style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Status
+                                da Consulta:</label>
+                            <select id="filtroAdminStatus"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                                <option value="">Todos os status</option>
+                                <option value="agendada">📅 Agendada</option>
+                                <option value="finalizada">✅ Concluída</option>
+                                <option value="ausente">❌ Paciente Faltou</option>
+                                <option value="cancelada">🛑 Cancelada</option>
+                                <option value="pendente_pagamento">⏳ Aguardando Pagamento</option>
+                            </select>
+                        </div>
+
+                        <!-- Selecionar Data -->
+                        <div style="flex: 1; min-width: 150px;">
+                            <label
+                                style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Data
+                                Específica:</label>
+                            <input type="date" id="filtroAdminData"
+                                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                        </div>
+
+                        <!-- Botões -->
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="buscarFiltroConsultasAdmin()"
+                                style="background: #0F766E; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Buscar</button>
+                            <button onclick="limparFiltroConsultasAdmin()"
+                                style="background: #888; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ÁREA DOS RESULTADOS DO FILTRO -->
+                <div id="resultadosFiltroAdmin"
+                    style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Os cartões de consulta filtrados aparecerão aqui -->
                 </div>
             </section>
 
