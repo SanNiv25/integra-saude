@@ -2270,7 +2270,21 @@ window.mudarAbaAdmin = function (aba) {
     document.getElementById("abaContatos").classList.add("hidden");
   }
 
-  document.querySelectorAll(".sidebar-admin button").forEach(btn => btn.classList.remove("ativo"));
+  document.querySelectorAll(".sidebar-menu li").forEach(li => li.classList.remove("ativo"));
+
+  // 👇 Controle da Barra de Pesquisa 👇
+  const barraPesquisa = document.getElementById("containerPesquisaAdmin");
+  const inputPesquisa = document.getElementById("inputPesquisaAdmin");
+  if (inputPesquisa) inputPesquisa.value = ""; // Limpa a pesquisa ao mudar de tela
+
+  if (barraPesquisa) {
+    if (aba === 'visaoGeral') {
+      barraPesquisa.style.display = "none"; // Esconde na Visão Geral
+    } else {
+      barraPesquisa.style.display = "flex"; // Mostra nas listas
+    }
+  }
+  // 👆 Fim do Controle da Barra 👇
 
   if (aba === 'visaoGeral') {
     document.getElementById("abaVisaoGeral").classList.remove("hidden");
