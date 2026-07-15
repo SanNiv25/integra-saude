@@ -64,6 +64,14 @@
 
         <main class="dashboard-content" style="background-color: #f4f7f6;">
 
+            <!-- 👇 BARRA DE PESQUISA GLOBAL (NOVO) 👇 -->
+            <div id="containerPesquisaAdmin" style="display: none; justify-content: flex-end; margin-bottom: 20px;">
+                <input type="text" id="inputPesquisaAdmin"
+                    placeholder="🔍 Pesquisar nome, CPF, e-mail, especialidade..." onkeyup="filtrarAdmin()"
+                    style="padding: 12px 20px; border-radius: 8px; border: 1px solid #ccc; width: 100%; max-width: 400px; font-size: 14px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-family: 'Montserrat', sans-serif;">
+            </div>
+            <!-- 👆 FIM DA BARRA DE PESQUISA 👆 -->
+
             <section id="abaVisaoGeral">
                 <h2 style="color: #0F4C5C; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">📊
                     Visão Geral da Plataforma</h2>
