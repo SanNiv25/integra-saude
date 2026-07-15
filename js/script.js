@@ -3822,3 +3822,72 @@ window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPa
   const modalCanc = document.getElementById("modalCancelar");
   if (modalCanc) modalCanc.classList.add("active");
 };
+
+// OTIMIZADO: Admin Financeiro
+window.renderizarAdminFinanceiro = async function () {
+  const listaDiv = document.getElementById("listaFinanceiroAdmin");
+  if (!listaDiv) return;
+
+  listaDiv.innerHTML = "<p style='color: #666;'>Carregando transações...</p>";
+
+  const { data: consultas, error: errC } = await window.supabaseClient
+    .from("consultas")
+    .select("*")
+    .order('data', { ascending: false })
+    .order('hora', { ascending: false });
+
+  const { data: pacientes } = await window.supabaseClient
+    .from("pacientes")
+    .select("cpf, nome");
+
+  listaDiv.innerHTML = "";
+
+  if (errC) {
+    console.error("Erro no Painel Financeiro:", errC);
+    listaDiv.innerHTML = "<p style='color: #d9534f;'>Erro ao carregar as transações. Verifique o console.</p>";
+    return;
+  }
+
+  if (!consultas || consultas.length === 0) {
+    listaDiv.innerHTML = "<p>Nenhuma transação ou consulta registrada no sistema.</p>";
+    return;
+  }
+
+  consultas.forEach(consulta => {
+    let paciente = pacientes ? pacientes.find(u => u.cpf === consulta.paciente_cpf) : null;
+    let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
+
+    let statusHTML = `<span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
+
+    if (consulta.status_geral === 'finalizada') {
+      statusHTML = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDA</span>`;
+    } else if (consulta.status_geral === 'ausente') {
+      statusHTML = `<span style="background: #e67e22; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PACIENTE FALTOU</span>`;
+    } else if (consulta.status_geral === 'cancelada_reembolso') {
+      statusHTML = `<span style="background: #e74c3c; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">🚨 CANCELADA - REEMBOLSAR</span>`;
+    } else if (consulta.status_geral === 'pendente_pagamento') {
+      statusHTML = `<span style="background: #f1c40f; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGUARDANDO PAGAMENTO</span>`;
+    } else if (consulta.status_geral === 'cancelada') {
+      statusHTML = `<span style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA</span>`;
+    }
+
+    let dataFormatada = "Data não definida";
+    if (consulta.data) {
+      let [ano, mes, dia] = consulta.data.split('-');
+      dataFormatada = `${dia}/${mes}/${ano}`;
+    }
+
+    listaDiv.innerHTML += `
+      <div style="background: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 10px;">
+        <div>
+          <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${dataFormatada} às ${consulta.hora || '--:--'}</h3>
+          <p style="font-size: 13px; color: #555;"><strong>Profissional:</strong> ${consulta.profissional}</p>
+          <p style="font-size: 13px; color: #555;"><strong>Paciente:</strong> ${nomePac} (CPF: ${consulta.paciente_cpf})</p>
+        </div>
+        <div style="text-align: right;">
+          ${statusHTML}
+        </div>
+      </div>
+    `;
+  });
+};
