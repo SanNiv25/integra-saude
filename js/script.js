@@ -2370,10 +2370,11 @@ window.abrirModalValoresAdmin = function (registro, nome, valorAtual, valorPacot
                 <h3 style="color: #0F4C5C; margin-bottom: 15px; font-size: 18px;">Precificação: <span style="color: #555;">${nome}</span></h3>
                 
                 <label style="font-size: 14px; font-weight: bold; color: #333;">Consulta Individual (R$):</label>
-                <input type="number" id="adminInputValor" value="${valorAtual}" step="0.01" style="width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 4px;">
+                <!-- Mudamos para type="text" para aceitar vírgulas livremente -->
+                <input type="text" inputmode="decimal" id="adminInputValor" value="${valorAtual}" placeholder="Ex: 150,00" style="width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 4px;">
                 
                 <label style="font-size: 14px; font-weight: bold; color: #333;">Pacote c/ 4 Sessões (R$):</label>
-                <input type="number" id="adminInputPacote" value="${valorPacoteAtual}" step="0.01" style="width: 100%; padding: 10px; margin: 5px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="text" inputmode="decimal" id="adminInputPacote" value="${valorPacoteAtual}" placeholder="Ex: 500,00" style="width: 100%; padding: 10px; margin: 5px 0 20px; border: 1px solid #ccc; border-radius: 4px;">
                 
                 <div style="display: flex; gap: 10px;">
                     <button onclick="salvarValoresAdmin('${registro}')" id="btnSalvarValoresAdmin" style="flex: 1; background: #0F766E; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾 Salvar Preços</button>
@@ -2390,8 +2391,12 @@ window.salvarValoresAdmin = async function (registro) {
   btnSalvar.innerText = "⏳ Salvando...";
   btnSalvar.disabled = true;
 
-  const valNovo = parseFloat(document.getElementById("adminInputValor").value) || 0;
-  const pacNovo = parseFloat(document.getElementById("adminInputPacote").value) || 0;
+  // Pegamos o que foi digitado e trocamos a vírgula (br) por ponto (eua)
+  let textoValor = document.getElementById("adminInputValor").value.replace(',', '.');
+  let textoPacote = document.getElementById("adminInputPacote").value.replace(',', '.');
+
+  const valNovo = parseFloat(textoValor) || 0;
+  const pacNovo = parseFloat(textoPacote) || 0;
 
   const { error } = await supabaseClient.from("profissionais").update({
     valor: valNovo,
