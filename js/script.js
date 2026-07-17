@@ -4056,8 +4056,9 @@ window.buscarFiltroConsultasAdmin = async function () {
     if (ano && mes && dia) {
       query = query.eq("data", `${ano}-${mes}-${dia}`); // Pesquisou o dia exato
     } else if (ano && mes) {
-      // Pesquisou o Mês inteiro (maior ou igual ao dia 1, menor ou igual ao dia 31)
-      query = query.gte("data", `${ano}-${mes}-01`).lte("data", `${ano}-${mes}-31`);
+      // 👇 CORREÇÃO: O JavaScript descobre sozinho o último dia do mês selecionado
+      let ultimoDia = new Date(parseInt(ano), parseInt(mes), 0).getDate();
+      query = query.gte("data", `${ano}-${mes}-01`).lte("data", `${ano}-${mes}-${ultimoDia}`);
     } else if (ano) {
       // Pesquisou o Ano inteiro
       query = query.gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`);
