@@ -173,29 +173,16 @@ window.atualizarDashboardPaciente = async function () {
     const linkPacote = menuPacote.querySelector('a');
 
     if (linkPacote) {
-      if (!jaTeveConsultaFinalizada) {
-        // REGRA PARA PACIENTE NOVO (BOTÃO BLOQUEADO)
-        linkPacote.style.opacity = '0.5'; // Deixa o texto meio transparente
-        linkPacote.style.cursor = 'not-allowed'; // Ícone de mouse bloqueado
-        linkPacote.title = 'Disponível após finalizar a sua primeira consulta'; // Mensagem ao passar o mouse
+      // REGRA LIBERADA PARA TODOS OS PACIENTES
+      linkPacote.style.opacity = '1';
+      linkPacote.style.cursor = 'pointer';
+      linkPacote.removeAttribute('title');
 
-        // Corta a ação do clique original
-        linkPacote.onclick = function (event) {
-          event.preventDefault();
-          return false;
-        };
-      } else {
-        // REGRA PARA PACIENTE VETERANO (BOTÃO LIBERADO)
-        linkPacote.style.opacity = '1'; // Cor normal do texto
-        linkPacote.style.cursor = 'pointer'; // Ícone de mouse normal (mãozinha)
-        linkPacote.removeAttribute('title'); // Remove a mensagem flutuante
-
-        // Devolve a função de abrir o pacote ao clicar
-        linkPacote.onclick = function (event) {
-          event.preventDefault();
-          abrirTermosPacote();
-        };
-      }
+      // Abre os termos do pacote ao clicar
+      linkPacote.onclick = function (event) {
+        event.preventDefault();
+        abrirTermosPacote();
+      };
     }
   }
 
@@ -1020,26 +1007,30 @@ window.abrirAgenda = async function (nomeProfissional) {
         return;
       }
 
-      // Conta diretamente no banco quantas sessões o paciente já marcou
+      // Conta diretamente no banco quantas sessões de pacote ativas o paciente tem
+      // Busca ordenando da mais recente para a mais antiga para saber quem foi o último médico do pacote
       const { data: sessoesExistentes } = await supabaseClient
         .from('consultas')
         .select('id, profissional')
         .eq('paciente_cpf', usuarioLogado.cpf)
         .eq('is_pacote', true)
-        .in('status_geral', ['agendada', 'finalizada', 'ausente', 'pendente_pagamento']);
+        .in('status_geral', ['agendada', 'finalizada', 'ausente', 'pendente_pagamento'])
+        .order('data', { ascending: false });
 
       if (sessoesExistentes && sessoesExistentes.length > 0) {
-        const medicoDoPacote = sessoesExistentes[0].profissional;
+        const medicoDoPacoteAtual = sessoesExistentes[0].profissional;
 
-        // Se a divisão por 4 não for exata, o pacote está em andamento
+        // Se a divisão por 4 NÃO for exata, significa que o pacote ESTÁ em andamento (sessão 2, 3 ou 4)
         if (sessoesExistentes.length % 4 !== 0) {
-          if (medicoDoPacote !== profissionalAtual.nome) {
-            alert(`⚠️ PROFISSIONAL INCORRETO\n\nVocê tem um pacote em andamento com:\n🧑‍⚕️ ${medicoDoPacote}\n\nPor favor, volte e selecione a agenda dele(a).`);
+          // Bloqueia a troca de profissional durante o pacote
+          if (medicoDoPacoteAtual !== profissionalAtual.nome) {
+            alert(`⚠️ PROFISSIONAL INCORRETO\n\nVocê tem um pacote em andamento com:\n🧑‍⚕️ ${medicoDoPacoteAtual}\n\nVocê deve finalizar as 4 sessões contratadas antes de agendar um novo pacote com outro profissional.`);
             return;
           }
+          // Calcula qual é a sessão atual (2, 3 ou 4)
           window.sessaoAtualPacote = (sessoesExistentes.length % 4) + 1;
         } else {
-          // Se já completou 4 sessões, inicia um pacote NOVO (Sessão 1)
+          // Se for múltiplo de 4 (já completou 4, 8, 12...), ele pode iniciar um NOVO pacote com quem ele quiser!
           window.sessaoAtualPacote = 1;
         }
       }
