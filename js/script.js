@@ -1007,8 +1007,7 @@ window.abrirAgenda = async function (nomeProfissional) {
         return;
       }
 
-      // Conta diretamente no banco quantas sessões de pacote ativas o paciente tem
-      // Busca ordenando da mais recente para a mais antiga para saber quem foi o último médico do pacote
+      // Conta no banco as sessões ativas ordenando da mais recente para a mais antiga
       const { data: sessoesExistentes } = await supabaseClient
         .from('consultas')
         .select('id, profissional')
@@ -1027,10 +1026,9 @@ window.abrirAgenda = async function (nomeProfissional) {
             alert(`⚠️ PROFISSIONAL INCORRETO\n\nVocê tem um pacote em andamento com:\n🧑‍⚕️ ${medicoDoPacoteAtual}\n\nVocê deve finalizar as 4 sessões contratadas antes de agendar um novo pacote com outro profissional.`);
             return;
           }
-          // Calcula qual é a sessão atual (2, 3 ou 4)
           window.sessaoAtualPacote = (sessoesExistentes.length % 4) + 1;
         } else {
-          // Se for múltiplo de 4 (já completou 4, 8, 12...), ele pode iniciar um NOVO pacote com quem ele quiser!
+          // Já completou 4 sessões: inicia um pacote NOVO (Sessão 1) com qualquer profissional permitido
           window.sessaoAtualPacote = 1;
         }
       }
