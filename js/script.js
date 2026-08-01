@@ -946,6 +946,47 @@ window.toggleSenha = function (idCampo, botao) {
 }
 
 /* =====================================================
+   🔹 MOTOR DE RESERVA TEMPORÁRIA (EXPIRA EM 1 MINUTO)
+===================================================== */
+window.obterConsultasAtivasDoDia = async function (profissionalNome, dataStr) {
+  const { data: consultas, error } = await supabaseClient
+    .from("consultas")
+    .select("*")
+    .eq("profissional", profissionalNome)
+    .eq("data", dataStr)
+    .in("status_geral", ["agendada", "pendente_pagamento"]);
+
+  if (error || !consultas) return [];
+
+  const agora = Date.now();
+  const ativas = [];
+  const idsParaRemover = [];
+
+  consultas.forEach(c => {
+    if (c.status_geral === "agendada") {
+      ativas.push(c);
+    } else if (c.status_geral === "pendente_pagamento") {
+      // Pega o timestamp de criação (created_at do Supabase ou do próprio ID gerado por Date.now())
+      const criacaoMs = c.created_at ? new Date(c.created_at).getTime() : (parseInt(String(c.id).split('_')[0]) || 0);
+
+      // 60.000 ms = 1 minuto exato de tolerância para pagar
+      if (agora - criacaoMs <= 60000) {
+        ativas.push(c); // Menos de 1 min: ainda está reservado na tela
+      } else {
+        idsParaRemover.push(c.id); // Mais de 1 min sem pagar: expira e libera para outros pacientes
+      }
+    }
+  });
+
+  // Remove as reservas pendentes expiradas do banco de dados em segundo plano
+  if (idsParaRemover.length > 0) {
+    supabaseClient.from("consultas").delete().in("id", idsParaRemover).then();
+  }
+
+  return ativas;
+};
+
+/* =====================================================
    🔹 FUNÇÕES DA AGENDA E BANCO DE DADOS (SUPABASE)
 ===================================================== */
 window.abrirAgenda = async function (nomeProfissional) {
@@ -1189,12 +1230,8 @@ window.finalizarAgendamento = async function (botaoElement) {
   let numSessao = window.sessaoAtualPacote || 1;
 
   // TRAVA DE HORÁRIO
-  const { data: conflito } = await supabaseClient.from("consultas")
-    .select("id")
-    .eq("profissional", profissionalAtual.nome)
-    .eq("data", dataSelecionada)
-    .eq("hora", horarioSelecionado)
-    .in("status_geral", ["agendada", "pendente_pagamento"]);
+  const consultasAtivas = await window.obterConsultasAtivasDoDia(profissionalAtual.nome, dataSelecionada);
+  const conflito = consultasAtivas.filter(c => c.hora === horarioSelecionado);
 
   if (conflito && conflito.length > 0) {
     alert("⚠️ Este horário acabou de ser ocupado! Por favor, escolha outro.");
@@ -1384,12 +1421,7 @@ window.mostrarHorarios = async function () {
 
   let slots = window.gerarSlotsProfissional();
 
-  const { data: consultasDoDia } = await supabaseClient
-    .from("consultas")
-    .select("hora")
-    .eq("profissional", profissionalAtual.nome)
-    .eq("data", dataSelecionada)
-    .in("status_geral", ["agendada", "pendente_pagamento"]);
+  const consultasDoDia = await window.obterConsultasAtivasDoDia(profissionalAtual.nome, dataSelecionada);
 
   horariosDiv.innerHTML = "";
 
@@ -1446,12 +1478,7 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
   if (slots.length === 0) return "indisponivel";
 
   // OTIMIZAÇÃO: Bloqueia o horário tanto para consultas confirmadas quanto para as que estão aguardando o pagamento do Mercado Pago
-  const { data: consultasDoDia } = await supabaseClient
-    .from("consultas")
-    .select("hora, paciente_cpf")
-    .eq("profissional", profissionalAtual.nome)
-    .eq("data", dataStr)
-    .in("status_geral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
+  const consultasDoDia = await window.obterConsultasAtivasDoDia(profissionalAtual.nome, dataStr);
 
   let totalSlotsValidos = 0;
   let slotsOcupados = 0;
@@ -2000,13 +2027,8 @@ window.confirmarReagendamento = async function (botaoElement) {
   let novaContagem = (consultaParaReagendar.num_reagendamentos || 0) + 1;
 
   // 1. Verifica choque de horário (AGORA BLOQUEANDO PENDENTES TAMBÉM)
-  const { data: choque } = await supabaseClient
-    .from("consultas")
-    .select("id")
-    .eq("profissional", profissionalReagendarAtual.nome)
-    .eq("data", dataSelecionada)
-    .eq("hora", horarioSelecionado)
-    .in("status_geral", ["agendada", "pendente_pagamento"]); // 👈 Correção essencial
+  const consultasAtivas = await window.obterConsultasAtivasDoDia(profissionalReagendarAtual.nome, dataSelecionada);
+  const choque = consultasAtivas.filter(c => c.hora === horarioSelecionado);
 
   if (choque && choque.length > 0) {
     alert("O horário selecionado acabou de ser ocupado. Por favor, escolha outro.");
@@ -2162,12 +2184,7 @@ window.mostrarHorariosReagendar = async function () {
   let slots = window.gerarSlotsProfissional();
   profissionalAtual = profSalvo;
 
-  const { data: consultasDoDia } = await supabaseClient
-    .from("consultas")
-    .select("hora")
-    .eq("profissional", profissionalReagendarAtual.nome)
-    .eq("data", dataSelecionada)
-    .in("status_geral", ["agendada", "pendente_pagamento"]);
+  const consultasDoDia = await window.obterConsultasAtivasDoDia(profissionalReagendarAtual.nome, dataSelecionada);
 
   horariosDiv.innerHTML = "";
 
