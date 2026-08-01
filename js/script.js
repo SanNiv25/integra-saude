@@ -2209,34 +2209,60 @@ window.mostrarHorariosReagendar = async function () {
 };
 
 /* =====================================================
-   🔹 6. LOGIN DE SEGURANÇA DO ADMINISTRADOR
+   🔹 6. LOGIN DE SEGURANÇA DO ADMINISTRADOR (SUPABASE)
 ===================================================== */
 const formLoginAdmin = document.getElementById("formLoginAdmin");
 if (formLoginAdmin) {
-  // Nota: Idealmente a senha do Admin tbm deve ser checada via Backend. 
-  // Mantido fixo para facilitar sua gestão temporária, mas não recomendável em Prod!
-  const USUARIO_CORRETO = "admin";
-  const SENHA_CORRETA = "integra2026";
-
   if (localStorage.getItem("adminLogado") === "true") {
     document.getElementById("secaoLoginAdmin").classList.add("hidden");
     document.getElementById("conteudoAdmin").classList.remove("hidden");
     window.renderizarAdminCandidatos();
   }
 
-  formLoginAdmin.addEventListener("submit", function (e) {
+  formLoginAdmin.addEventListener("submit", async function (e) {
     e.preventDefault();
-    const userDigitado = document.getElementById("usuarioAdmin").value;
+    const userDigitado = document.getElementById("usuarioAdmin").value.trim();
     const senhaDigitada = document.getElementById("senhaAdmin").value;
 
-    if (userDigitado === USUARIO_CORRETO && senhaDigitada === SENHA_CORRETA) {
+    const btnSubmit = formLoginAdmin.querySelector("button[type='submit']");
+    const textoOriginal = btnSubmit ? btnSubmit.innerText : "Entrar no Painel";
+    if (btnSubmit) {
+      btnSubmit.innerText = "⏳ Verificando...";
+      btnSubmit.disabled = true;
+    }
+
+    try {
+      // Consulta diretamente a tabela de administradores no Supabase
+      const { data: adminEncontrado, error } = await window.supabaseClient
+        .from("administradores")
+        .select("*")
+        .eq("usuario", userDigitado)
+        .eq("senha", senhaDigitada)
+        .single();
+
+      if (error || !adminEncontrado) {
+        alert("Usuário ou senha incorretos! Acesso negado.");
+        document.getElementById("senhaAdmin").value = "";
+        if (btnSubmit) {
+          btnSubmit.innerText = textoOriginal;
+          btnSubmit.disabled = false;
+        }
+        return;
+      }
+
+      // Login bem-sucedido!
       localStorage.setItem("adminLogado", "true");
       document.getElementById("secaoLoginAdmin").classList.add("hidden");
       document.getElementById("conteudoAdmin").classList.remove("hidden");
       window.renderizarAdminCandidatos();
-    } else {
-      alert("Usuário ou senha incorretos! Acesso negado.");
-      document.getElementById("senhaAdmin").value = "";
+
+    } catch (err) {
+      console.error("Erro ao validar credenciais do administrador:", err);
+      alert("Erro de conexão ao verificar credenciais. Tente novamente.");
+      if (btnSubmit) {
+        btnSubmit.innerText = textoOriginal;
+        btnSubmit.disabled = false;
+      }
     }
   });
 }
@@ -2244,7 +2270,7 @@ if (formLoginAdmin) {
 window.sairAdmin = function () {
   localStorage.removeItem("adminLogado");
   window.location.reload();
-}
+};
 
 /* =====================================================
    🔹 7. FUNÇÕES DO NOVO PAINEL ADMINISTRADOR (DASHBOARD)
