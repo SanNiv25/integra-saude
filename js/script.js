@@ -788,11 +788,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                   <p style="font-size: 18px; font-weight: 600; margin-bottom: 2px;">${prof.especialidade}</p>
                   <p style="font-size: 16px; color: #555; margin-bottom: 10px;">${prof.registro}</p>
                   <p style="font-size: 16px; color: #000; margin: 8px 0;">${descricao}</p>
-                  
-                  <div style="margin: 15px 0; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
-                      <p style="margin: 5px 0; font-size: 14px;"><strong>Avulsa:</strong> R$ ${precoIndividual}</p>
-                      ${htmlPacote}
-                  </div>
 
                   ${criarTurnosHTML(turnos)}
                   ${botaoAgendarHtml}
@@ -1141,6 +1136,17 @@ window.abrirAgenda = async function (nomeProfissional) {
 };
 
 window.confirmarConsulta = function () {
+  // 👇 1º) Lê a URL PRIMEIRO para descobrir se é pacote
+  const urlParams = new URLSearchParams(window.location.search);
+  const is_pacote = urlParams.get('tipo') === 'pacote';
+
+  // 👇 2º) SÓ DEPOIS faz o cálculo do valor exibido
+  const valorExibir = is_pacote
+    ? parseFloat(profissionalAtual.valor_pacote || 0).toFixed(2).replace('.', ',')
+    : parseFloat(profissionalAtual.valor || 0).toFixed(2).replace('.', ',');
+
+  const labelTipoConsulta = is_pacote ? "Pacote Promocional (4 sessões)" : "Consulta Avulsa";
+
   if (!dataSelecionada || !horarioSelecionado) {
     alert("Escolha um dia e um horário para a consulta.");
     return;
@@ -1155,14 +1161,8 @@ window.confirmarConsulta = function () {
   if (minFim >= 60) { hFim += 1; minFim -= 60; }
   const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
 
-  // Descobre qual é a sessão do pacote
-  const urlParams = new URLSearchParams(window.location.search);
-  const is_pacote = urlParams.get('tipo') === 'pacote';
-
-  // 👇 Puxa o número correto que o sistema acabou de calcular 👇
   let numSessao = window.sessaoAtualPacote || 1;
 
-  // 👇 LÓGICA NOVA: Esconde o pagamento se for a sessão 1, 2 ou 3 do pacote 👇
   let formPagamentoHTML = "";
   let textoBotao = "Confirmar Consulta e Pagar";
 
@@ -1201,6 +1201,8 @@ window.confirmarConsulta = function () {
             <h3 style="color: #0E5F73; margin-bottom: 15px; font-size: 22px;">${profissionalAtual.nome}</h3>
             <p style="margin-bottom: 8px;"><strong>Data:</strong> ${dataFormatada}</p>
             <p><strong>Horário:</strong> ${horarioSelecionado} às ${horaFimStr}</p>
+            <hr style="border: 0; border-top: 1px solid #cce3e6; margin: 10px 0;">
+            <p style="font-size: 16px; color: #0F766E;"><strong>${labelTipoConsulta}:</strong> R$ ${valorExibir}</p>
           </div>
           
           ${formPagamentoHTML}
@@ -1210,7 +1212,7 @@ window.confirmarConsulta = function () {
         </div>
       `;
   }
-}
+};
 
 /* =====================================================
    🔹 FINALIZAR AGENDAMENTO (Criação e Pagamento via Mercado Pago)
@@ -1346,6 +1348,20 @@ window.finalizarAgendamento = async function (botaoElement) {
   if (respostaPagamento && respostaPagamento.url) {
     window.location.href = respostaPagamento.url;
     return;
+  }
+
+  // Verifica se o backend devolveu um link do Checkout para o Cartão de Crédito
+  if (respostaPagamento && (respostaPagamento.url || respostaPagamento.init_point)) {
+    const urlCheckout = respostaPagamento.url || respostaPagamento.init_point;
+    window.location.href = urlCheckout;
+    return;
+  }
+
+  // Se chegou aqui e não veio nem Pix nem URL de Cartão, avisa o erro
+  alert("❌ Não foi possível gerar o link de pagamento do cartão. Verifique o console ou contate o suporte.");
+  if (botaoElement) {
+    botaoElement.innerText = "Confirmar Consulta e Pagar";
+    botaoElement.disabled = false;
   }
 };
 
