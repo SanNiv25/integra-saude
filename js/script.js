@@ -1327,13 +1327,18 @@ window.finalizarAgendamento = async function (botaoElement) {
       </div>
     `;
 
-    const radarDePagamento = setInterval(async () => {
-      const { data: statusConsulta } = await supabaseClient.from("consultas").select("status_geral").eq("id", respostaPagamento.consultaId).single();
+    // 👇 1. FUNÇÃO PRINCIPAL DE VERIFICAÇÃO DO PIX:
+    const verificarStatusPix = async () => {
+      const { data: statusConsulta } = await supabaseClient
+        .from("consultas")
+        .select("status_geral")
+        .eq("id", respostaPagamento.consultaId)
+        .single();
 
       if (statusConsulta && statusConsulta.status_geral === "agendada") {
         clearInterval(radarDePagamento);
+        document.removeEventListener("visibilitychange", aoVoltarParaAba); // Limpa o ouvinte do celular
 
-        // 👇 O PULO DO GATO: Se o Pix for pago, confirma as 4 consultas ao mesmo tempo!
         if (is_pacote) {
           await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("pacote_id", meuPacoteId);
         }
@@ -1341,23 +1346,56 @@ window.finalizarAgendamento = async function (botaoElement) {
         document.getElementById("statusPagamentoAoVivo").innerHTML = `<p style="color: #2E7D32; font-weight: bold; font-size: 18px;">✅ Pagamento Confirmado!</p>`;
         setTimeout(() => { window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`; }, 1500);
       }
-    }, 3000);
+    };
+
+    // 👇 2. RADAR PADRÃO (Roda a cada 3 segundos no computador)
+    const radarDePagamento = setInterval(verificarStatusPix, 3000);
+
+    // 👇 3. O SEGREDO DO CELULAR: Se o paciente foi no app do banco e voltou, verifica NA HORA!
+    const aoVoltarParaAba = () => {
+      if (document.visibilityState === "visible") {
+        const textoStatus = document.getElementById("statusPagamentoAoVivo");
+        if (textoStatus) {
+          textoStatus.innerHTML = `<p style="color: #0F766E; font-weight: bold;">⏳ Verificando pagamento bancário...</p>`;
+        }
+        verificarStatusPix();
+      }
+    };
+    document.addEventListener("visibilitychange", aoVoltarParaAba);
+
     return;
   }
 
-  // 👇 BLOCO ÚNICO E LIMPO PARA REDIRECIONAR AO MERCADO PAGO:
-  if (respostaPagamento && (respostaPagamento.url || respostaPagamento.init_point)) {
-    const urlCheckout = respostaPagamento.url || respostaPagamento.init_point;
-    window.location.href = urlCheckout;
-    return;
-  }
+  const radarDePagamento = setInterval(async () => {
+    const { data: statusConsulta } = await supabaseClient.from("consultas").select("status_geral").eq("id", respostaPagamento.consultaId).single();
 
-  // Se chegou aqui e não veio nem Pix nem URL de Cartão, avisa o erro
-  alert("❌ Não foi possível gerar o link de pagamento do cartão. Verifique o console ou contate o suporte.");
-  if (botaoElement) {
-    botaoElement.innerText = "Confirmar Consulta e Pagar";
-    botaoElement.disabled = false;
-  }
+    if (statusConsulta && statusConsulta.status_geral === "agendada") {
+      clearInterval(radarDePagamento);
+
+      // 👇 O PULO DO GATO: Se o Pix for pago, confirma as 4 consultas ao mesmo tempo!
+      if (is_pacote) {
+        await supabaseClient.from("consultas").update({ status_geral: "agendada" }).eq("pacote_id", meuPacoteId);
+      }
+
+      document.getElementById("statusPagamentoAoVivo").innerHTML = `<p style="color: #2E7D32; font-weight: bold; font-size: 18px;">✅ Pagamento Confirmado!</p>`;
+      setTimeout(() => { window.location.href = `sucesso.html?id=${respostaPagamento.consultaId}`; }, 1500);
+    }
+  }, 3000);
+  return;
+}
+
+// 👇 BLOCO ÚNICO E LIMPO PARA REDIRECIONAR AO MERCADO PAGO:
+if (respostaPagamento && (respostaPagamento.url || respostaPagamento.init_point)) {
+  const urlCheckout = respostaPagamento.url || respostaPagamento.init_point;
+  window.location.href = urlCheckout;
+  return;
+}
+
+// Se chegou aqui e não veio nem Pix nem URL de Cartão, avisa o erro
+alert("❌ Não foi possível gerar o link de pagamento do cartão. Verifique o console ou contate o suporte.");
+if (botaoElement) {
+  botaoElement.innerText = "Confirmar Consulta e Pagar";
+  botaoElement.disabled = false;
 };
 
 window.fecharAgenda = function () {
