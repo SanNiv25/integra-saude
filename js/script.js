@@ -1345,12 +1345,7 @@ window.finalizarAgendamento = async function (botaoElement) {
     return;
   }
 
-  if (respostaPagamento && respostaPagamento.url) {
-    window.location.href = respostaPagamento.url;
-    return;
-  }
-
-  // Verifica se o backend devolveu um link do Checkout para o Cartão de Crédito
+  // 👇 BLOCO ÚNICO E LIMPO PARA REDIRECIONAR AO MERCADO PAGO:
   if (respostaPagamento && (respostaPagamento.url || respostaPagamento.init_point)) {
     const urlCheckout = respostaPagamento.url || respostaPagamento.init_point;
     window.location.href = urlCheckout;
@@ -1924,7 +1919,8 @@ window.aprovarCandidato = async function (cpf) {
     miniBio: "Profissional da Integra Saúde.",
     imagem_url: "img/logo-integra.png",
     agenda: { turnos: ["manha", "tarde", "noite"] },
-    valor: 1.00 // 👈 Adicione o valor padrão aqui
+    valor: 1.00,        // 👈 Valor avulso padrão
+    valor_pacote: 3.00  // 👈 ADICIONE O VALOR DE PACOTE PADRÃO AQUI
   };
 
   // 2. Insere na tabela de profissionais
@@ -2052,7 +2048,6 @@ window.confirmarReagendamento = async function (botaoElement) {
     return;
   }
 
-  // 2. Lógica de Cobrança da Taxa de 30%
   if (novaContagem > 2) {
     const { data: respostaPagamento, error: erroPagamento } = await supabaseClient.functions.invoke('processar-pagamento', {
       body: {
@@ -2062,7 +2057,8 @@ window.confirmarReagendamento = async function (botaoElement) {
         novoProfissional: profissionalReagendarAtual.nome,
         novaData: dataSelecionada,
         novaHora: horarioSelecionado,
-        valorConsulta: profissionalReagendarAtual.valor || 0
+        valorConsulta: profissionalReagendarAtual.valor || 0,
+        metodoPagamento: 'cartao' // 👈 ADICIONE ESTA LINHA PARA GARANTIR A URL DO CHECKOUT
       }
     });
 
@@ -2385,16 +2381,6 @@ window.renderizarAdminProfissionais = async function () {
 
     listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;">
-        <div>
-          <h3 style="color: #0F4C5C; margin-bottom: 5px; font-size: 18px;">${prof.nome} <span style="font-size: 13px; color: #777;">(${prof.especialidade})</span></h3>
-          <p style="font-size: 13px; color: #555; margin-bottom: 8px;"><strong>Registro:</strong> ${prof.registro} | <strong>Contato:</strong> ${prof.telefone || 'Não informado'}</p>
-          <p style="font-size: 13px; color: #0F766E; font-weight: bold;">Avulsa: R$ ${valInd} | Pacote: R$ ${valPac}</p>
-          
-          <div style="margin-top: 10px; display: flex; gap: 10px;">
-              <button onclick="abrirModalValoresAdmin('${prof.registro}', '${prof.nome}', ${prof.valor || 0}, ${prof.valor_pacote || 0})" style="background: #f39c12; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">💰 Editar Valores</button>
-              <button onclick="removerProfissional('${prof.registro}')" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;">🗑️ Remover</button>
-          </div>
-        </div>
         <div style="text-align: right; font-size: 13px; color: #444;">
           <p><strong>Consultas Futuras:</strong> ${futuras}</p>
           <p style="color: #2E7D32;"><strong>Consultas Concluídas:</strong> ${concluidas}</p>
@@ -3361,30 +3347,22 @@ window.carregarMinhasConsultas = async function () {
     return;
   }
 
-  // 1. AUTO-LIMPEZA VISUAL E AUTOMÁTICA (Agora salvando no banco!)
-  const agora = new Date();
+  // 1. AUTO-LIMPEZA VISUAL (Move consultas vencidas para a aba certa na tela)
+  const agora = new Date(); // 👈 ADICIONE ESTA LINHA AQUI!
   minhasConsultas.forEach(c => {
     if (c.status_geral === 'agendada') {
       const [ano, mes, dia] = c.data.split("-");
       const [h, m] = c.hora.split(":");
+      // 90 minutos = Tempo limite máximo de tolerância
       const limiteTolerancia = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime() + (90 * 60 * 1000);
 
       if (agora.getTime() >= limiteTolerancia) {
-        if (c.status_paciente === 'na_sala' || c.status_profissional === 'na_sala') {
-          c.status_geral = 'finalizada'; // Muda na tela
-
-          // 👇 A LINHA MÁGICA QUE FALTAVA PARA SALVAR NO BANCO 👇
-          window.supabaseClient.from("consultas")
-            .update({ status_geral: "finalizada" })
-            .eq("id", c.id)
-            .then();
-
+        if (c.status_profissional === 'na_sala') {
+          // O médico entrou na sala: mostra na aba "Concluídas"
+          c.status_geral = 'finalizada';
         } else {
-          c.status_geral = 'ausente'; // Muda na tela
-          window.supabaseClient.from("consultas")
-            .update({ status_geral: "ausente" })
-            .eq("id", c.id)
-            .then();
+          // O médico não entrou: mostra na aba "Ausências"
+          c.status_geral = 'ausente';
         }
       }
     }
@@ -3854,29 +3832,10 @@ document.addEventListener("DOMContentLoaded", function () {
 /* =====================================================
    🔹 FUNÇÃO DE ABRIR MODAL DE CANCELAMENTO
 ===================================================== */
-window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPacote, sessaoNumero, pacoteId) {
-  // Salva os dados completos usando o ID único!
-  consultaParaCancelar = {
-    id: consultaId,
-    profissional: profissional,
-    data: data,
-    hora: hora,
-    is_pacote: isPacote,
-    sessaoNumero: sessaoNumero,
-    pacote_id: pacoteId
-  };
 
-  const divConfirmacao = document.getElementById("estadoConfirmacao");
-  const divSucesso = document.getElementById("estadoSucesso");
-
-  if (divConfirmacao) divConfirmacao.classList.remove("hidden");
-  if (divSucesso) divSucesso.classList.add("hidden");
-
-  const modalCanc = document.getElementById("modalCancelar");
-  if (modalCanc) modalCanc.classList.add("active");
-};
-
+// =====================================================
 // OTIMIZADO: Admin Financeiro
+// =====================================================
 window.renderizarAdminFinanceiro = async function () {
   const listaDiv = document.getElementById("listaFinanceiroAdmin");
   if (!listaDiv) return;
@@ -3907,7 +3866,8 @@ window.renderizarAdminFinanceiro = async function () {
   }
 
   consultas.forEach(consulta => {
-    let paciente = pacientes ? pacientes.find(u => u.cpf === consulta.paciente_cpf) : null;
+    // 👇 BLINDAGEM DO CPF (Garante encontrar o paciente sempre)
+    let paciente = pacientes ? pacientes.find(u => String(u.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
     let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
 
     let statusHTML = `<span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
@@ -3930,10 +3890,11 @@ window.renderizarAdminFinanceiro = async function () {
       dataFormatada = `${dia}/${mes}/${ano}`;
     }
 
+    // 👇 ACABAMENTO NO HORÁRIO (.substring)
     listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 10px;">
         <div>
-          <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${dataFormatada} às ${consulta.hora || '--:--'}</h3>
+          <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h3>
           <p style="font-size: 13px; color: #555;"><strong>Profissional:</strong> ${consulta.profissional}</p>
           <p style="font-size: 13px; color: #555;"><strong>Paciente:</strong> ${nomePac} (CPF: ${consulta.paciente_cpf})</p>
         </div>
@@ -4130,7 +4091,7 @@ window.buscarFiltroConsultasAdmin = async function () {
   resultadosDiv.innerHTML = `<p style="color: #0F4C5C; font-weight: bold; margin-bottom: 5px;">${consultas.length} consulta(s) encontrada(s):</p>`;
 
   consultas.forEach(c => {
-    let paciente = pacientes ? pacientes.find(p => p.cpf === c.paciente_cpf) : null;
+    let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(c.paciente_cpf).replace(/\D/g, "")) : null;
     let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
 
     let statusHTML = "";
