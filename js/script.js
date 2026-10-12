@@ -1938,7 +1938,7 @@ window.renderizarAdminCandidatos = async function () {
   });
 }
 
-// Ação CADASTRAR (Supabase)
+// Ação CADASTRAR (Aprovar)
 window.aprovarCandidato = async function (cpf) {
   // 1. Pega os dados do candidato no banco
   const { data: cand, error: errCand } = await supabaseClient.from("candidatos_espera").select("*").eq("cpf", cpf).single();
@@ -1949,69 +1949,75 @@ window.aprovarCandidato = async function (cpf) {
 
   // 2. Trava de segurança: Verifica se este profissional já foi cadastrado na tabela oficial
   const { data: profExistente } = await supabaseClient.from("profissionais").select("cpf").eq("cpf", cpf).maybeSingle();
-  if (profExistente) {
-    alert("⚠️ Este profissional já está cadastrado na plataforma! A ficha será apenas removida da fila de espera.");
-    await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
-    renderizarAdminCandidatos();
-    return;
+
+  if (!profExistente) {
+    const senhaProvisoria = cand.cpf.substring(0, 6);
+    const novoProfissional = {
+      nome: cand.nome,
+      cpf: cand.cpf,
+      email: cand.email,
+      telefone: cand.telefone,
+      senha: senhaProvisoria,
+      registro: cand.registro,
+      especialidade: cand.profissao,
+      estadoReg: cand.estado,
+      miniBio: "Profissional da Integra Saúde.",
+      imagem_url: "img/logo-integra.png",
+      agenda: { turnos: ["manha", "tarde", "noite"] },
+      valor: 1.00,
+      valor_pacote: 3.00
+    };
+
+    // Insere na tabela de profissionais
+    const { error: errInsert } = await supabaseClient.from("profissionais").insert([novoProfissional]);
+    if (errInsert) {
+      alert("Erro ao cadastrar profissional: " + errInsert.message);
+      return;
+    }
   }
 
-  const senhaProvisoria = cand.cpf.substring(0, 6);
-
-  const novoProfissional = {
-    nome: cand.nome,
-    cpf: cand.cpf,
-    email: cand.email,
-    telefone: cand.telefone,
-    senha: senhaProvisoria,
-    registro: cand.registro,
-    especialidade: cand.profissao,
-    estadoReg: cand.estado,
-    miniBio: "Profissional da Integra Saúde.",
-    imagem_url: "img/logo-integra.png",
-    agenda: { turnos: ["manha", "tarde", "noite"] },
-    valor: 1.00,
-    valor_pacote: 3.00
-  };
-
-  // 3. Insere na tabela de profissionais
-  const { error: errInsert } = await supabaseClient.from("profissionais").insert([novoProfissional]);
-
-  if (errInsert) {
-    alert("Erro ao cadastrar profissional: " + errInsert.message);
-    return;
-  }
-
-  // 4. Remove obrigatoriamente da fila de espera
+  // 3. Remove obrigatoriamente da fila de espera
   const { error: errDelete } = await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
+
   if (errDelete) {
-    console.error("Erro ao apagar da tabela candidatos_espera:", errDelete);
+    alert("Erro ao apagar a ficha da espera. Verifique as políticas de DELETE (RLS) no Supabase.");
+    console.error(errDelete);
+    return;
   }
 
-  // 5. Envia a mensagem pelo WhatsApp
+  // 4. Envia a mensagem pelo WhatsApp
   let telLimpo = cand.telefone.replace(/\D/g, "");
   let msgAprovacao = `Olá, ${cand.nome}! Tudo bem? Aqui é da equipe Integra Saúde.\n\nTemos uma excelente notícia: avaliamos a sua ficha e você acaba de ser integrado(a) à nossa plataforma! 🎉\n\nSua senha provisória de acesso ao painel são os 6 primeiros dígitos do seu CPF.`;
   window.open(`https://api.whatsapp.com/send?phone=55${telLimpo}&text=${encodeURIComponent(msgAprovacao)}`, "_blank", "noopener,noreferrer");
 
-  renderizarAdminCandidatos(); // Atualiza a tela do admin
+  // 5. Atualiza a tela imediatamente
+  await renderizarAdminCandidatos();
 };
 
-// Ação RECUSAR (Supabase)
+// Ação RECUSAR
 window.recusarCandidato = async function (cpf) {
-  if (confirm("Tem certeza que deseja recusar este candidato?")) {
+  if (confirm("Tem certeza que deseja recusar e apagar esta ficha?")) {
     const { data: cand } = await supabaseClient.from("candidatos_espera").select("nome, telefone").eq("cpf", cpf).single();
 
-    if (cand) {
-      await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
+    // Apaga diretamente do banco
+    const { error: errDelete } = await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
 
+    if (errDelete) {
+      alert("Erro ao apagar a ficha. Verifique as políticas de DELETE (RLS) no Supabase.");
+      console.error(errDelete);
+      return;
+    }
+
+    if (cand && cand.telefone) {
       let telLimpo = cand.telefone.replace(/\D/g, "");
       let msgRecusa = `Olá, ${cand.nome}. Tudo bem? Aqui é da equipe Integra Saúde.\n\nAgradecemos o interesse, mas infelizmente não seguiremos com a sua integração à plataforma neste momento. Manteremos seus dados em nosso banco de talentos.`;
       window.open(`https://api.whatsapp.com/send?phone=55${telLimpo}&text=${encodeURIComponent(msgRecusa)}`, "_blank", "noopener,noreferrer");
-
-      renderizarAdminCandidatos();
     }
+
+    // Atualiza a tela imediatamente
+    await renderizarAdminCandidatos();
   }
-}
+};
 
 /* =====================================================
    🔹 SISTEMA DE REAGENDAMENTO (MUDANÇA DE DATA/PROFISSIONAL)
