@@ -2382,11 +2382,11 @@ window.renderizarAdminProfissionais = async function () {
   const listaDiv = document.getElementById("listaProfissionaisAdmin");
   if (!listaDiv) return;
 
-  const { data: profissionais } = await supabaseClient.from("profissionais").select("*");
+  const { data: profissionais, error } = await supabaseClient.from("profissionais").select("*");
   const { data: consultas } = await supabaseClient.from("consultas").select("profissional, status_geral");
 
   listaDiv.innerHTML = "";
-  if (!profissionais || profissionais.length === 0) {
+  if (error || !profissionais || profissionais.length === 0) {
     listaDiv.innerHTML = "<p>Nenhum profissional cadastrado na plataforma.</p>";
     return;
   }
@@ -2396,20 +2396,28 @@ window.renderizarAdminProfissionais = async function () {
     let concluidas = consultasDoProf.filter(c => c.status_geral === 'finalizada').length;
     let futuras = consultasDoProf.filter(c => c.status_geral === 'agendada').length;
 
-    // Valores atuais do profissional (ou 0 se não tiver)
-    let valInd = parseFloat(prof.valor || 0).toFixed(2);
-    let valPac = parseFloat(prof.valor_pacote || 0).toFixed(2);
+    let valInd = parseFloat(prof.valor || 0).toFixed(2).replace('.', ',');
+    let valPac = parseFloat(prof.valor_pacote || 0).toFixed(2).replace('.', ',');
 
     listaDiv.innerHTML += `
-      <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #2ecc71; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;">
-        <div style="text-align: right; font-size: 13px; color: #444;">
-          <p><strong>Consultas Futuras:</strong> ${futuras}</p>
-          <p style="color: #2E7D32;"><strong>Consultas Concluídas:</strong> ${concluidas}</p>
+      <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #0F766E; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px;">
+        <div>
+          <h3 style="font-size: 18px; color: #0F4C5C; margin-bottom: 5px;">🧑‍⚕️ ${escaparHTML(prof.nome)}</h3>
+          <p style="font-size: 14px; color: #555; margin-bottom: 3px;"><strong>Especialidade:</strong> ${escaparHTML(prof.especialidade)} | <strong>Registro:</strong> ${escaparHTML(prof.registro)}</p>
+          <p style="font-size: 14px; color: #555; margin-bottom: 8px;"><strong>Valores Atuais:</strong> Avulso: R$ ${valInd} | Pacote: R$ ${valPac}</p>
+          <div style="font-size: 13px; color: #444; display: flex; gap: 15px;">
+            <span>📅 <strong>Futuras:</strong> ${futuras}</span>
+            <span style="color: #2E7D32;">✅ <strong>Concluídas:</strong> ${concluidas}</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button onclick="abrirModalValoresAdmin('${prof.registro}', '${prof.nome.replace(/'/g, "\\'")}', '${valInd}', '${valPac}')" style="background: #0F766E; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">💲 Alterar Preços</button>
+          <button onclick="removerProfissional('${prof.registro}')" style="background: #d9534f; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;">🗑️ Remover</button>
         </div>
       </div>
     `;
   });
-}
+};
 
 /* =====================================================
    🔹 CONTROLE DE PREÇOS PELO ADMINISTRADOR
