@@ -1815,30 +1815,48 @@ if (formTrabalheConosco) {
     });
   }
 
-  // Salvando a ficha na Base de Dados (Tabela: candidatos_espera)
   formTrabalheConosco.addEventListener("submit", async function (e) {
     e.preventDefault();
     let cpfLimpo = document.getElementById("candCpf").value.replace(/\D/g, "");
+    let registroDigitado = document.getElementById("candRegistro").value.trim();
 
-    // Substitua isto no seu script onde valida o envio do Trabalhe Conosco:
-    const { data: jaEnviou } = await supabaseClient
+    // 1. Verifica se já existe uma ficha na fila de espera com este CPF
+    const { data: jaEnviouCpf } = await supabaseClient
       .from("candidatos_espera")
       .select("cpf")
       .eq("cpf", cpfLimpo)
-      .maybeSingle(); // 👈 O maybeSingle evita erros 406/Not Acceptable se o registro não existir
+      .maybeSingle();
 
-    if (jaEnviou) return alert("Você já enviou uma ficha. Aguarde o contato da nossa equipe!");
+    if (jaEnviouCpf) {
+      alert("⚠️ Você já enviou uma ficha com este CPF. Aguarde o contato da nossa equipe!");
+      return;
+    }
 
-    // 2. Verifica se o CPF já pertence a um profissional ativo
+    // 2. Verifica se já existe uma ficha com o mesmo número de Registro profissional
+    const { data: jaEnviouRegistro } = await supabaseClient
+      .from("candidatos_espera")
+      .select("registro")
+      .eq("registro", registroDigitado)
+      .maybeSingle();
+
+    if (jaEnviouRegistro) {
+      alert("⚠️ Já existe uma ficha enviada com este número de registro profissional.");
+      return;
+    }
+
+    // 3. Verifica se o CPF já pertence a um profissional ativo na plataforma
     const { data: jaProfissional } = await supabaseClient
       .from("profissionais")
       .select("cpf")
       .eq("cpf", cpfLimpo)
-      .single();
+      .maybeSingle();
 
-    if (jaProfissional) return alert("Já existe um profissional cadastrado com este CPF.");
+    if (jaProfissional) {
+      alert("❌ Já existe um profissional cadastrado com este CPF.");
+      return;
+    }
 
-    // 3. Insere a ficha no Supabase
+    // 4. Insere a nova ficha no Supabase se tudo estiver correto
     const novoCandidato = {
       nome: document.getElementById("candNome").value.trim(),
       cpf: cpfLimpo,
@@ -1846,7 +1864,7 @@ if (formTrabalheConosco) {
       telefone: document.getElementById("candTelefone").value.trim(),
       email: document.getElementById("candEmail").value.trim(),
       profissao: document.getElementById("candProfissao").value,
-      registro: document.getElementById("candRegistro").value.trim(),
+      registro: registroDigitado,
       estado: document.getElementById("candEstado").value.trim().toUpperCase(),
       exp: document.getElementById("candExp").value.trim(),
       publico: document.getElementById("candPublico").value.trim(),
@@ -1868,7 +1886,7 @@ if (formTrabalheConosco) {
       console.error(error);
       alert("Erro ao enviar a ficha. Tente novamente mais tarde.");
     } else {
-      alert("Ficha enviada com sucesso! Nossa equipe entrará em contato.");
+      alert("✅ Ficha enviada com sucesso! Nossa equipe entrará em contato.");
       formTrabalheConosco.reset();
     }
   });
@@ -1923,8 +1941,20 @@ window.renderizarAdminCandidatos = async function () {
 // Ação CADASTRAR (Supabase)
 window.aprovarCandidato = async function (cpf) {
   // 1. Pega os dados do candidato no banco
-  const { data: cand } = await supabaseClient.from("candidatos_espera").select("*").eq("cpf", cpf).single();
-  if (!cand) return;
+  const { data: cand, error: errCand } = await supabaseClient.from("candidatos_espera").select("*").eq("cpf", cpf).single();
+  if (errCand || !cand) {
+    alert("Erro ao localizar os dados do candidato.");
+    return;
+  }
+
+  // 2. Trava de segurança: Verifica se este profissional já foi cadastrado na tabela oficial
+  const { data: profExistente } = await supabaseClient.from("profissionais").select("cpf").eq("cpf", cpf).maybeSingle();
+  if (profExistente) {
+    alert("⚠️ Este profissional já está cadastrado na plataforma! A ficha será apenas removida da fila de espera.");
+    await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
+    renderizarAdminCandidatos();
+    return;
+  }
 
   const senhaProvisoria = cand.cpf.substring(0, 6);
 
@@ -1940,28 +1970,31 @@ window.aprovarCandidato = async function (cpf) {
     miniBio: "Profissional da Integra Saúde.",
     imagem_url: "img/logo-integra.png",
     agenda: { turnos: ["manha", "tarde", "noite"] },
-    valor: 1.00,        // 👈 Valor avulso padrão
-    valor_pacote: 3.00  // 👈 ADICIONE O VALOR DE PACOTE PADRÃO AQUI
+    valor: 1.00,
+    valor_pacote: 3.00
   };
 
-  // 2. Insere na tabela de profissionais
+  // 3. Insere na tabela de profissionais
   const { error: errInsert } = await supabaseClient.from("profissionais").insert([novoProfissional]);
 
   if (errInsert) {
-    alert("Erro ao cadastrar profissional.");
+    alert("Erro ao cadastrar profissional: " + errInsert.message);
     return;
   }
 
-  // 3. Remove da fila de espera
-  await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
+  // 4. Remove obrigatoriamente da fila de espera
+  const { error: errDelete } = await supabaseClient.from("candidatos_espera").delete().eq("cpf", cpf);
+  if (errDelete) {
+    console.error("Erro ao apagar da tabela candidatos_espera:", errDelete);
+  }
 
-  // 4. Envia a mensagem pelo WhatsApp
+  // 5. Envia a mensagem pelo WhatsApp
   let telLimpo = cand.telefone.replace(/\D/g, "");
   let msgAprovacao = `Olá, ${cand.nome}! Tudo bem? Aqui é da equipe Integra Saúde.\n\nTemos uma excelente notícia: avaliamos a sua ficha e você acaba de ser integrado(a) à nossa plataforma! 🎉\n\nSua senha provisória de acesso ao painel são os 6 primeiros dígitos do seu CPF.`;
   window.open(`https://api.whatsapp.com/send?phone=55${telLimpo}&text=${encodeURIComponent(msgAprovacao)}`, "_blank", "noopener,noreferrer");
 
-  renderizarAdminCandidatos(); // Atualiza a tela
-}
+  renderizarAdminCandidatos(); // Atualiza a tela do admin
+};
 
 // Ação RECUSAR (Supabase)
 window.recusarCandidato = async function (cpf) {
