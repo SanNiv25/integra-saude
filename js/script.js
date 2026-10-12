@@ -1820,12 +1820,12 @@ if (formTrabalheConosco) {
     e.preventDefault();
     let cpfLimpo = document.getElementById("candCpf").value.replace(/\D/g, "");
 
-    // 1. Verifica se já mandou ficha antes
+    // Substitua isto no seu script onde valida o envio do Trabalhe Conosco:
     const { data: jaEnviou } = await supabaseClient
       .from("candidatos_espera")
       .select("cpf")
       .eq("cpf", cpfLimpo)
-      .single();
+      .maybeSingle(); // 👈 O maybeSingle evita erros 406/Not Acceptable se o registro não existir
 
     if (jaEnviou) return alert("Você já enviou uma ficha. Aguarde o contato da nossa equipe!");
 
