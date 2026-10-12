@@ -1766,7 +1766,7 @@ if (formContato) {
       btn.innerText = textoOriginal;
       btn.disabled = false;
     } else {
-      alert("✅ Mensagem enviada com sucesso! A nossa equipa entrará em contacto em breve.");
+      alert("✅ Mensagem enviada com sucesso! A nossa equipe entrará em contato em breve.");
       formContato.reset(); // Limpa o formulário
       btn.innerText = textoOriginal;
       btn.disabled = false;
