@@ -2586,24 +2586,40 @@ setTimeout(() => {
 }, 500);
 
 /* =====================================================
-   🔹 8. PRONTUÁRIO ELETRÔNICO E PRESCRIÇÃO
+   🔹 ABRIR PRONTUÁRIO (Com exibição da foto do paciente)
 ===================================================== */
-let pacienteProntuarioAtual = null;
-
 window.abrirProntuario = async function (cpfPaciente, nomePaciente) {
-  // Otimizado: Busca apenas o paciente específico
-  const { data: paciente } = await supabaseClient.from("pacientes").select("*").eq("cpf", cpfPaciente).single();
+  // Busca os dados completos do paciente no Supabase (incluindo a foto)
+  const { data: paciente } = await supabaseClient
+    .from("pacientes")
+    .select("*")
+    .eq("cpf", cpfPaciente)
+    .single();
 
-  if (!paciente) { alert("Erro: Dados do paciente não encontrados."); return; }
+  if (!paciente) {
+    alert("Erro: Dados do paciente não encontrados.");
+    return;
+  }
 
   pacienteProntuarioAtual = paciente;
-  document.getElementById("nomePacienteProntuario").innerText = "Paciente: " + nomePaciente;
 
+  // Atualiza o nome no modal
+  const elNome = document.getElementById("nomePacienteProntuario");
+  if (elNome) elNome.innerText = paciente.nome || nomePaciente;
+
+  // Atualiza a foto do paciente no modal (se houver link cadastrado, senão usa uma padrão)
+  const elFoto = document.getElementById("fotoPacienteProntuario");
+  if (elFoto) {
+    elFoto.src = paciente.foto_perfil_url ? paciente.foto_perfil_url : "img/logo-integra.png";
+  }
+
+  // Carrega o histórico e exames
   window.renderizarHistoricoProntuario();
   if (typeof carregarExamesDoPaciente === 'function') {
     carregarExamesDoPaciente(cpfPaciente);
   }
 
+  // Abre o modal
   const modal = document.getElementById("modalProntuario");
   if (modal) modal.classList.add("active");
 };
