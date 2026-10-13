@@ -2617,7 +2617,7 @@ window.fecharProntuario = function () {
 };
 
 /* =====================================================
-   🔹 8. PRONTUÁRIO ELETRÔNICO E PRESCRIÇÃO (Backend)
+   🔹 8. PRONTUÁRIO ELETRÔNICO (Renderização com botão Apagar)
 ===================================================== */
 window.renderizarHistoricoProntuario = async function () {
   const historicoDiv = document.getElementById("historicoProntuario");
@@ -2633,7 +2633,7 @@ window.renderizarHistoricoProntuario = async function () {
     .select("*")
     .eq("paciente_cpf", pacienteProntuarioAtual.cpf)
     .eq("profissional_id", profLogado.id)
-    .order("criado_em", { ascending: false }); // 👈 AQUI ESTÁ A CORREÇÃO: "criado_em"
+    .order("criado_em", { ascending: false });
 
   historicoDiv.innerHTML = "";
 
@@ -2648,15 +2648,38 @@ window.renderizarHistoricoProntuario = async function () {
     let icone = ehEvolucao ? '📝 Evolução' : '💊 Prescrição / Solicitação';
 
     historicoDiv.innerHTML += `
-            <div style="border-left: 4px solid ${corBorda}; background: white; padding: 12px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <strong style="color: ${corBorda}; font-size: 14px;">${icone}</strong>
-                    <span style="font-size: 12px; color: #888; font-weight: bold;">${reg.data_hora}</span>
-                </div>
-                <p style="font-size: 13px; color: #333; margin: 0; white-space: pre-wrap;">${reg.texto}</p>
-            </div>
-        `;
+      <div style="border-left: 4px solid ${corBorda}; background: white; padding: 12px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="color: ${corBorda}; font-size: 14px;">${icone}</strong>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 12px; color: #888; font-weight: bold;">${reg.data_hora}</span>
+                  <button onclick="excluirRegistroProntuario('${reg.id}')" title="Excluir este registro" style="background: transparent; border: none; color: #d9534f; cursor: pointer; font-size: 14px; padding: 2px 5px;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">🗑️ Apagar</button>
+              </div>
+          </div>
+          <p style="font-size: 13px; color: #333; margin: 0; white-space: pre-wrap;">${reg.texto}</p>
+      </div>
+    `;
   });
+};
+
+/* =====================================================
+   🔹 FUNÇÃO PARA EXCLUIR UM REGISTRO DO PRONTUÁRIO
+===================================================== */
+window.excluirRegistroProntuario = async function (registroId) {
+  if (confirm("⚠️ Tem certeza que deseja apagar este registro do prontuário?\n\nEsta ação não poderá ser desfeita.")) {
+    const { error } = await supabaseClient
+      .from("prontuarios")
+      .delete()
+      .eq("id", registroId);
+
+    if (error) {
+      console.error("Erro ao apagar registro:", error);
+      alert("❌ Erro ao apagar registro. Verifique a política de exclusão (RLS) no Supabase.");
+    } else {
+      alert("✅ Registro removido com sucesso!");
+      window.renderizarHistoricoProntuario(); // Recarrega a lista do modal na hora
+    }
+  }
 };
 
 window.salvarRegistroProntuario = async function (tipo, enviarEmail) {
