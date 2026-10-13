@@ -2586,17 +2586,23 @@ setTimeout(() => {
 }, 500);
 
 /* =====================================================
+   🔹 VARIÁVEL GLOBAL DO PRONTUÁRIO
+===================================================== */
+let pacienteProntuarioAtual = null;
+
+/* =====================================================
    🔹 ABRIR PRONTUÁRIO (Com exibição da foto do paciente)
 ===================================================== */
 window.abrirProntuario = async function (cpfPaciente, nomePaciente) {
   // Busca os dados completos do paciente no Supabase (incluindo a foto)
-  const { data: paciente } = await supabaseClient
+  const { data: paciente, error } = await supabaseClient
     .from("pacientes")
     .select("*")
     .eq("cpf", cpfPaciente)
     .single();
 
-  if (!paciente) {
+  if (error || !paciente) {
+    console.error("Erro ao buscar paciente para o prontuário:", error);
     alert("Erro: Dados do paciente não encontrados.");
     return;
   }
@@ -2614,7 +2620,10 @@ window.abrirProntuario = async function (cpfPaciente, nomePaciente) {
   }
 
   // Carrega o histórico e exames
-  window.renderizarHistoricoProntuario();
+  if (typeof window.renderizarHistoricoProntuario === 'function') {
+    window.renderizarHistoricoProntuario();
+  }
+
   if (typeof carregarExamesDoPaciente === 'function') {
     carregarExamesDoPaciente(cpfPaciente);
   }
