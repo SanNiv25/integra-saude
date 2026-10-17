@@ -4363,7 +4363,6 @@ document.addEventListener("DOMContentLoaded", function () {
     cadastroForm.addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      // 1. Coleta os valores dos inputs do formulário HTML
       const nome = document.getElementById("nome").value.trim();
       const cpf = document.getElementById("cpfCadastro").value.replace(/\D/g, "");
       const nascimento = document.getElementById("nascimento").value;
@@ -4379,7 +4378,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const fileInput = document.getElementById("fotoSelfieCadastro");
 
       try {
-        // 2. Cria o usuário no sistema de autenticação segura do Supabase Auth
+        // 1. Cria a conta no Supabase Auth
         const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
           email: email,
           password: senha
@@ -4390,9 +4389,12 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
+        // Verifica se o ID do utilizador foi gerado com sucesso
+        const authUserId = authData?.user?.id;
+
         let fotoUrl = "";
 
-        // 3. Se houver selfie, faz o upload para o Storage do Supabase
+        // 2. Upload da selfie no Storage
         if (fileInput && fileInput.files.length > 0) {
           const arquivo = fileInput.files[0];
           const nomeArquivo = `selfie_${cpf}_${Date.now()}.jpg`;
@@ -4409,10 +4411,11 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
 
-        // 4. Salva os dados cadastrais na tabela 'pacientes' do Supabase
+        // 3. Salva os dados do paciente INCLUINDO o auth_id
         const { error: dbError } = await window.supabaseClient
           .from('pacientes')
           .insert([{
+            auth_id: authUserId, // 👈 VINCULA O ID DA AUTENTICAÇÃO AQUI
             nome: nome,
             cpf: cpf,
             nascimento: nascimento,
