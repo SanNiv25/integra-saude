@@ -4294,3 +4294,151 @@ window.limparFiltroConsultasAdmin = function () {
 
   document.getElementById("resultadosFiltroAdmin").innerHTML = "";
 }
+
+/* =====================================================
+   🔹 MÁSCARAS DE CPF E CEP (CADASTRO DE PACIENTE)
+===================================================== */
+document.addEventListener("DOMContentLoaded", function () {
+  // Ajuste os seletores abaixo caso os IDs no seu HTML sejam diferentes (ex: #cpf, #cep)
+  const inputCpf = document.querySelector("#cpf") || document.querySelector("#cpfCadastro");
+  const inputCep = document.querySelector("#cep") || document.querySelector("#cepCadastro");
+
+  // 1. Formatação automática do CPF (Ex: 123.456.789-00)
+  if (inputCpf) {
+    inputCpf.addEventListener("input", function () {
+      let valor = this.value.replace(/\D/g, "").substring(0, 11);
+      if (valor.length > 9) {
+        valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+      } else if (valor.length > 6) {
+        valor = valor.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+      } else if (valor.length > 3) {
+        valor = valor.replace(/(\d{3})(\d{0,3})/, "$1.$2");
+      }
+      this.value = valor;
+    });
+  }
+
+  // 2. Formatação automática do CEP e busca via ViaCEP
+  if (inputCep) {
+    inputCep.addEventListener("input", function () {
+      let v = this.value.replace(/\D/g, "").substring(0, 8);
+      if (v.length > 5) {
+        v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+      }
+      this.value = v;
+    });
+
+    inputCep.addEventListener("blur", function () {
+      let cepVal = this.value.replace(/\D/g, "");
+      if (cepVal.length === 8) {
+        fetch(`https://viacep.com.br/ws/${cepVal}/json/`)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.erro) {
+              // Preenche os campos de endereço automaticamente
+              if (document.getElementById("rua")) document.getElementById("rua").value = data.logradouro || "";
+              if (document.getElementById("bairro")) document.getElementById("bairro").value = data.bairro || "";
+              if (document.getElementById("cidade")) document.getElementById("cidade").value = data.localidade || "";
+              if (document.getElementById("uf")) document.getElementById("uf").value = data.uf || "";
+
+              // Joga o foco para o campo de número da casa
+              if (document.getElementById("numero")) document.getElementById("numero").focus();
+            } else {
+              alert("CEP não encontrado! Verifique o número digitado.");
+            }
+          })
+          .catch(err => console.error("Erro ao buscar CEP:", err));
+      }
+    });
+  }
+});
+
+/* =====================================================
+   🔹 CADASTRO DE PACIENTE (SUPABASE AUTH + BANCO DE DADOS)
+===================================================== */
+document.addEventListener("DOMContentLoaded", function () {
+  const cadastroForm = document.getElementById("cadastroForm");
+
+  if (cadastroForm) {
+    cadastroForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      // 1. Coleta os valores dos inputs do formulário HTML
+      const nome = document.getElementById("nome").value.trim();
+      const cpf = document.getElementById("cpfCadastro").value.replace(/\D/g, "");
+      const nascimento = document.getElementById("nascimento").value;
+      const email = document.getElementById("emailCadastro").value.trim();
+      const senha = document.getElementById("senhaCadastro").value;
+      const cep = document.getElementById("cep").value.trim();
+      const rua = document.getElementById("rua").value.trim();
+      const numero = document.getElementById("numero").value.trim();
+      const complemento = document.getElementById("complemento").value.trim();
+      const bairro = document.getElementById("bairro").value.trim();
+      const cidade = document.getElementById("cidade").value.trim();
+      const uf = document.getElementById("uf").value.trim().toUpperCase();
+      const fileInput = document.getElementById("fotoSelfieCadastro");
+
+      try {
+        // 2. Cria o usuário no sistema de autenticação segura do Supabase Auth
+        const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
+          email: email,
+          password: senha
+        });
+
+        if (authError) {
+          alert("Erro ao criar conta de acesso: " + authError.message);
+          return;
+        }
+
+        let fotoUrl = "";
+
+        // 3. Se houver selfie, faz o upload para o Storage do Supabase
+        if (fileInput && fileInput.files.length > 0) {
+          const arquivo = fileInput.files[0];
+          const nomeArquivo = `selfie_${cpf}_${Date.now()}.jpg`;
+
+          const { error: uploadError } = await window.supabaseClient.storage
+            .from('fotos-perfil')
+            .upload(nomeArquivo, arquivo);
+
+          if (!uploadError) {
+            const { data: urlData } = window.supabaseClient.storage
+              .from('fotos-perfil')
+              .getPublicUrl(nomeArquivo);
+            fotoUrl = urlData.publicUrl;
+          }
+        }
+
+        // 4. Salva os dados cadastrais na tabela 'pacientes' do Supabase
+        const { error: dbError } = await window.supabaseClient
+          .from('pacientes')
+          .insert([{
+            nome: nome,
+            cpf: cpf,
+            nascimento: nascimento,
+            email: email,
+            cep: cep,
+            rua: rua,
+            numero: numero,
+            complemento: complemento,
+            bairro: bairro,
+            cidade: cidade,
+            uf: uf,
+            foto_perfil_url: fotoUrl
+          }]);
+
+        if (dbError) {
+          alert("Erro ao salvar dados do paciente no banco: " + dbError.message);
+          return;
+        }
+
+        alert("✅ Cadastro realizado com sucesso! Faça login para continuar.");
+        window.location.reload();
+
+      } catch (err) {
+        console.error("Erro no cadastro:", err);
+        alert("Ocorreu um erro inesperado durante o cadastro.");
+      }
+    });
+  }
+});
