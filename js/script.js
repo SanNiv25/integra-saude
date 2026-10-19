@@ -3671,18 +3671,27 @@ window.carregarMinhasConsultas = async function () {
 };
 
 /* =====================================================
-   📦 MOTOR DE REGRAS: PACOTES DE CONSULTA
+   📦 MOTOR DE REGRAS: PACOTES DE CONSULTA (CORRIGIDO)
 ===================================================== */
 window.atualizarContadorPacote = async function () {
   const usuarioLogado = await getUsuarioLogado();
   if (!usuarioLogado) return;
 
-  const { data: sessoesExistentes } = await supabaseClient
+  // Busca APENAS as sessões de pacote que ainda estão AGENDADAS (pendentes)
+  const { data: sessoesAgendadas } = await supabaseClient
+    .from("consultas")
+    .select("id, data, hora")
+    .eq("paciente_cpf", usuarioLogado.cpf)
+    .eq("is_pacote", true)
+    .eq("status_geral", "agendada");
+
+  // Busca TODAS as sessões de pacote já realizadas/registradas para calcular a sessão atual
+  const { data: todasSessoesPacote } = await supabaseClient
     .from("consultas")
     .select("id")
     .eq("paciente_cpf", usuarioLogado.cpf)
     .eq("is_pacote", true)
-    .in("status_geral", ["agendada", "finalizada", "ausente", "pendente_pagamento"]);
+    .in("status_geral", ["agendada", "finalizada", "ausente"]);
 
   const painel = document.getElementById("painelStatusPacote");
   const txtSessao = document.getElementById("numSessao");
@@ -3690,13 +3699,20 @@ window.atualizarContadorPacote = async function () {
 
   if (!painel) return;
 
-  // Se o número de sessões não for um múltiplo exato de 4, o pacote está rolando!
-  if (sessoesExistentes && sessoesExistentes.length > 0 && (sessoesExistentes.length % 4 !== 0)) {
-    let proximaSessao = (sessoesExistentes.length % 4) + 1;
+  const total = todasSessoesPacote ? todasSessoesPacote.length : 0;
+  const pendentes = sessoesAgendadas ? sessoesAgendadas.length : 0;
+
+  // Só exibe o card de "Pacote Ativo" se houver consultas pendentes de pacote no futuro
+  // E se o ciclo atual de 4 sessões ainda não tiver sido concluído
+  if (pendentes > 0 && (total % 4 !== 0)) {
+    let proximaSessao = (total % 4);
+    if (proximaSessao === 0) proximaSessao = 4;
+
     painel.style.display = "block";
     if (txtSessao) txtSessao.innerText = proximaSessao;
     if (txtValidade) txtValidade.innerText = "Pacote em andamento";
   } else {
+    // Se não há consultas pendentes de pacote ou o pacote foi concluído, oculta o card
     painel.style.display = "none";
   }
 };
