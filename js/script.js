@@ -2528,7 +2528,7 @@ window.removerProfissional = async function (registro) {
   }
 }
 
-// OTIMIZADO: Admin Contatos (Mensagens recebidas pelo site)
+// OTIMIZADO: Admin Contatos (Mensagens recebidas pelo site com botões de resposta)
 window.renderizarAdminContatos = async function () {
   const listaDiv = document.getElementById("listaContatosAdmin");
   if (!listaDiv) return;
@@ -2561,6 +2561,23 @@ window.renderizarAdminContatos = async function () {
       dataFormatada = dataObj.toLocaleDateString('pt-BR') + " às " + dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
 
+    // 1. Trata o número de telefone para o link do WhatsApp
+    let telLimpo = String(msg.telefone || "").replace(/\D/g, "");
+
+    // Se o número tiver DDD (ex: 21983328590 com 11 dígitos) e não tiver DDI 55, adiciona
+    if (telLimpo.length === 10 || telLimpo.length === 11) {
+      telLimpo = "55" + telLimpo;
+    }
+
+    // Mensagem padrão para o WhatsApp
+    const msgWhats = `Olá, ${msg.nome || 'tudo bem'}! Aqui é da equipe Integra Saúde. Recebemos sua mensagem em nosso site sobre: "${msg.mensagem}" e estou entrando em contato para ajudá-lo(a).`;
+    const linkWhatsApp = `https://api.whatsapp.com/send?phone=${telLimpo}&text=${encodeURIComponent(msgWhats)}`;
+
+    // Mensagem padrão para o E-mail
+    const assuntoEmail = `Resposta ao seu contato - Integra Saúde`;
+    const corpoEmail = `Olá, ${msg.nome || ''}!\n\nRecebemos sua mensagem enviada através da nossa página de contato:\n\n"${msg.mensagem}"\n\nEstamos entrando em contato para...`;
+    const linkEmail = `mailto:${msg.email}?subject=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
+
     listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; border-left: 5px solid #0F766E; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
@@ -2570,8 +2587,24 @@ window.renderizarAdminContatos = async function () {
             </div>
             <span style="font-size: 12px; color: #888; font-weight: bold;">🗓️ ${dataFormatada}</span>
         </div>
-        <div style="background: #f4f9f9; padding: 15px; border-radius: 6px; border: 1px solid #cce3e6;">
+
+        <div style="background: #f4f9f9; padding: 15px; border-radius: 6px; border: 1px solid #cce3e6; margin-bottom: 15px;">
             <p style="font-size: 14px; color: #333; line-height: 1.5; margin: 0; white-space: pre-wrap;">${escaparHTML(msg.mensagem)}</p>
+        </div>
+
+        <!-- Botões de Ação Rápida -->
+        <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+            ${msg.telefone ? `
+              <a href="${linkWhatsApp}" target="_blank" rel="noopener noreferrer" style="background-color: #25D366; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                💬 Responder via WhatsApp
+              </a>
+            ` : ''}
+
+            ${msg.email ? `
+              <a href="${linkEmail}" style="background-color: #0F766E; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                ✉️ Responder via E-mail
+              </a>
+            ` : ''}
         </div>
       </div>
     `;
