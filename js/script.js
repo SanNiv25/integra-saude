@@ -2575,7 +2575,7 @@ window.renderizarAdminContatos = async function () {
 
     // Mensagem padrão para o E-mail
     const assuntoEmail = `Resposta ao seu contato - Integra Saúde`;
-    const corpoEmail = `Olá, ${msg.nome || ''}!\n\nRecebemos sua mensagem enviada através da nossa página de contato:\n\n"${msg.mensagem}"\n\nEstamos entrando em contato para...`;
+    const corpoEmail = `Olá, ${msg.nome || ''}!\n\nRecebemos sua mensagem enviada através da nossa página de contato:\n\n"${msg.mensagem}"\n\nEstamos entrando em contato para ajudá-lo(a).`;
     const linkEmail = `mailto:${msg.email}?subject=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
 
     listaDiv.innerHTML += `
