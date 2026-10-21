@@ -2341,6 +2341,7 @@ if (formLoginAdmin) {
 
       // Login bem-sucedido!
       localStorage.setItem("adminLogado", "true");
+      localStorage.setItem("adminUsuario", userDigitado); // 👈 Salva o login do admin atual
       document.getElementById("secaoLoginAdmin").classList.add("hidden");
       document.getElementById("conteudoAdmin").classList.remove("hidden");
       window.renderizarAdminCandidatos();
@@ -4040,7 +4041,7 @@ window.renderizarAdminFinanceiro = async function () {
       dataFormatada = `${dia}/${mes}/${ano}`;
     }
 
-    // Formata a data e hora da última alteração (caso exista no banco)
+    // Formata a data e hora da última alteração
     let dataAtualizacaoTexto = "Não alterado recentemente";
     if (consulta.atualizado_em) {
       let dataObj = new Date(consulta.atualizado_em);
@@ -4052,14 +4053,16 @@ window.renderizarAdminFinanceiro = async function () {
       dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
     }
 
-    // Renderiza o card com um seletor para permitir alterar o status na hora
+    // Renderiza o card com o histórico clicável
     listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 12px;">
         <div>
           <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h3>
           <p style="font-size: 13px; color: #555; margin-bottom: 3px;"><strong>Profissional:</strong> ${consulta.profissional}</p>
           <p style="font-size: 13px; color: #555; margin-bottom: 5px;"><strong>Paciente:</strong> ${nomePac} (CPF: ${consulta.paciente_cpf})</p>
-          <p style="font-size: 11px; color: #888; margin: 0;">🕒 <strong>Última alteração:</strong> ${dataAtualizacaoTexto}</p>
+          <p style="font-size: 11px; color: #0F766E; margin: 0; cursor: pointer; text-decoration: underline;" title="Clique para ver o histórico detalhado" onclick="abrirHistoricoAlteracoes('${consulta.id}')">
+            🕒 <strong>Última alteração:</strong> ${dataAtualizacaoTexto} (Ver histórico)
+          </p>
         </div>
         
         <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
@@ -4081,36 +4084,163 @@ window.renderizarAdminFinanceiro = async function () {
   });
 };
 
-// Função para processar a alteração e salvar a data/hora exata no Supabase
+// Função para processar a alteração e salvar o histórico detalhado no Supabase
 window.alterarStatusFinanceiroAdmin = async function (consultaId) {
   const selectElement = document.getElementById(`status_${consultaId}`);
   if (!selectElement) return;
 
   const novoStatus = selectElement.value;
-  const agoraISO = new Date().toISOString(); // Gera a data e hora atual no formato padrão do banco
+  const agoraISO = new Date().toISOString();
 
   const btnSalvar = event.target;
   let textoOriginal = btnSalvar.innerText;
   btnSalvar.innerText = "⏳ Salvando...";
   btnSalvar.disabled = true;
 
-  const { error } = await window.supabaseClient
-    .from("consultas")
-    .update({
-      status_geral: novoStatus,
-      atualizado_em: agoraISO // Salva o registro de data e hora da alteração
-    })
-    .eq("id", consultaId);
+  try {
+    // 1. Busca a consulta atual para acumular no histórico de alterações
+    const { data: consultaAtual } = await window.supabaseClient
+      .from("consultas")
+      .select("historico_alteracoes, atualizado_em")
+      .eq("id", consultaId)
+      .single();
 
-  if (error) {
-    console.error("Erro ao atualizar status:", error);
+    let historico = [];
+    if (consultaAtual && consultaAtual.historico_alteracoes) {
+      try {
+        historico = typeof consultaAtual.historico_alteracoes === 'string'
+          ? JSON.parse(consultaAtual.historico_alteracoes)
+          : consultaAtual.historico_alteracoes;
+      } catch (e) {
+        historico = [];
+      }
+    }
+
+    // Migração de compatibilidade caso haja alteração anterior simples
+    if (historico.length === 0 && consultaAtual && consultaAtual.atualizado_em) {
+      historico.push({
+        data: consultaAtual.atualizado_em,
+        autor: "Painel do Administrador (Sistema)",
+        status: "Atualização anterior"
+      });
+    }
+
+    // Identifica o admin logado
+    const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
+    const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
+
+    // Adiciona a nova alteração na lista
+    historico.push({
+      data: agoraISO,
+      autor: autorAlteracao,
+      status: novoStatus
+    });
+
+    // 2. Atualiza no Supabase
+    const { error } = await window.supabaseClient
+      .from("consultas")
+      .update({
+        status_geral: novoStatus,
+        atualizado_em: agoraISO,
+        historico_alteracoes: JSON.stringify(historico)
+      })
+      .eq("id", consultaId);
+
+    if (error) {
+      // Fallback caso a coluna historico_alteracoes não exista na tabela do Supabase
+      const { error: errFallback } = await window.supabaseClient
+        .from("consultas")
+        .update({
+          status_geral: novoStatus,
+          atualizado_em: agoraISO
+        })
+        .eq("id", consultaId);
+
+      if (errFallback) throw errFallback;
+    }
+
+    alert("✅ Status e histórico de alterações salvos com sucesso!");
+    window.renderizarAdminFinanceiro();
+  } catch (err) {
+    console.error("Erro ao atualizar status:", err);
     alert("❌ Erro ao atualizar o status da consulta.");
     btnSalvar.innerText = textoOriginal;
     btnSalvar.disabled = false;
-  } else {
-    alert("✅ Status e horário de alteração salvos com sucesso!");
-    window.renderizarAdminFinanceiro(); // Atualiza a tela imediatamente
   }
+};
+
+// Abre o modal com a lista cronológica de alterações
+window.abrirHistoricoAlteracoes = async function (consultaId) {
+  const { data: consulta, error } = await window.supabaseClient
+    .from("consultas")
+    .select("historico_alteracoes, atualizado_em")
+    .eq("id", consultaId)
+    .single();
+
+  if (error || !consulta) {
+    alert("Não foi possível carregar o histórico.");
+    return;
+  }
+
+  let historico = [];
+  if (consulta.historico_alteracoes) {
+    try {
+      historico = typeof consulta.historico_alteracoes === 'string'
+        ? JSON.parse(consulta.historico_alteracoes)
+        : consulta.historico_alteracoes;
+    } catch (e) {
+      historico = [];
+    }
+  }
+
+  if (historico.length === 0 && consulta.atualizado_em) {
+    historico.push({
+      data: consulta.atualizado_em,
+      autor: "Painel do Administrador (Sistema)",
+      status: "Modificação registrada"
+    });
+  }
+
+  const modalAntigo = document.getElementById("modalHistoricoAlteracoes");
+  if (modalAntigo) modalAntigo.remove();
+
+  let listaHtml = "";
+  if (historico.length === 0) {
+    listaHtml = "<p style='color: #777; text-align: center; padding: 20px;'>Nenhuma alteração registrada para esta consulta.</p>";
+  } else {
+    // Ordena do mais recente para o mais antigo
+    historico.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+    historico.forEach(h => {
+      let dataObj = new Date(h.data);
+      let dataFmt = !isNaN(dataObj.getTime())
+        ? dataObj.toLocaleDateString('pt-BR') + " às " + dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        : h.data;
+
+      listaHtml += `
+        <div style="background: #f4f9f9; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #0F766E; margin-bottom: 10px;">
+          <p style="font-size: 13px; color: #333; margin-bottom: 4px;"><strong>👤 Alterado por:</strong> ${escaparHTML(h.autor)}</p>
+          <p style="font-size: 13px; color: #555; margin-bottom: 4px;"><strong>📌 Status definido:</strong> ${escaparHTML(h.status || 'N/A')}</p>
+          <p style="font-size: 12px; color: #888; margin: 0;">🕒 <strong>Data e Horário:</strong> ${dataFmt}</p>
+        </div>
+      `;
+    });
+  }
+
+  const modalHtml = `
+    <div id="modalHistoricoAlteracoes" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: flex; justify-content: center; align-items: center;">
+      <div style="background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative; text-align: left;">
+        <button onclick="document.getElementById('modalHistoricoAlteracoes').remove()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888; font-weight: bold;">✖</button>
+        <h3 style="color: #0F4C5C; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;">🕒 Histórico de Alterações</h3>
+        <div style="margin-top: 15px;">
+          ${listaHtml}
+        </div>
+        <button onclick="document.getElementById('modalHistoricoAlteracoes').remove()" class="btn-primary" style="width: 100%; margin-top: 20px;">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
 };
 
 // =====================================================
