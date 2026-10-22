@@ -1149,11 +1149,9 @@ window.abrirAgenda = async function (nomeProfissional) {
 };
 
 window.confirmarConsulta = function () {
-  // 👇 1º) Lê a URL PRIMEIRO para descobrir se é pacote
   const urlParams = new URLSearchParams(window.location.search);
   const is_pacote = urlParams.get('tipo') === 'pacote';
 
-  // 👇 2º) SÓ DEPOIS faz o cálculo do valor exibido
   const valorExibir = is_pacote
     ? parseFloat(profissionalAtual.valor_pacote || 0).toFixed(2).replace('.', ',')
     : parseFloat(profissionalAtual.valor || 0).toFixed(2).replace('.', ',');
@@ -1175,7 +1173,6 @@ window.confirmarConsulta = function () {
   const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
 
   let numSessao = window.sessaoAtualPacote || 1;
-
   let formPagamentoHTML = "";
   let textoBotao = "Confirmar Consulta e Pagar";
 
@@ -1220,8 +1217,11 @@ window.confirmarConsulta = function () {
           
           ${formPagamentoHTML}
 
-          <button type="button" onclick="finalizarAgendamento(this)" class="btn-primary" style="margin-right: 15px;">${textoBotao}</button>
-          <button type="button" onclick="abrirAgenda(this.dataset.nome)" data-nome="${profissionalAtual.nome}" class="btn-secondary">Voltar e Alterar</button>
+          <!-- 👇 OS DOIS BOTÕES SOLICITADOS APLICADOS AQUI 👇 -->
+          <div style="display: flex; gap: 10px; justify-content: space-between;">
+            <button type="button" onclick="finalizarAgendamento(this)" class="btn-primary" style="flex: 1; margin: 0;">${textoBotao}</button>
+            <button type="button" onclick="abrirAgenda('${profissionalAtual.nome}')" class="btn-secondary" style="flex: 1; margin: 0; background: #888; color: #fff;">Voltar e Alterar</button>
+          </div>
         </div>
       `;
   }
