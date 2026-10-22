@@ -1033,41 +1033,54 @@ window.abrirAgenda = async function (nomeProfissional) {
     const is_pacote = urlParams.get('tipo') === 'pacote';
     const hoje = new Date();
 
-    // 👇 CONTAGEM DINÂMICA DE SESSÕES 👇
+    // 👇 CONTAGEM DINÂMICA DE SESSÕES E VALIDAÇÃO DE PACOTES 👇
     window.sessaoAtualPacote = 1;
 
     if (is_pacote) {
-      let esp = (profissionalAtual.especialidade || "").toLowerCase();
-      if (!esp.includes('psic') && !esp.includes('fono')) {
+      let espAlvo = (profissionalAtual.especialidade || "").toLowerCase();
+      if (!espAlvo.includes('psic') && !espAlvo.includes('fono')) {
         alert("⚠️ ESPECIALIDADE INVÁLIDA\n\nPacotes estão disponíveis APENAS para Psicologia e Fonoaudiologia.");
         return;
       }
 
-      // Conta no banco as sessões ativas ordenando da mais recente para a mais antiga
+      // Busca todas as sessões de pacotes ativas ou passadas do paciente
       const { data: sessoesExistentes } = await supabaseClient
         .from('consultas')
-        .select('id, profissional')
+        .select('id, profissional, especialidade, status_geral')
         .eq('paciente_cpf', usuarioLogado.cpf)
         .eq('is_pacote', true)
         .in('status_geral', ['agendada', 'finalizada', 'ausente', 'pendente_pagamento'])
         .order('data', { ascending: false });
 
       if (sessoesExistentes && sessoesExistentes.length > 0) {
-        const medicoDoPacoteAtual = sessoesExistentes[0].profissional;
+        // Filtra para ver se há algum pacote em andamento na MESMA especialidade
+        let sessoesMesmaEspecialidade = sessoesExistentes.filter(s => {
+          let sEsp = (s.especialidade || "").toLowerCase();
+          if (espAlvo.includes('psic')) return sEsp.includes('psic');
+          if (espAlvo.includes('fono')) return sEsp.includes('fono');
+          return sEsp === espAlvo;
+        });
 
-        // Se a divisão por 4 NÃO for exata, significa que o pacote ESTÁ em andamento (sessão 2, 3 ou 4)
-        if (sessoesExistentes.length % 4 !== 0) {
-          // Bloqueia a troca de profissional durante o pacote
-          if (medicoDoPacoteAtual !== profissionalAtual.nome) {
-            alert(`⚠️ PROFISSIONAL INCORRETO\n\nVocê tem um pacote em andamento com:\n🧑‍⚕️ ${medicoDoPacoteAtual}\n\nVocê deve finalizar as 4 sessões contratadas antes de agendar um novo pacote com outro profissional.`);
-            return;
+        if (sessoesMesmaEspecialidade.length > 0) {
+          // Verifica se o pacote da mesma especialidade está incompleto (não múltiplo de 4)
+          if (sessoesMesmaEspecialidade.length % 4 !== 0) {
+            let medicoDoPacoteAtual = sessoesMesmaEspecialidade[0].profissional;
+
+            // Ordena do mais antigo para o mais recente para checar se a 1ª consulta foi realizada/atendida
+            let sessoesCrescente = [...sessoesMesmaEspecialidade].sort((a, b) => new Date(a.data) - new Date(b.data));
+            let primeiraConsultaDoPacote = sessoesCrescente[0];
+            let primeiraConsultaRealizada = primeiraConsultaDoPacote && (primeiraConsultaDoPacote.status_geral === 'finalizada' || primeiraConsultaDoPacote.status_geral === 'ausente');
+
+            // REGRA: Para agendar com a mesma especialidade antes de terminar o pacote, a 1ª consulta já deve ter ocorrido
+            if (!primeiraConsultaRealizada) {
+              alert(`⚠️ AGENDAMENTO BLOQUEADO\n\nVocê possui um pacote em andamento na mesma especialidade com o(a) profissional:\n🧑‍⚕️ ${medicoDoPacoteAtual}\n\nPara iniciar um novo pacote na mesma especialidade, você precisa primeiro realizar (ou ter comparecido à) primeira consulta do pacote atual.`);
+              return;
+            }
           }
-          window.sessaoAtualPacote = (sessoesExistentes.length % 4) + 1;
-        } else {
-          // Já completou 4 sessões: inicia um pacote NOVO (Sessão 1) com qualquer profissional permitido
-          window.sessaoAtualPacote = 1;
         }
       }
+
+      window.sessaoAtualPacote = 1;
     }
 
     // Lógica simplificada para bloqueio de agendamento por taxa (Se você tiver uma coluna "bloqueado" na tabela pacientes, fica ainda mais fácil no futuro).
