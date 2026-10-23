@@ -4086,6 +4086,7 @@ window.renderizarAdminFinanceiro = async function () {
             <option value="cancelada_reembolso" ${consulta.status_geral === 'cancelada_reembolso' ? 'selected' : ''}>CANCELADA - REEMBOLSAR</option>
             <option value="pendente_pagamento" ${consulta.status_geral === 'pendente_pagamento' ? 'selected' : ''}>AGUARDANDO PAGAMENTO</option>
             <option value="cancelada" ${consulta.status_geral === 'cancelada' ? 'selected' : ''}>CANCELADA</option>
+            <option value="repasse_concluido" ${consulta.status_geral === 'repasse_concluido' ? 'selected' : ''}>REPASSE CONCLUÍDO</option>
           </select>
 
           <button onclick="alterarStatusFinanceiroAdmin('${consulta.id}')" style="background: #0F766E; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">
