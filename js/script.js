@@ -190,7 +190,11 @@ window.atualizarDashboardPaciente = async function () {
   const totalConsultasText = document.getElementById("totalConsultasText");
   const proximaConsultaText = document.getElementById("proximaConsultaText");
 
-  if (totalConsultasText) totalConsultasText.innerText = minhasConsultas.length;
+  if (totalConsultasText) {
+    // Filtra para contar apenas consultas que não estão pendentes de pagamento
+    const consultasValidas = minhasConsultas.filter(c => c.status_geral !== 'pendente_pagamento');
+    totalConsultasText.innerText = consultasValidas.length;
+  }
 
   const agora = new Date();
   let proximas = minhasConsultas.filter(c => {
