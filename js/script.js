@@ -4389,7 +4389,7 @@ window.renderizarAdminVisaoGeral = async function () {
   await window.carregarFiltroProfissionaisAdmin();
 }
 
-// 7. Busca e renderiza os resultados
+// 7. Busca e renderiza os resultados (Com suporte a alteração de status antes e depois do filtro)
 window.buscarFiltroConsultasAdmin = async function () {
   const prof = document.getElementById("filtroAdminProf").value;
   const status = document.getElementById("filtroAdminStatus").value;
@@ -4418,13 +4418,11 @@ window.buscarFiltroConsultasAdmin = async function () {
     const dia = document.getElementById("filtroDia").value;
 
     if (ano && mes && dia) {
-      query = query.eq("data", `${ano}-${mes}-${dia}`); // Pesquisou o dia exato
+      query = query.eq("data", `${ano}-${mes}-${dia}`);
     } else if (ano && mes) {
-      // 👇 CORREÇÃO: O JavaScript descobre sozinho o último dia do mês selecionado
       let ultimoDia = new Date(parseInt(ano), parseInt(mes), 0).getDate();
       query = query.gte("data", `${ano}-${mes}-01`).lte("data", `${ano}-${mes}-${ultimoDia}`);
     } else if (ano) {
-      // Pesquisou o Ano inteiro
       query = query.gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`);
     }
   }
@@ -4449,33 +4447,127 @@ window.buscarFiltroConsultasAdmin = async function () {
     let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(c.paciente_cpf).replace(/\D/g, "")) : null;
     let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
 
-    let statusHTML = "";
-    if (c.status_geral === 'agendada') statusHTML = `<span style="background: #3498db; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">AGENDADA</span>`;
-    else if (c.status_geral === 'finalizada') statusHTML = `<span style="background: #2ecc71; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDA</span>`;
-    else if (c.status_geral === 'ausente') statusHTML = `<span style="background: #e67e22; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">FALTOU</span>`;
-    else if (c.status_geral === 'cancelada_reembolso') statusHTML = `<span style="background: #e74c3c; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA (ESTORNO)</span>`;
-    else if (c.status_geral === 'pendente_pagamento') statusHTML = `<span style="background: #f1c40f; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">PAGAMENTO PENDENTE</span>`;
-    else if (c.status_geral === 'cancelada') statusHTML = `<span style="background: #95a5a6; color: white; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold;">CANCELADA</span>`;
-
     let dataFormatada = "Data indefinida";
     if (c.data) {
       let [ano, mes, dia] = c.data.split('-');
       dataFormatada = `${dia}/${mes}/${ano}`;
     }
 
+    // Formata a data e hora da última alteração
+    let dataAtualizacaoTexto = "Não alterado recentemente";
+    if (c.atualizado_em) {
+      let dataObj = new Date(c.atualizado_em);
+      let diaAt = String(dataObj.getDate()).padStart(2, '0');
+      let mesAt = String(dataObj.getMonth() + 1).padStart(2, '0');
+      let anoAt = dataObj.getFullYear();
+      let horaAt = String(dataObj.getHours()).padStart(2, '0');
+      let minAt = String(dataObj.getMinutes()).padStart(2, '0');
+      dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
+    }
+
+    // Renderiza o card filtrado com o <select> e o botão de salvar interativo
     resultadosDiv.innerHTML += `
-        <div style="background: white; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #0F4C5C; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            <div>
-                <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">📅 ${dataFormatada} às ${c.hora.substring(0, 5)}</h3>
-                <p style="font-size: 13px; color: #555; margin-bottom: 3px;"><strong>🧑‍⚕️ Profissional:</strong> ${c.profissional}</p>
-                <p style="font-size: 13px; color: #555;"><strong>👤 Paciente:</strong> ${nomePac} (CPF: ${c.paciente_cpf})</p>
-            </div>
-            <div style="text-align: right;">
-                ${statusHTML}
-            </div>
-        </div>`;
+      <div style="background: white; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #0F4C5C; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 12px;">
+        <div>
+          <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">📅 ${dataFormatada} às ${c.hora ? c.hora.substring(0, 5) : '--:--'}</h3>
+          <p style="font-size: 13px; color: #555; margin-bottom: 3px;"><strong>🧑‍⚕️ Profissional:</strong> ${escaparHTML(c.profissional)}</p>
+          <p style="font-size: 13px; color: #555; margin-bottom: 5px;"><strong>👤 Paciente:</strong> ${escaparHTML(nomePac)} (CPF: ${c.paciente_cpf})</p>
+          <p style="font-size: 11px; color: #0F766E; margin: 0; cursor: pointer; text-decoration: underline;" title="Clique para ver o histórico detalhado" onclick="abrirHistoricoAlteracoes('${c.id}')">
+            🕒 <strong>Última alteração:</strong> ${dataAtualizacaoTexto} (Ver histórico)
+          </p>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+          <select id="status_filtro_${c.id}" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; background: #f9f9f9; cursor: pointer;">
+            <option value="agendada" ${c.status_geral === 'agendada' ? 'selected' : ''}>AGENDADA</option>
+            <option value="finalizada" ${c.status_geral === 'finalizada' ? 'selected' : ''}>CONCLUÍDA</option>
+            <option value="ausente" ${c.status_geral === 'ausente' ? 'selected' : ''}>PACIENTE FALTOU</option>
+            <option value="cancelada_reembolso" ${c.status_geral === 'cancelada_reembolso' ? 'selected' : ''}>CANCELADA - REEMBOLSAR</option>
+            <option value="pendente_pagamento" ${c.status_geral === 'pendente_pagamento' ? 'selected' : ''}>AGUARDANDO PAGAMENTO</option>
+            <option value="cancelada" ${c.status_geral === 'cancelada' ? 'selected' : ''}>CANCELADA</option>
+            <option value="repasse_concluido" ${c.status_geral === 'repasse_concluido' ? 'selected' : ''}>REPASSE CONCLUÍDO</option>
+          </select>
+
+          <button onclick="alterarStatusFiltroAdmin('${c.id}')" style="background: #0F766E; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">
+            💾 Salvar Status
+          </button>
+        </div>
+      </div>
+    `;
   });
-}
+};
+
+// Função auxiliar para salvar o status alterado diretamente a partir do resultado filtrado
+window.alterarStatusFiltroAdmin = async function (consultaId) {
+  const selectElement = document.getElementById(`status_filtro_${consultaId}`);
+  if (!selectElement) return;
+
+  const novoStatus = selectElement.value;
+  const agoraISO = new Date().toISOString();
+
+  const btnSalvar = event.target;
+  let textoOriginal = btnSalvar.innerText;
+  btnSalvar.innerText = "⏳ Salvando...";
+  btnSalvar.disabled = true;
+
+  try {
+    const { data: consultaAtual } = await window.supabaseClient
+      .from("consultas")
+      .select("historico_alteracoes, atualizado_em")
+      .eq("id", consultaId)
+      .single();
+
+    let historico = [];
+    if (consultaAtual && consultaAtual.historico_alteracoes) {
+      try {
+        historico = typeof consultaAtual.historico_alteracoes === 'string'
+          ? JSON.parse(consultaAtual.historico_alteracoes)
+          : consultaAtual.historico_alteracoes;
+      } catch (e) {
+        historico = [];
+      }
+    }
+
+    const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
+    const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
+
+    historico.push({
+      data: agoraISO,
+      autor: autorAlteracao,
+      status: novoStatus
+    });
+
+    const { error } = await window.supabaseClient
+      .from("consultas")
+      .update({
+        status_geral: novoStatus,
+        atualizado_em: agoraISO,
+        historico_alteracoes: JSON.stringify(historico)
+      })
+      .eq("id", consultaId);
+
+    if (error) {
+      const { error: errFallback } = await window.supabaseClient
+        .from("consultas")
+        .update({
+          status_geral: novoStatus,
+          atualizado_em: agoraISO
+        })
+        .eq("id", consultaId);
+
+      if (errFallback) throw errFallback;
+    }
+
+    alert("✅ Status atualizado com sucesso!");
+    // Reexecuta a busca para atualizar os dados mantendo o filtro ativo na tela
+    window.buscarFiltroConsultasAdmin();
+  } catch (err) {
+    console.error("Erro ao atualizar status:", err);
+    alert("❌ Erro ao atualizar o status da consulta.");
+    btnSalvar.innerText = textoOriginal;
+    btnSalvar.disabled = false;
+  }
+};
 
 // 8. Limpa o filtro da tela
 window.limparFiltroConsultasAdmin = function () {
