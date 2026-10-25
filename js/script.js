@@ -4642,3 +4642,89 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+/* =====================================================
+   🔹 HISTÓRICO FINANCEIRO ADMINISTRATIVO
+===================================================== */
+window.carregarHistoricoFinanceiroAdmin = async function (filtros = {}) {
+  const container = document.getElementById("listaFinanceiroAdmin");
+  if (!container) return;
+
+  container.innerHTML = "<p style='color: #666; text-align: center; padding: 20px;'>⏳ Carregando histórico financeiro...</p>";
+
+  // Constrói a consulta base na tabela de consultas/transações
+  let query = window.supabaseClient
+    .from("consultas")
+    .select("*")
+    .order('data', { ascending: false })
+    .order('hora', { ascending: false });
+
+  // Aplica filtros opcionais se fornecidos (ex: profissional, status ou período)
+  if (filtros.profissional) {
+    query = query.eq("profissional", filtros.profissional);
+  }
+  if (filtros.status) {
+    query = query.eq("status_geral", filtros.status);
+  }
+  if (filtros.dataInicio && filtros.dataFim) {
+    query = query.gte("data", filtros.dataInicio).lte("data", filtros.dataFim);
+  }
+
+  const { data: consultas, error } = await query;
+  const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
+
+  if (error) {
+    console.error("Erro ao carregar histórico financeiro:", error);
+    container.innerHTML = "<p style='color: #d9534f; text-align: center;'>❌ Erro ao carregar os dados financeiros do servidor.</p>";
+    return;
+  }
+
+  if (!consultas || consultas.length === 0) {
+    container.innerHTML = "<p style='color: #777; text-align: center; padding: 20px;'>Nenhum registro financeiro encontrado para os filtros selecionados.</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  // Renderiza cada item formatado no painel administrativo
+  consultas.forEach(consulta => {
+    let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
+    let nomePac = paciente ? paciente.nome : "Paciente não identificado";
+
+    let dataFormatada = "--/--/----";
+    if (consulta.data) {
+      let [ano, mes, dia] = consulta.data.split('-');
+      dataFormatada = `${dia}/${mes}/${ano}`;
+    }
+
+    let statusBadge = "";
+    switch (consulta.status_geral) {
+      case 'finalizada':
+      case 'repasse_concluido':
+        statusBadge = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDO</span>`;
+        break;
+      case 'pendente_pagamento':
+        statusBadge = `<span style="background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PENDENTE</span>`;
+        break;
+      case 'cancelada_reembolso':
+        statusBadge = `<span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">REEMBOLSO</span>`;
+        break;
+      default:
+        statusBadge = `<span style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">${consulta.status_geral ? consulta.status_geral.toUpperCase() : 'AGENDADA'}</span>`;
+    }
+
+    container.innerHTML += `
+      <div style="background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 10px;">
+        <div>
+          <h4 style="font-size: 15px; color: #0F4C5C; margin-bottom: 4px;">📅 ${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h4>
+          <p style="font-size: 13px; color: #555; margin-bottom: 2px;"><strong>Profissional:</strong> ${escaparHTML(consulta.profissional)}</p>
+          <p style="font-size: 13px; color: #555; margin: 0;"><strong>Paciente:</strong> ${escaparHTML(nomePac)}</p>
+        </div>
+        <div style="text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+          ${statusBadge}
+          <button onclick="abrirHistoricoAlteracoes('${consulta.id}')" style="background: #0F766E; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Ver Detalhes</button>
+        </div>
+      </div>
+    `;
+  });
+};

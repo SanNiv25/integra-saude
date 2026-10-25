@@ -225,6 +225,39 @@
                     Histórico de Consultas e Reembolsos</h2>
                 <p style="color: #666; margin-bottom: 20px;">Monitore todas as consultas marcadas, finalizadas e
                     cancelamentos que exigem estorno financeiro.</p>
+
+                <!-- 👇 FILTROS DE PESQUISA (DATA E STATUS) 👇 -->
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label
+                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">📅
+                            Ordenar por Data:</label>
+                        <select id="filtroDataFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                            <option value="recente">Mais recente</option>
+                            <option value="antiga">Mais antiga</option>
+                        </select>
+                    </div>
+
+                    <div style="flex: 1; min-width: 200px;">
+                        <label
+                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">🔍
+                            Filtrar por Status:</label>
+                        <select id="filtroStatusFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                            <option value="">Todos os status</option>
+                            <option value="agendada">Agendada</option>
+                            <option value="finalizada">Finalizada</option>
+                            <option value="ausente">Ausente / Faltou</option>
+                            <option value="cancelada">Cancelada</option>
+                            <option value="cancelada_reembolsada">Cancelada / Reembolsada</option>
+                            <option value="cancelada_reembolso">Cancelada (Reembolso Pendente)</option>
+                            <option value="pendente_pagamento">Pendente Pagamento</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 👆 FIM DOS FILTROS 👆 -->
+
                 <div id="listaFinanceiroAdmin" style="display: flex; flex-direction: column; gap: 15px;">
                 </div>
             </section>
