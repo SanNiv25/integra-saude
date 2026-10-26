@@ -4389,7 +4389,7 @@ window.renderizarAdminVisaoGeral = async function () {
   await window.carregarFiltroProfissionaisAdmin();
 }
 
-// 7. Busca e renderiza os resultados (Com suporte total ao histórico e alteração de status)
+// 7. Busca e renderiza os resultados (Padronizado com o novo layout da aba Financeiro)
 window.buscarFiltroConsultasAdmin = async function () {
   const prof = document.getElementById("filtroAdminProf").value;
   const status = document.getElementById("filtroAdminStatus").value;
@@ -4443,54 +4443,42 @@ window.buscarFiltroConsultasAdmin = async function () {
 
   resultadosDiv.innerHTML = `<p style="color: #0F4C5C; font-weight: bold; margin-bottom: 5px;">${consultas.length} consulta(s) encontrada(s):</p>`;
 
-  consultas.forEach(c => {
-    let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(c.paciente_cpf).replace(/\D/g, "")) : null;
-    let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
+  consultas.forEach(consulta => {
+    let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
+    let nomePac = paciente ? paciente.nome : "Paciente não identificado";
 
-    let dataFormatada = "Data indefinida";
-    if (c.data) {
-      let [ano, mes, dia] = c.data.split('-');
+    let dataFormatada = "--/--/----";
+    if (consulta.data) {
+      let [ano, mes, dia] = consulta.data.split('-');
       dataFormatada = `${dia}/${mes}/${ano}`;
     }
 
-    // Formata a data e hora da última alteração para aparecer corretamente no filtro
-    let dataAtualizacaoTexto = "Não alterado recentemente";
-    if (c.atualizado_em) {
-      let dataObj = new Date(c.atualizado_em);
-      let diaAt = String(dataObj.getDate()).padStart(2, '0');
-      let mesAt = String(dataObj.getMonth() + 1).padStart(2, '0');
-      let anoAt = dataObj.getFullYear();
-      let horaAt = String(dataObj.getHours()).padStart(2, '0');
-      let minAt = String(dataObj.getMinutes()).padStart(2, '0');
-      dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
+    let statusBadge = "";
+    switch (consulta.status_geral) {
+      case 'finalizada':
+      case 'repasse_concluido':
+        statusBadge = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDO</span>`;
+        break;
+      case 'pendente_pagamento':
+        statusBadge = `<span style="background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PENDENTE</span>`;
+        break;
+      case 'cancelada_reembolso':
+        statusBadge = `<span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">REEMBOLSO</span>`;
+        break;
+      default:
+        statusBadge = `<span style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">${consulta.status_geral ? consulta.status_geral.toUpperCase() : 'AGENDADA'}</span>`;
     }
 
-    // Renderiza o card idêntico ao do painel financeiro, incluindo o link do histórico e o select de status
     resultadosDiv.innerHTML += `
-      <div style="background: white; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #0F4C5C; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 12px;">
+      <div style="background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 10px;">
         <div>
-          <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">📅 ${dataFormatada} às ${c.hora ? c.hora.substring(0, 5) : '--:--'}</h3>
-          <p style="font-size: 13px; color: #555; margin-bottom: 3px;"><strong>🧑‍⚕️ Profissional:</strong> ${escaparHTML(c.profissional)}</p>
-          <p style="font-size: 13px; color: #555; margin-bottom: 5px;"><strong>👤 Paciente:</strong> ${escaparHTML(nomePac)} (CPF: ${c.paciente_cpf})</p>
-          <p style="font-size: 11px; color: #0F766E; margin: 0; cursor: pointer; text-decoration: underline;" title="Clique para ver o histórico detalhado" onclick="abrirHistoricoAlteracoes('${c.id}')">
-            🕒 <strong>Última alteração:</strong> ${dataAtualizacaoTexto} (Ver histórico)
-          </p>
+          <h4 style="font-size: 15px; color: #0F4C5C; margin-bottom: 4px;">📅 ${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h4>
+          <p style="font-size: 13px; color: #555; margin-bottom: 2px;"><strong>Profissional:</strong> ${escaparHTML(consulta.profissional)}</p>
+          <p style="font-size: 13px; color: #555; margin: 0;"><strong>Paciente:</strong> ${escaparHTML(nomePac)}</p>
         </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-          <select id="status_${c.id}" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-weight: bold; background: #f9f9f9; cursor: pointer;">
-            <option value="agendada" ${c.status_geral === 'agendada' ? 'selected' : ''}>AGENDADA</option>
-            <option value="finalizada" ${c.status_geral === 'finalizada' ? 'selected' : ''}>CONCLUÍDA</option>
-            <option value="ausente" ${c.status_geral === 'ausente' ? 'selected' : ''}>PACIENTE FALTOU</option>
-            <option value="cancelada_reembolso" ${c.status_geral === 'cancelada_reembolso' ? 'selected' : ''}>CANCELADA - REEMBOLSAR</option>
-            <option value="pendente_pagamento" ${c.status_geral === 'pendente_pagamento' ? 'selected' : ''}>AGUARDANDO PAGAMENTO</option>
-            <option value="cancelada" ${c.status_geral === 'cancelada' ? 'selected' : ''}>CANCELADA</option>
-            <option value="repasse_concluido" ${c.status_geral === 'repasse_concluido' ? 'selected' : ''}>REPASSE CONCLUÍDO</option>
-          </select>
-
-          <button onclick="alterarStatusFinanceiroAdmin('${c.id}')" style="background: #0F766E; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">
-            💾 Salvar Status
-          </button>
+        <div style="text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+          ${statusBadge}
+          <button onclick="abrirHistoricoAlteracoes('${consulta.id}')" style="background: #0F766E; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;">Ver Detalhes</button>
         </div>
       </div>
     `;
