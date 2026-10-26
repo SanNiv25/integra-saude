@@ -4389,7 +4389,7 @@ window.renderizarAdminVisaoGeral = async function () {
   await window.carregarFiltroProfissionaisAdmin();
 }
 
-// 7. Busca e renderiza os resultados (Com suporte a alteração de status antes e depois do filtro)
+// 7. Busca e renderiza os resultados (Com suporte total ao <select> de status e salvamento em tempo real)
 window.buscarFiltroConsultasAdmin = async function () {
   const prof = document.getElementById("filtroAdminProf").value;
   const status = document.getElementById("filtroAdminStatus").value;
@@ -4453,7 +4453,6 @@ window.buscarFiltroConsultasAdmin = async function () {
       dataFormatada = `${dia}/${mes}/${ano}`;
     }
 
-    // Formata a data e hora da última alteração
     let dataAtualizacaoTexto = "Não alterado recentemente";
     if (c.atualizado_em) {
       let dataObj = new Date(c.atualizado_em);
@@ -4465,7 +4464,7 @@ window.buscarFiltroConsultasAdmin = async function () {
       dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
     }
 
-    // Renderiza o card filtrado com o <select> e o botão de salvar interativo
+    // Renderiza exatamente o mesmo card interativo do painel financeiro com o <select> e o botão "Salvar Status"
     resultadosDiv.innerHTML += `
       <div style="background: white; padding: 15px 20px; border-radius: 8px; border-left: 5px solid #0F4C5C; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 12px;">
         <div>
@@ -4495,6 +4494,77 @@ window.buscarFiltroConsultasAdmin = async function () {
       </div>
     `;
   });
+};
+
+// Função auxiliar exclusiva para salvar o status alterado através da busca filtrada
+window.alterarStatusFiltroAdmin = async function (consultaId) {
+  const selectElement = document.getElementById(`status_filtro_${consultaId}`);
+  if (!selectElement) return;
+
+  const novoStatus = selectElement.value;
+  const agoraISO = new Date().toISOString();
+
+  const btnSalvar = event.target;
+  let textoOriginal = btnSalvar.innerText;
+  btnSalvar.innerText = "⏳ Salvando...";
+  btnSalvar.disabled = true;
+
+  try {
+    const { data: consultaAtual } = await window.supabaseClient
+      .from("consultas")
+      .select("historico_alteracoes, atualizado_em")
+      .eq("id", consultaId)
+      .single();
+
+    let historico = [];
+    if (consultaAtual && consultaAtual.historico_alteracoes) {
+      try {
+        historico = typeof consultaAtual.historico_alteracoes === 'string'
+          ? JSON.parse(consultaAtual.historico_alteracoes)
+          : consultaAtual.historico_alteracoes;
+      } catch (e) {
+        historico = [];
+      }
+    }
+
+    const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
+    const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
+
+    historico.push({
+      data: agoraISO,
+      autor: autorAlteracao,
+      status: novoStatus
+    });
+
+    const { error } = await window.supabaseClient
+      .from("consultas")
+      .update({
+        status_geral: novoStatus,
+        atualizado_em: agoraISO,
+        historico_alteracoes: JSON.stringify(historico)
+      })
+      .eq("id", consultaId);
+
+    if (error) {
+      const { error: errFallback } = await window.supabaseClient
+        .from("consultas")
+        .update({
+          status_geral: novoStatus,
+          atualizado_em: agoraISO
+        })
+        .eq("id", consultaId);
+
+      if (errFallback) throw errFallback;
+    }
+
+    alert("✅ Status atualizado com sucesso!");
+    window.buscarFiltroConsultasAdmin(); // Reexecuta o filtro mantendo a tela atualizada
+  } catch (err) {
+    console.error("Erro ao atualizar status:", err);
+    alert("❌ Erro ao atualizar o status da consulta.");
+    btnSalvar.innerText = textoOriginal;
+    btnSalvar.disabled = false;
+  }
 };
 
 // Função auxiliar para salvar o status alterado diretamente a partir do resultado filtrado
