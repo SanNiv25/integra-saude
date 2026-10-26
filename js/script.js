@@ -4389,7 +4389,7 @@ window.renderizarAdminVisaoGeral = async function () {
   await window.carregarFiltroProfissionaisAdmin();
 }
 
-// 7. Busca e renderiza os resultados (Padronizado com o novo layout da aba Financeiro)
+// 7. Busca e renderiza os resultados (Padronizado idêntico à aba Financeiro)
 window.buscarFiltroConsultasAdmin = async function () {
   const prof = document.getElementById("filtroAdminProf").value;
   const status = document.getElementById("filtroAdminStatus").value;
@@ -4463,6 +4463,7 @@ window.buscarFiltroConsultasAdmin = async function () {
         statusBadge = `<span style="background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PENDENTE</span>`;
         break;
       case 'cancelada_reembolso':
+      case 'cancelada_reembolsada':
         statusBadge = `<span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">REEMBOLSO</span>`;
         break;
       default:
