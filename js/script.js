@@ -947,6 +947,8 @@ window.toggleSenha = function (idCampo, botao) {
 /* =====================================================
    🔹 MOTOR DE RESERVA TEMPORÁRIA (EXPIRA EM 1 MINUTO)
 ===================================================== */
+// Rascunho de pacote (sessões 1-3 sem pagamento) precisa viver mais que a reserva avulsa de 1 min
+window.TEMPO_RASCUNHO_PACOTE_MS = 60 * 60 * 1000;
 window.obterConsultasAtivasDoDia = async function (profissionalNome, dataStr) {
   const { data: consultas, error } = await supabaseClient
     .from("consultas")
@@ -969,7 +971,8 @@ window.obterConsultasAtivasDoDia = async function (profissionalNome, dataStr) {
       const criacaoMs = c.created_at ? new Date(c.created_at).getTime() : (parseInt(String(c.id).split('_')[0]) || 0);
 
       // 60.000 ms = 1 minuto exato de tolerância para pagar
-      if (agora - criacaoMs <= 60000) {
+      const limiteMs = c.is_pacote ? window.TEMPO_RASCUNHO_PACOTE_MS : 60000;
+      if (agora - criacaoMs <= limiteMs) {
         ativas.push(c); // Menos de 1 min: ainda está reservado na tela
       } else {
         idsParaRemover.push(c.id); // Mais de 1 min sem pagar: expira e libera para outros pacientes
@@ -1041,52 +1044,56 @@ window.abrirAgenda = async function (nomeProfissional) {
     window.sessaoAtualPacote = 1;
 
     if (is_pacote) {
-      let espAlvo = (profissionalAtual.especialidade || "").toLowerCase();
+      const espAlvo = (profissionalAtual.especialidade || "").toLowerCase();
       if (!espAlvo.includes('psic') && !espAlvo.includes('fono')) {
         alert("⚠️ ESPECIALIDADE INVÁLIDA\n\nPacotes estão disponíveis APENAS para Psicologia e Fonoaudiologia.");
         return;
       }
 
-      // Busca todas as sessões de pacotes ativas ou passadas do paciente
-      const { data: sessoesExistentes } = await supabaseClient
+      const familiaEsp = espAlvo.includes('psic') ? 'psic' : 'fono';
+      const idPacoteAtual = localStorage.getItem('pacoteIdEmAndamento');
+
+      // Só interessam sessões não canceladas: pagas (agendada) ou rascunho (pendente_pagamento)
+      const { data: sessoesPacote } = await supabaseClient
         .from('consultas')
         .select('id, profissional, especialidade, status_geral, pacote_id')
         .eq('paciente_cpf', usuarioLogado.cpf)
         .eq('is_pacote', true)
-        .in('status_geral', ['agendada', 'finalizada', 'ausente', 'pendente_pagamento'])
-        .order('data', { ascending: false });
+        .in('status_geral', ['agendada', 'pendente_pagamento']);
 
-      if (sessoesExistentes && sessoesExistentes.length > 0) {
-        // Pega o ID do pacote que o paciente está criando AGORA
-        let pacoteEmAndamento = localStorage.getItem('pacoteIdEmAndamento');
+      const daMesmaEsp = (sessoesPacote || []).filter(s => (s.especialidade || "").toLowerCase().includes(familiaEsp));
+      const agora = Date.now();
+      const criacaoMs = s => parseInt(String(s.id).split('_')[0]) || 0;
 
-        // Filtra apenas pacotes ANTERIORES/DIFERENTES do que está sendo agendado no momento
-        let sessoesOutrosPacotes = sessoesExistentes.filter(s => {
-          let sEsp = (s.especialidade || "").toLowerCase();
-          let mesmaEspecialidade = espAlvo.includes('psic') ? sEsp.includes('psic') : (espAlvo.includes('fono') ? sEsp.includes('fono') : sEsp === espAlvo);
+      // 1) RASCUNHOS: sessões 1-3 ainda sem pagamento. Só vale o rascunho do pacote em montagem agora.
+      const rascunhos = daMesmaEsp.filter(s => s.status_geral === 'pendente_pagamento');
+      let rascunhosAtuais = rascunhos.filter(s => idPacoteAtual && s.pacote_id === idPacoteAtual);
+      let idsAbandonados = rascunhos.filter(s => !(idPacoteAtual && s.pacote_id === idPacoteAtual)).map(s => s.id);
 
-          // Ignora as sessões do pacote atual que estamos montando
-          let ehOutroPacote = !pacoteEmAndamento || s.pacote_id !== pacoteEmAndamento;
-
-          return mesmaEspecialidade && ehOutroPacote;
-        });
-
-        if (sessoesOutrosPacotes.length > 0) {
-          if (sessoesOutrosPacotes.length % 4 !== 0) {
-            let medicoDoPacoteAtual = sessoesOutrosPacotes[0].profissional;
-            let sessoesCrescente = [...sessoesOutrosPacotes].sort((a, b) => new Date(a.data) - new Date(b.data));
-            let primeiraConsultaDoPacote = sessoesCrescente[0];
-            let primeiraConsultaRealizada = primeiraConsultaDoPacote && (primeiraConsultaDoPacote.status_geral === 'finalizada' || primeiraConsultaDoPacote.status_geral === 'ausente');
-
-            if (!primeiraConsultaRealizada) {
-              alert(`⚠️ AGENDAMENTO BLOQUEADO\n\nVocê possui um pacote em andamento na mesma especialidade com o(a) profissional:\n🧑‍⚕️ ${medicoDoPacoteAtual}\n\nPara iniciar um novo pacote na mesma especialidade, você precisa primeiro realizar (ou ter comparecido à) primeira consulta do pacote atual.`);
-              return;
-            }
-          }
+      if (rascunhosAtuais.length > 0) {
+        const maisAntiga = Math.min(...rascunhosAtuais.map(criacaoMs));
+        const expirou = (agora - maisAntiga) > window.TEMPO_RASCUNHO_PACOTE_MS;
+        if (expirou || rascunhosAtuais.length >= 4) {
+          idsAbandonados = idsAbandonados.concat(rascunhosAtuais.map(s => s.id));
+          rascunhosAtuais = [];
+          localStorage.removeItem('pacoteIdEmAndamento');
         }
       }
 
-      window.sessaoAtualPacote = 1;
+      if (idsAbandonados.length > 0) {
+        await supabaseClient.from('consultas').delete().in('id', idsAbandonados);
+      }
+
+      // 2) PACOTE PAGO EM ANDAMENTO (não pode 2 pacotes da mesma especialidade ao mesmo tempo)
+      const pacoteAtivo = daMesmaEsp.find(s => s.status_geral === 'agendada');
+      if (pacoteAtivo) {
+        alert(`⚠️ AGENDAMENTO BLOQUEADO\n\nVocê já possui um pacote ativo nesta especialidade com o(a) profissional:\n🧑‍⚕️ ${pacoteAtivo.profissional}\n\nConclua as sessões desse pacote antes de agendar outro da mesma especialidade.`);
+        return;
+      }
+
+      // 3) CONTADOR REAL: próxima sessão = rascunhos já reservados + 1
+      window.sessaoAtualPacote = rascunhosAtuais.length + 1;
+      if (window.sessaoAtualPacote === 1) localStorage.removeItem('pacoteIdEmAndamento');
     }
 
     // Lógica simplificada para bloqueio de agendamento por taxa (Se você tiver uma coluna "bloqueado" na tabela pacientes, fica ainda mais fácil no futuro).
