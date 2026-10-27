@@ -1050,32 +1050,34 @@ window.abrirAgenda = async function (nomeProfissional) {
       // Busca todas as sessões de pacotes ativas ou passadas do paciente
       const { data: sessoesExistentes } = await supabaseClient
         .from('consultas')
-        .select('id, profissional, especialidade, status_geral')
+        .select('id, profissional, especialidade, status_geral, pacote_id')
         .eq('paciente_cpf', usuarioLogado.cpf)
         .eq('is_pacote', true)
         .in('status_geral', ['agendada', 'finalizada', 'ausente', 'pendente_pagamento'])
         .order('data', { ascending: false });
 
       if (sessoesExistentes && sessoesExistentes.length > 0) {
-        // Filtra para ver se há algum pacote em andamento na MESMA especialidade
-        let sessoesMesmaEspecialidade = sessoesExistentes.filter(s => {
+        // Pega o ID do pacote que o paciente está criando AGORA
+        let pacoteEmAndamento = localStorage.getItem('pacoteIdEmAndamento');
+
+        // Filtra apenas pacotes ANTERIORES/DIFERENTES do que está sendo agendado no momento
+        let sessoesOutrosPacotes = sessoesExistentes.filter(s => {
           let sEsp = (s.especialidade || "").toLowerCase();
-          if (espAlvo.includes('psic')) return sEsp.includes('psic');
-          if (espAlvo.includes('fono')) return sEsp.includes('fono');
-          return sEsp === espAlvo;
+          let mesmaEspecialidade = espAlvo.includes('psic') ? sEsp.includes('psic') : (espAlvo.includes('fono') ? sEsp.includes('fono') : sEsp === espAlvo);
+
+          // Ignora as sessões do pacote atual
+          let ehOutroPacote = !pacoteEmAndamento || s.pacote_id !== pacoteEmAndamento;
+
+          return mesmaEspecialidade && ehOutroPacote;
         });
 
-        if (sessoesMesmaEspecialidade.length > 0) {
-          // Verifica se o pacote da mesma especialidade está incompleto (não múltiplo de 4)
-          if (sessoesMesmaEspecialidade.length % 4 !== 0) {
-            let medicoDoPacoteAtual = sessoesMesmaEspecialidade[0].profissional;
-
-            // Ordena do mais antigo para o mais recente para checar se a 1ª consulta foi realizada/atendida
-            let sessoesCrescente = [...sessoesMesmaEspecialidade].sort((a, b) => new Date(a.data) - new Date(b.data));
+        if (sessoesOutrosPacotes.length > 0) {
+          if (sessoesOutrosPacotes.length % 4 !== 0) {
+            let medicoDoPacoteAtual = sessoesOutrosPacotes[0].profissional;
+            let sessoesCrescente = [...sessoesOutrosPacotes].sort((a, b) => new Date(a.data) - new Date(b.data));
             let primeiraConsultaDoPacote = sessoesCrescente[0];
             let primeiraConsultaRealizada = primeiraConsultaDoPacote && (primeiraConsultaDoPacote.status_geral === 'finalizada' || primeiraConsultaDoPacote.status_geral === 'ausente');
 
-            // REGRA: Para agendar com a mesma especialidade antes de terminar o pacote, a 1ª consulta já deve ter ocorrido
             if (!primeiraConsultaRealizada) {
               alert(`⚠️ AGENDAMENTO BLOQUEADO\n\nVocê possui um pacote em andamento na mesma especialidade com o(a) profissional:\n🧑‍⚕️ ${medicoDoPacoteAtual}\n\nPara iniciar um novo pacote na mesma especialidade, você precisa primeiro realizar (ou ter comparecido à) primeira consulta do pacote atual.`);
               return;
