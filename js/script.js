@@ -1065,7 +1065,7 @@ window.abrirAgenda = async function (nomeProfissional) {
           let sEsp = (s.especialidade || "").toLowerCase();
           let mesmaEspecialidade = espAlvo.includes('psic') ? sEsp.includes('psic') : (espAlvo.includes('fono') ? sEsp.includes('fono') : sEsp === espAlvo);
 
-          // Ignora as sessões do pacote atual
+          // Ignora as sessões do pacote atual que estamos montando
           let ehOutroPacote = !pacoteEmAndamento || s.pacote_id !== pacoteEmAndamento;
 
           return mesmaEspecialidade && ehOutroPacote;
