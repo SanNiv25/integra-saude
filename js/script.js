@@ -1259,7 +1259,8 @@ window.finalizarAgendamento = async function (botaoElement) {
 
   // TRAVA DE HORÁRIO
   const consultasAtivas = await window.obterConsultasAtivasDoDia(profissionalAtual.nome, dataSelecionada);
-  const conflito = consultasAtivas.filter(c => c.hora === horarioSelecionado);
+  // ✅ CORRIGIDO: Compara apenas HH:MM ignorando os segundos
+  const conflito = consultasAtivas.filter(c => c.hora && c.hora.substring(0, 5) === horarioSelecionado.substring(0, 5));
 
   if (conflito && conflito.length > 0) {
     alert("⚠️ Este horário acabou de ser ocupado! Por favor, escolha outro.");
@@ -1547,7 +1548,7 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
     if (dataHoraSlot >= limiteTempo) {
       if (hora !== "12:00") {
         totalSlotsValidos++;
-        let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora === hora) : false;
+        let ocupado = consultasDoDia ? consultasDoDia.some(c => c.hora && c.hora.substring(0, 5) === hora.substring(0, 5)) : false;
         if (ocupado) slotsOcupados++;
       }
     }
@@ -2126,7 +2127,8 @@ window.confirmarReagendamento = async function (botaoElement) {
 
   // 1. Verifica choque de horário (AGORA BLOQUEANDO PENDENTES TAMBÉM)
   const consultasAtivas = await window.obterConsultasAtivasDoDia(profissionalReagendarAtual.nome, dataSelecionada);
-  const choque = consultasAtivas.filter(c => c.hora === horarioSelecionado);
+  // ✅ CORRIGIDO:
+  const choque = consultasAtivas.filter(c => c.hora && c.hora.substring(0, 5) === horarioSelecionado.substring(0, 5));
 
   if (choque && choque.length > 0) {
     alert("O horário selecionado acabou de ser ocupado. Por favor, escolha outro.");
