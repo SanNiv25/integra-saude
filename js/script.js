@@ -3232,7 +3232,9 @@ window.enviarDocumentoAssinado = async function () {
     return;
   }
 
-  const file = fileInput.files;
+  // 🛠️ CORREÇÃO AQUI: Pegamos o arquivo específico na posição 0 da FileList
+  const file = fileInput.files[0];
+
   btn.innerHTML = "⏳ Enviando e-mail... Aguarde.";
   btn.disabled = true;
 
@@ -3240,7 +3242,9 @@ window.enviarDocumentoAssinado = async function () {
 
   reader.onload = async function () {
     try {
-      const base64data = reader.result.split(',');
+      // Opcional: garantimos pegar apenas a string Base64 após a vírgula
+      const base64data = reader.result.split(',')[1] || reader.result;
+
       const pacoteDeDados = {
         token: "INT_94xAqP7z_2026_PRIVATE",
         origin: window.location.origin,
@@ -3275,12 +3279,14 @@ window.enviarDocumentoAssinado = async function () {
       btn.style.opacity = "1";
     }
   };
+
   reader.onerror = function () {
     alert("Erro na leitura do arquivo no seu computador.");
     btn.disabled = false;
     btn.innerHTML = "🚀 Tentar Novamente";
     btn.style.opacity = "1";
   };
+
   reader.readAsDataURL(file);
 };
 
