@@ -2732,13 +2732,13 @@ window.renderizarHistoricoProntuario = async function () {
     let corBorda = ehEvolucao ? '#0F4C5C' : '#D62828';
     let icone = ehEvolucao ? '📝 Evolução' : '💊 Prescrição / Solicitação';
 
+    // 🛠️ Botão de apagar removido deste bloco HTML abaixo:
     historicoDiv.innerHTML += `
       <div style="border-left: 4px solid ${corBorda}; background: white; padding: 12px; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 8px; position: relative;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <strong style="color: ${corBorda}; font-size: 14px;">${icone}</strong>
               <div style="display: flex; align-items: center; gap: 10px;">
                   <span style="font-size: 12px; color: #888; font-weight: bold;">${reg.data_hora}</span>
-                  <button onclick="excluirRegistroProntuario('${reg.id}')" title="Excluir este registro" style="background: transparent; border: none; color: #d9534f; cursor: pointer; font-size: 14px; padding: 2px 5px;" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">🗑️ Apagar</button>
               </div>
           </div>
           <p style="font-size: 13px; color: #333; margin: 0; white-space: pre-wrap;">${reg.texto}</p>
