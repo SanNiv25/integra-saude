@@ -1085,7 +1085,17 @@ window.abrirAgenda = async function (nomeProfissional) {
       }
 
       // 2) PACOTE PAGO EM ANDAMENTO (não pode 2 pacotes da mesma especialidade ao mesmo tempo)
-      const pacoteAtivo = daMesmaEsp.find(s => s.status_geral === 'agendada');
+      // ✅ CORRIGIDO: Considera apenas pacotes que possuem sessões agendadas ativas
+      const agoraTimestamp = Date.now();
+      const pacoteAtivo = daMesmaEsp.find(s => {
+        if (s.status_geral !== 'agendada') return false;
+        // Verifica se a data da consulta ainda é futura
+        const [ano, mes, dia] = s.data.split("-");
+        const [h, m] = (s.hora || "00:00").split(":");
+        const dataConsultaMs = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime();
+        return dataConsultaMs >= agoraTimestamp;
+      });
+
       if (pacoteAtivo) {
         alert(`⚠️ AGENDAMENTO BLOQUEADO\n\nVocê já possui um pacote ativo nesta especialidade com o(a) profissional:\n🧑‍⚕️ ${pacoteAtivo.profissional}\n\nConclua as sessões desse pacote antes de agendar outro da mesma especialidade.`);
         return;
