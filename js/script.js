@@ -1161,7 +1161,7 @@ window.abrirAgenda = async function (nomeProfissional) {
   }
 };
 
-window.confirmarConsulta = function () {
+window.confirmarConsulta = async function () {
   const urlParams = new URLSearchParams(window.location.search);
   const is_pacote = urlParams.get('tipo') === 'pacote';
 
@@ -1188,16 +1188,26 @@ window.confirmarConsulta = function () {
   let numSessao = window.sessaoAtualPacote || 1;
   let formPagamentoHTML = "";
   let textoBotao = "Confirmar Consulta e Pagar";
+  let avisoDetalhesPacote = "";
+
+  if (is_pacote) {
+    avisoDetalhesPacote = `
+      <div style="background: #e0f2f1; border: 1px solid #b2dfdb; padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: left;">
+        <p style="font-size: 13px; color: #00695c; margin: 0 0 5px 0;">📦 <strong>Regra do Pacote (4 Sessões):</strong></p>
+        <p style="font-size: 12px; color: #004d40; margin: 0;">Você está agendando agora a <strong>Sessão ${numSessao} de 4</strong> deste pacote com o(a) profissional <strong>${profissionalAtual.nome}</strong>.</p>
+      </div>
+    `;
+  }
 
   if (is_pacote && numSessao < 4) {
     formPagamentoHTML = `
-        <div style="margin-bottom: 25px; text-align: left; background: #e0f2f1; padding: 15px; border-radius: 8px; border: 1px solid #b2dfdb;">
-          <h4 style="color: #00695c; margin-bottom: 5px;">📦 Sessão ${numSessao}/4</h4>
-          <p style="font-size: 14px; color: #004d40;">Esta sessão será agendada agora. <strong>O pagamento do pacote só será cobrado na 4ª e última sessão.</strong></p>
+        <div style="margin-bottom: 25px; text-align: left; background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba;">
+          <h4 style="color: #856404; margin-bottom: 5px;">📦 Sessão ${numSessao}/4 - Sem cobrança imediata</h4>
+          <p style="font-size: 14px; color: #856404; margin: 0;">Esta sessão será reservada agora. <strong>O pagamento total do pacote só será cobrado na 4ª e última sessão.</strong></p>
           <input type="hidden" name="metodoPagamento" value="gratis">
         </div>
       `;
-    textoBotao = `Confirmar Sessão ${numSessao}`;
+    textoBotao = `Confirmar e Agendar Sessão ${numSessao}/4`;
   } else {
     formPagamentoHTML = `
         <div style="margin-bottom: 25px; text-align: left; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
@@ -1212,25 +1222,25 @@ window.confirmarConsulta = function () {
           </label>
         </div>
       `;
-    if (is_pacote && numSessao === 4) textoBotao = "Pagar Pacote Completo";
+    if (is_pacote && numSessao === 4) textoBotao = "Pagar Pacote Completo (4ª Sessão)";
   }
 
   if (agenda) {
     agenda.innerHTML = `
-        <div class="agenda-box">
+        <div class="agenda-box" style="max-height: 90vh; overflow-y: auto;">
           <h2 style="color: #0f4c5c;">Confirme seu Agendamento</h2>
-          <div style="background: #f4f9f9; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: left; border: 1px solid #cce3e6;">
-            <p style="margin-bottom: 10px; font-size: 16px;">Você está prestes a agendar com:</p>
-            <h3 style="color: #0E5F73; margin-bottom: 15px; font-size: 22px;">${profissionalAtual.nome}</h3>
-            <p style="margin-bottom: 8px;"><strong>Data:</strong> ${dataFormatada}</p>
+          <div style="background: #f4f9f9; padding: 20px; border-radius: 8px; margin: 15px 0; text-align: left; border: 1px solid #cce3e6;">
+            ${avisoDetalhesPacote}
+            <p style="margin-bottom: 10px; font-size: 15px;">Profissional:</p>
+            <h3 style="color: #0E5F73; margin-bottom: 15px; font-size: 20px;">${profissionalAtual.nome}</h3>
+            <p style="margin-bottom: 8px;"><strong>Data escolhida:</strong> ${dataFormatada}</p>
             <p><strong>Horário:</strong> ${horarioSelecionado} às ${horaFimStr}</p>
             <hr style="border: 0; border-top: 1px solid #cce3e6; margin: 10px 0;">
-            <p style="font-size: 16px; color: #0F766E;"><strong>${labelTipoConsulta}:</strong> R$ ${valorExibir}</p>
+            <p style="font-size: 15px; color: #0F766E;"><strong>${labelTipoConsulta}:</strong> R$ ${valorExibir}</p>
           </div>
           
           ${formPagamentoHTML}
 
-          <!-- 👇 OS DOIS BOTÕES SOLICITADOS APLICADOS AQUI 👇 -->
           <div style="display: flex; gap: 10px; justify-content: space-between;">
             <button type="button" onclick="finalizarAgendamento(this)" class="btn-primary" style="flex: 1; margin: 0;">${textoBotao}</button>
             <button type="button" onclick="abrirAgenda('${profissionalAtual.nome}')" class="btn-secondary" style="flex: 1; margin: 0; background: #888; color: #fff;">Voltar e Alterar</button>
