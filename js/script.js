@@ -948,7 +948,7 @@ window.toggleSenha = function (idCampo, botao) {
    🔹 MOTOR DE RESERVA TEMPORÁRIA (EXPIRA EM 1 MINUTO)
 ===================================================== */
 // Rascunho de pacote (sessões 1-3 sem pagamento) precisa viver mais que a reserva avulsa de 1 min
-window.TEMPO_RASCUNHO_PACOTE_MS = 60 * 60 * 1000;
+window.TEMPO_RASCUNHO_PACOTE_MS = 60 * 1000;
 window.obterConsultasAtivasDoDia = async function (profissionalNome, dataStr) {
   const { data: consultas, error } = await supabaseClient
     .from("consultas")
@@ -967,15 +967,17 @@ window.obterConsultasAtivasDoDia = async function (profissionalNome, dataStr) {
     if (c.status_geral === "agendada") {
       ativas.push(c);
     } else if (c.status_geral === "pendente_pagamento") {
-      // Pega o timestamp de criação (created_at do Supabase ou do próprio ID gerado por Date.now())
+      // Pega o timestamp de criação (created_at do Supabase ou do próprio ID)
       const criacaoMs = c.created_at ? new Date(c.created_at).getTime() : (parseInt(String(c.id).split('_')[0]) || 0);
 
-      // 60.000 ms = 1 minuto exato de tolerância para pagar
-      const limiteMs = c.is_pacote ? window.TEMPO_RASCUNHO_PACOTE_MS : 60000;
+      // 🕒 TEMPOS DE TOLERÂNCIA PARA TESTES:
+      // Reduzimos para 1 minuto tanto para avulsa quanto para pacote para facilitar seus testes!
+      const limiteMs = 60 * 1000;
+
       if (agora - criacaoMs <= limiteMs) {
-        ativas.push(c); // Menos de 1 min: ainda está reservado na tela
+        ativas.push(c); // Menos de 1 minuto: ainda está reservado
       } else {
-        idsParaRemover.push(c.id); // Mais de 1 min sem pagar: expira e libera para outros pacientes
+        idsParaRemover.push(c.id); // Passou de 1 minuto sem pagar: expira e libera o horário automaticamente
       }
     }
   });
