@@ -1202,6 +1202,48 @@ window.confirmarConsulta = async function () {
   let textoBotao = "Confirmar Consulta e Pagar";
   let avisoDetalhesPacote = "";
 
+  // Bloco de data/horário: consulta avulsa = 1 linha; pacote = lista com as 4 sessões
+  let blocoDataHora = `
+            <p style="margin-bottom: 8px;"><strong>Data escolhida:</strong> ${dataFormatada}</p>
+            <p><strong>Horário:</strong> ${horarioSelecionado} às ${horaFimStr}</p>`;
+
+  if (is_pacote) {
+    const fmtData = d => { const [aa, mm, dd] = d.split('-'); return `${dd}/${mm}/${aa}`; };
+    const fimDe = hhmm => {
+      let [hh, mi] = hhmm.split(':').map(Number);
+      mi += 50;
+      if (mi >= 60) { hh += 1; mi -= 60; }
+      return `${String(hh).padStart(2, '0')}:${String(mi).padStart(2, '0')}`;
+    };
+
+    // Sessões já reservadas (rascunho) deste pacote + a que está sendo escolhida agora
+    let sessoesLista = [];
+    const idPacote = localStorage.getItem('pacoteIdEmAndamento');
+    if (idPacote && numSessao > 1) {
+      const usuarioConf = await getUsuarioLogado();
+      if (usuarioConf) {
+        const { data: anteriores } = await supabaseClient
+          .from('consultas')
+          .select('id, data, hora')
+          .eq('paciente_cpf', usuarioConf.cpf)
+          .eq('pacote_id', idPacote)
+          .eq('status_geral', 'pendente_pagamento');
+        sessoesLista = (anteriores || [])
+          .sort((x, y) => (parseInt(x.id) || 0) - (parseInt(y.id) || 0))
+          .map(x => ({ data: x.data, hora: String(x.hora).slice(0, 5), atual: false }));
+      }
+    }
+    sessoesLista.push({ data: dataSelecionada, hora: horarioSelecionado, atual: true });
+
+    blocoDataHora = `
+            <p style="margin-bottom: 8px;"><strong>Suas sessões do pacote:</strong></p>
+            ${sessoesLista.map((x, i) => `
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 6px; border-radius: 6px; font-size: 14px; border: 1px solid ${x.atual ? '#0F766E' : '#cce3e6'}; background: ${x.atual ? '#e0f2f1' : '#fff'};">
+                <strong>Sessão ${i + 1}/4${x.atual ? ' (esta)' : ''}</strong>
+                <span>${fmtData(x.data)} · ${x.hora} às ${fimDe(x.hora)}</span>
+              </div>`).join('')}`;
+  }
+
   if (is_pacote) {
     avisoDetalhesPacote = `
       <div style="background: #e0f2f1; border: 1px solid #b2dfdb; padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: left;">
@@ -1245,8 +1287,7 @@ window.confirmarConsulta = async function () {
             ${avisoDetalhesPacote}
             <p style="margin-bottom: 10px; font-size: 15px;">Profissional:</p>
             <h3 style="color: #0E5F73; margin-bottom: 15px; font-size: 20px;">${profissionalAtual.nome}</h3>
-            <p style="margin-bottom: 8px;"><strong>Data escolhida:</strong> ${dataFormatada}</p>
-            <p><strong>Horário:</strong> ${horarioSelecionado} às ${horaFimStr}</p>
+            ${blocoDataHora}
             <hr style="border: 0; border-top: 1px solid #cce3e6; margin: 10px 0;">
             <p style="font-size: 15px; color: #0F766E;"><strong>${labelTipoConsulta}:</strong> R$ ${valorExibir}</p>
           </div>
