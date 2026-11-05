@@ -2075,10 +2075,12 @@ window.aprovarCandidato = async function (cpf) {
     return;
   }
 
-  // 4. Envia a mensagem pelo WhatsApp
-  let telLimpo = cand.telefone.replace(/\D/g, "");
+  // 4. Envia a mensagem pelo WhatsApp para o número fixo da plataforma com o contato do candidato
+  const numeroPlataforma = "5521966437609";
   let msgAprovacao = `Olá, ${cand.nome}! Tudo bem? Aqui é da equipe Integra Saúde.\n\nTemos uma excelente notícia: avaliamos a sua ficha e você acaba de ser integrado(a) à nossa plataforma! 🎉\n\nSua senha provisória de acesso ao painel são os 6 primeiros dígitos do seu CPF.`;
-  window.open(`https://api.whatsapp.com/send?phone=55${telLimpo}&text=${encodeURIComponent(msgAprovacao)}`, "_blank", "noopener,noreferrer");
+
+  // ✅ CORRIGIDO: Usa o número oficial da clínica
+  window.open(`https://api.whatsapp.com/send?phone=${numeroPlataforma}&text=${encodeURIComponent(msgAprovacao)}`, "_blank", "noopener,noreferrer");
 
   // 5. Atualiza a tela imediatamente
   await renderizarAdminCandidatos();
@@ -2099,9 +2101,11 @@ window.recusarCandidato = async function (cpf) {
     }
 
     if (cand && cand.telefone) {
-      let telLimpo = cand.telefone.replace(/\D/g, "");
+      const numeroPlataforma = "5521966437609";
       let msgRecusa = `Olá, ${cand.nome}. Tudo bem? Aqui é da equipe Integra Saúde.\n\nAgradecemos o interesse, mas infelizmente não seguiremos com a sua integração à plataforma neste momento. Manteremos seus dados em nosso banco de talentos.`;
-      window.open(`https://api.whatsapp.com/send?phone=55${telLimpo}&text=${encodeURIComponent(msgRecusa)}`, "_blank", "noopener,noreferrer");
+
+      // ✅ CORRIGIDO: Usa o número oficial da clínica
+      window.open(`https://api.whatsapp.com/send?phone=${numeroPlataforma}&text=${encodeURIComponent(msgRecusa)}`, "_blank", "noopener,noreferrer");
     }
 
     // Atualiza a tela imediatamente
@@ -3328,7 +3332,7 @@ window.enviarDocumentoAssinado = async function () {
       const resultado = await response.json();
       if (resultado.status === "erro") throw new Error("O Google Script recusou o envio. Motivo: " + resultado.mensagem);
 
-      alert(`✅ ENVIADO COM SUCESSO!\n\nO documento foi enviado para: ${paciente.email}`);
+      alert(`✅ ENVIADO COM SUCESSO!\n\nO documento foi enviado para o(a) paciente: ${paciente.nome || "Paciente"}`);
 
       fileInput.value = "";
       document.getElementById("nome-arquivo-envio").innerText = "Nenhum arquivo selecionado";
