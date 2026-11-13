@@ -2038,100 +2038,73 @@ body {
 }
 
 /* =====================================================
-   🔹 RODAPÉ (FOOTER)
+   🔹 RODAPÉ (ESTILO COLUNAS)
 ===================================================== */
-.footer-site {
-  background-color: #0e463b;
-  color: #ffffff;
-  padding: 35px 5%;
+.footer-novo {
+  background-color: #0F4C5C;
+  color: white;
+  padding: 50px 8%;
   display: flex;
-  justify-content: center;
-}
-
-.footer-container {
-  max-width: 1200px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   flex-wrap: wrap;
+  justify-content: space-between;
   gap: 30px;
+  margin-top: 60px;
 }
 
-.footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.footer-icone,
-.footer-texto {
-  filter: brightness(0) invert(1);
-  object-fit: contain;
-}
-
-.footer-icone {
-  height: 36px;
-}
-
-.footer-texto {
-  height: 40px;
-}
-
-.footer-specialties {
-  display: flex;
-  align-items: center;
-  gap: 25px;
-}
-
-.footer-spec-item {
+.footer-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8px;
 }
 
-.footer-spec-item img {
-  width: 24px;
-  height: 24px;
+.footer-col h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #ffffff;
+}
+
+.footer-col a {
+  color: #a3c9d1;
+  text-decoration: none;
+  font-size: 13px;
+  transition: 0.3s;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.footer-col a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.footer-col a.titulo-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 5px;
+}
+
+.footer-logo {
+  width: 190px;
+  max-width: 100%;
   object-fit: contain;
   filter: brightness(0) invert(1);
 }
 
-.footer-spec-item span {
-  font-size: 11px;
-  font-weight: 500;
-  color: #e2e8f0;
-}
-
-.footer-divider {
-  width: 1px;
-  height: 35px;
-  background-color: rgba(255, 255, 255, 0.25);
-}
-
-.footer-right {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.footer-social-link img {
-  width: 22px;
-  height: 22px;
+.footer-icon {
+  width: 70px;
+  height: auto;
   object-fit: contain;
-  filter: brightness(0) invert(1);
-  transition: opacity 0.2s;
+  margin-bottom: 5px;
 }
 
-.footer-social-link:hover img {
-  opacity: 0.8;
-}
-
-.footer-tagline {
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
-  color: #e2e8f0;
-  line-height: 1.4;
+.footer-copyright {
+  width: 100%;
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  color: #a3c9d1;
 }
