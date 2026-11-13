@@ -2038,76 +2038,100 @@ body {
 }
 
 /* =====================================================
-   🔹 ESTILOS DO RODAPÉ (FOOTER)
+   🔹 RODAPÉ (FOOTER)
 ===================================================== */
-
-.footer-site,
-footer {
-  background-color: #0F4C5C;
-  /* Tom escuro principal da paleta */
+.footer-site {
+  background-color: #0e463b;
   color: #ffffff;
-  padding: 50px 20px 20px 20px;
-  font-family: 'Montserrat', sans-serif;
+  padding: 35px 5%;
+  display: flex;
+  justify-content: center;
 }
 
 .footer-container {
   max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 30px;
-  margin-bottom: 40px;
 }
 
-.footer-col h3,
-.footer-col h4 {
-  color: #2a9fec;
-  font-size: 18px;
-  margin-bottom: 15px;
-  position: relative;
-  padding-bottom: 8px;
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.footer-col h3::after,
-.footer-col h4::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 40px;
-  height: 2px;
-  background-color: #0F766E;
+.footer-icone,
+.footer-texto {
+  filter: brightness(0) invert(1);
+  object-fit: contain;
 }
 
-.footer-col p,
-.footer-col li,
-.footer-col a {
-  color: #cbd5e1;
-  font-size: 14px;
-  line-height: 1.6;
-  text-decoration: none;
-  transition: color 0.2s;
+.footer-icone {
+  height: 36px;
 }
 
-.footer-col a:hover {
-  color: #ffffff;
-  text-decoration: underline;
+.footer-texto {
+  height: 40px;
 }
 
-.footer-col ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.footer-specialties {
+  display: flex;
+  align-items: center;
+  gap: 25px;
 }
 
-.footer-col ul li {
-  margin-bottom: 8px;
+.footer-spec-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
-.footer-bottom {
-  text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 20px;
-  font-size: 13px;
-  color: #94a3b8;
+.footer-spec-item img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.footer-spec-item span {
+  font-size: 11px;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.footer-divider {
+  width: 1px;
+  height: 35px;
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.footer-social-link img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  transition: opacity 0.2s;
+}
+
+.footer-social-link:hover img {
+  opacity: 0.8;
+}
+
+.footer-tagline {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.4;
 }
