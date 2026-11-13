@@ -1683,12 +1683,13 @@ body {
   }
 }
 
-/* =========================================================
-   CABEÇALHO UNIFICADO E PÁGINA TRABALHE CONOSCO
-   ========================================================= */
+/* =====================================================
+   🔹 NOVO CABEÇALHO PADRÃO (ESTILO REFERÊNCIA)
+===================================================== */
 
 .header-site {
   background: #ffffff;
+  /* Fundo branco limpo igual ao exemplo */
   padding: 15px 5%;
   display: flex;
   justify-content: space-between;
@@ -1711,6 +1712,7 @@ body {
   object-fit: contain;
 }
 
+/* Barrinha vertical fina entre a logo e o slogan */
 .header-divider {
   width: 1px;
   height: 30px;
@@ -1718,6 +1720,7 @@ body {
   margin: 0 4px;
 }
 
+/* Slogan em duas linhas ao lado da logo */
 .slogan-duplo {
   display: flex;
   flex-direction: column;
@@ -1732,6 +1735,7 @@ body {
   letter-spacing: -0.2px;
 }
 
+/* Grupo direito: links e botão de contato */
 .header-right-group {
   display: flex;
   align-items: center;
@@ -1757,6 +1761,7 @@ body {
   color: #0f766e;
 }
 
+/* Botão de Destaque "Entrar em contato" */
 .btn-entrar-contato {
   background-color: #0f766e;
   color: white;
@@ -1767,116 +1772,15 @@ body {
   font-weight: 600;
   transition: background 0.2s;
   box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+  display: inline-block;
 }
 
 .btn-entrar-contato:hover {
   background-color: #0b5c54;
 }
 
-/* Seção e Card do Formulário */
-.trabalhe-section {
-  background-color: #f8fafc;
-  padding: 60px 5%;
-  display: flex;
-  justify-content: center;
-}
-
-.trabalhe-container {
-  max-width: 750px;
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
-  border-radius: 20px;
-  padding: 45px;
-}
-
-.trabalhe-container h2 {
-  font-size: 26px;
-  color: #0b2f3a;
-  margin-bottom: 8px;
-  font-weight: 700;
-}
-
-.trabalhe-subtitle {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 30px;
-  line-height: 1.5;
-}
-
-.form-section-title {
-  font-size: 15px;
-  color: #0f766e;
-  margin-top: 25px;
-  margin-bottom: 15px;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 6px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.form-row {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 18px;
-}
-
-.form-group-custom {
-  flex: 1;
-  margin-bottom: 18px;
-}
-
-.form-group-custom label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 6px;
-}
-
-.form-group-custom input,
-.form-group-custom select {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 13px;
-  color: #1e293b;
-  outline: none;
-  transition: border-color 0.2s;
-  background-color: #f8fafc;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.form-group-custom input:focus,
-.form-group-custom select:focus {
-  border-color: #0f766e;
-  background-color: #ffffff;
-}
-
-.btn-enviar-ficha {
-  width: 100%;
-  background-color: #0f766e;
-  color: white;
-  border: none;
-  padding: 15px;
-  border-radius: 30px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: 0 4px 15px rgba(15, 118, 110, 0.25);
-  margin-top: 15px;
-}
-
-.btn-enviar-ficha:hover {
-  background-color: #0b5c54;
-}
-
-/* Responsividade básica para telas menores */
-@media (max-width: 768px) {
+/* Responsividade para telas menores */
+@media (max-width: 900px) {
   .header-site {
     flex-direction: column;
     gap: 15px;
@@ -1885,14 +1789,13 @@ body {
   .header-right-group {
     flex-direction: column;
     gap: 15px;
+    width: 100%;
+    align-items: center;
   }
 
-  .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .trabalhe-container {
-    padding: 25px;
+  .header-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
   }
 }
