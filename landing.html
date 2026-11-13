@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integra Saúde - Cabeçalho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Topo / Header */
+        .header-site {
+            background: #ffffff;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Ajuste do container do logo para alinhar todos os elementos na mesma altura */
+        .header-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo-area img.icone {
+            height: 40px;
+        }
+
+        .header-logo-area img.texto {
+            height: 48px;
+            object-fit: contain;
+        }
+
+        /* Barrinha vertical fina */
+        .header-divider {
+            width: 1px;
+            height: 30px;
+            background-color: #cbd5e1;
+            /* Cor cinza sutil para a barra */
+            margin: 0 4px;
+        }
+
+        /* Textos um em cima do outro na mesma altura */
+        .slogan-duplo {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slogan-duplo span {
+            font-size: 11px;
+            color: #4a5568;
+            font-weight: 500;
+            line-height: 1.3;
+            letter-spacing: -0.2px;
+        }
+
+        /* Container que agrupa o menu e o botão à direita */
+        .header-right-group {
+            display: flex;
+            align-items: center;
+            gap: 35px;
+            /* Espaço entre o menu e o botão */
+        }
+
+        /* Menu de navegação */
+        .header-nav {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .header-nav a {
+            text-decoration: none;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .header-nav a:hover {
+            color: #0f766e;
+        }
+
+        /* Botão de Ação */
+        .btn-entrar-contato {
+            background-color: #0f766e;
+            color: white;
+            padding: 12px 26px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+            box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+        }
+
+        .btn-entrar-contato:hover {
+            background-color: #0b5c54;
+        }
+
+        /* Estilos da Seção Hero */
+        /* Altere apenas esta classe no seu CSS existente */
+        .hero-section {
+            position: relative;
+            /* Necessário para posicionar o fundo dentro dela */
+            overflow: hidden;
+            padding: 65px 5%;
+            min-height: 450px;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: right center;
+            /* mantém o médico visível */
+            z-index: 1;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg,
+                    rgba(234, 242, 236, 0.95) 0%,
+                    rgba(234, 242, 236, 0.85) 40%,
+                    rgba(234, 242, 236, 0) 70%);
+            z-index: 2;
+        }
+
+        /* Garante que o texto fique por cima da camada de cor e da imagem */
+        .hero-container {
+            position: relative;
+            z-index: 3;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        .hero-content {
+            flex: 1;
+            min-width: 320px;
+        }
+
+        .hero-tag {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f766e;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .hero-title {
+            font-size: 38px;
+            color: #0b2f3a;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero-subtitle {
+            font-size: 15px;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn-quero-profissional {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #0f766e;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.25);
+            transition: background 0.2s;
+        }
+
+        .btn-quero-profissional:hover {
+            background-color: #0b5c54;
+        }
+
+        .hero-features {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 1px solid #d5e3d7;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-icon-img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+        }
+
+        .feature-text {
+            display: flex;
+            flex-direction: column;
+            font-size: 11px;
+            color: #2d3748;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .feature-divider-vertical {
+            width: 1px;
+            height: 30px;
+            background-color: #cbd5e1;
+        }
+
+        .hero-image-container {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .hero-medico-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+        }
+
+        /* Seção de Diferenciais (Barra Branca) */
+        .features-bar-section {
+            background-color: #ffffff;
+            padding: 40px 5%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .features-bar-container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
+            padding: 30px 20px;
+        }
+
+        .feat-card {
+            text-align: center;
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .feat-card img {
+            width: 38px;
+            height: 38px;
+            margin-bottom: 12px;
+            object-fit: contain;
+        }
+
+        .feat-card h4 {
+            font-size: 15px;
+            color: #0b2f3a;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .feat-card p {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .feat-divider {
+            width: 1px;
+            height: 60px;
+            background-color: #e2e8f0;
+        }
+
+        /* Seção de Especialidades */
+        .specialties-section {
+            background-color: #eaf2ec;
+            padding: 50px 5%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .specialties-container {
+            max-width: 1200px;
+            width: 100%;
+            background: #d8e8dc;
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .specialty-left {
+            flex: 0.35;
+        }
+
+        .spec-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f766e;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .specialty-left h3 {
+            font-size: 24px;
+            color: #0b2f3a;
+            line-height: 1.3;
+            font-weight: 700;
+        }
+
+        .specialty-right {
+            flex: 0.65;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .spec-item {
+            text-align: center;
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        /* Cria o círculo de fundo verde claro */
+        .spec-icon-circle {
+            width: 65px;
+            height: 65px;
+            background-color: #d1e7d6;
+            /* Verde claro suave igual ao modelo */
+            border-radius: 50%;
+            /* Deixa perfeitamente redondo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 12px auto;
+            /* Centraliza o círculo e dá espaço para o título */
+        }
+
+        /* Ajusta o tamanho da imagem dentro do círculo */
+        .spec-icon-circle img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .spec-item h4 {
+            font-size: 14px;
+            color: #0b2f3a;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .spec-item p {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.3;
+        }
+
+        /* Seção Como Funciona / Cadastro */
+        .como-funciona-section {
+            background-color: #ffffff;
+            padding: 70px 5%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .como-funciona-container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .como-funciona-left {
+            flex: 1;
+            min-width: 320px;
+        }
+
+        .funciona-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f766e;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .como-funciona-left h2 {
+            font-size: 32px;
+            color: #0b2f3a;
+            line-height: 1.2;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .funciona-desc {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        .passos-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .passo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .passo-numero {
+            width: 28px;
+            height: 28px;
+            background-color: #0f766e;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .passo-texto {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .passo-texto strong {
+            font-size: 14px;
+            color: #0b2f3a;
+            font-weight: 700;
+        }
+
+        .passo-texto span {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Formulário à Direita */
+        .como-funciona-right {
+            flex: 1;
+            min-width: 350px;
+        }
+
+        .form-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+            border-radius: 20px;
+            padding: 35px;
+        }
+
+        .form-card h3 {
+            font-size: 22px;
+            color: #0b2f3a;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .form-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #1e293b;
+            outline: none;
+            transition: border-color 0.2s;
+            background-color: #f8fafc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #0f766e;
+            background-color: #ffffff;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .checkbox-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-group a {
+            color: #0f766e;
+            text-decoration: underline;
+        }
+
+        .btn-enviar-interesse {
+            width: 100%;
+            background-color: #0f766e;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+            margin-top: 10px;
+        }
+
+        .btn-enviar-interesse:hover {
+            background-color: #0b5c54;
+        }
+
+        /* Estilos do Rodapé */
+        .footer-site {
+            background-color: #0e463b;
+            /* Verde-escuro do modelo */
+            color: #ffffff;
+            padding: 35px 5%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        /* Logo à esquerda */
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-icone,
+        .footer-texto {
+            filter: brightness(0) invert(1);
+            /* Transforma os ícones escuros em branco */
+            object-fit: contain;
+        }
+
+        .footer-icone {
+            height: 36px;
+        }
+
+        .footer-texto {
+            height: 40px;
+        }
+
+        /* Especialidades no centro */
+        .footer-specialties {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .footer-spec-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-spec-item img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            /* Deixa o ícone branco */
+        }
+
+        .footer-spec-item span {
+            font-size: 11px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .footer-divider {
+            width: 1px;
+            height: 35px;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Instagram e frase à direita */
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .footer-social-link img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            /* Deixa o ícone do Instagram branco */
+            transition: opacity 0.2s;
+        }
+
+        .footer-social-link:hover img {
+            opacity: 0.8;
+        }
+
+        .footer-tagline {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            color: #e2e8f0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header-site">
+        <!-- Logo, Barrinha e Slogan em duas linhas -->
+        <div class="header-logo-area">
+            <img src="img/logo.png" alt="Ícone Integra Saúde" class="icone">
+            <img src="img/LogoIntegraTexto.jpg" alt="Integra Saúde" class="texto">
+            <div class="header-divider"></div>
+            <div class="slogan-duplo">
+                <span><b>Cuidado que integra.</b></span>
+                <span><b>Saúde que transforma.</b></span>
+            </div>
+        </div>
+
+        <!-- Grupo à direita (Menu + Botão) -->
+        <div class="header-right-group">
+            <!-- Links de Navegação -->
+            <ul class="header-nav">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
+            </ul>
+
+            <!-- Botão de Ação -->
+            <div>
+                <a href="contato.html" class="btn-entrar-contato">Entrar em contato</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- SEÇÃO PRINCIPAL (BANNER / HERO) -->
+    <section class="hero-section">
+        <!-- ADICIONE ESTA LINHA LOGO ABAIXO DA SECTION -->
+        <img src="img/fundo2.jpg" alt="Fundo Consultório" class="hero-bg-img">
+        <div class="hero-container">
+            <!-- Coluna Esquerda: Textos e Botão -->
+            <div class="hero-content">
+                <span class="hero-tag">Profissional da Saúde,</span>
+                <h1 class="hero-title">Seu trabalho e cuidado podem chegar mais longe com a Integra Saúde.</h1>
+                <p class="hero-subtitle">Faça parte da Integra Saúde, uma plataforma que conecta profissionais e
+                    pacientes por meio do atendimento online.</p>
+
+                <a href="#cadastro" class="btn-quero-profissional">
+                    Quero ser profissional <span>→</span>
+                </a>
+
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SEÇÃO DE DIFERENCIAIS (ABAIXO DO HERO) -->
+    <section class="features-bar-section">
+        <div class="features-bar-container">
+            <div class="feat-card">
+                <img src="img/atendimento.png" alt="Atendimento Online">
+                <h4>Atendimento online</h4>
+                <p>Atue de onde estiver,<br>com toda a segurança.</p>
+            </div>
+            <div class="feat-divider"></div>
+            <div class="feat-card">
+                <img src="img/brasil.png" alt="Pacientes de todo o Brasil">
+                <h4>Pacientes de todo o Brasil</h4>
+                <p>Amplie seu alcance e ajude<br>pacientes em crescimento.</p>
+            </div>
+            <div class="feat-divider"></div>
+            <div class="feat-card">
+                <img src="img/grupo.png" alt="Plataforma Integrada">
+                <h4>Plataforma integrada</h4>
+                <p>Mais praticidade, segurança<br>e suporte para o seu dia a dia.</p>
+            </div>
+            <div class="feat-divider"></div>
+            <div class="feat-card">
+                <img src="img/seguranca.png" alt="Profissionais Qualificados">
+                <h4>Profissionais qualificados</h4>
+                <p>Juntos por um cuidado<br>mais completo e humano.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO DE ESPECIALIDADES -->
+    <section class="specialties-section">
+        <div class="specialties-container">
+            <!-- Bloco Esquerdo (Texto descritivo) -->
+            <div class="specialty-left">
+                <span class="spec-label">ESPECIALIDADES</span>
+                <h3>Nas áreas de<br>Psicologia, Nutrição e<br>Fonoaudiologia.</h3>
+            </div>
+
+            <!-- Bloco Direito (As 3 Especialidades com fundo redondo) -->
+            <div class="specialty-right">
+                <!-- Item 1: Psicologia -->
+                <div class="spec-item">
+                    <div class="spec-icon-circle">
+                        <img src="img/psicologia2.png" alt="Psicologia">
+                    </div>
+                    <h4>Psicologia</h4>
+                    <p>Cuidado emocional e saúde mental.</p>
+                </div>
+
+                <!-- Item 2: Nutrição -->
+                <div class="spec-item">
+                    <div class="spec-icon-circle">
+                        <img src="img/nutri.png" alt="Nutrição">
+                    </div>
+                    <h4>Nutrição</h4>
+                    <p>Plano alimentar personalizado.</p>
+                </div>
+
+                <!-- Item 3: Fonoaudiologia -->
+                <div class="spec-item">
+                    <div class="spec-icon-circle">
+                        <img src="img/fono.png" alt="Fonoaudiologia">
+                    </div>
+                    <h4>Fonoaudiologia</h4>
+                    <p>Desenvolvimento de fala e comunicação.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO COMO FUNCIONA / CADASTRO DE INTERESSE -->
+    <section class="como-funciona-section">
+        <div class="como-funciona-container">
+
+            <!-- Bloco Esquerdo: Texto explicativo e Passo a Passo -->
+            <div class="como-funciona-left">
+                <span class="funciona-label">COMO FUNCIONA?</span>
+                <h2>É simples fazer parte da Integra Saúde.</h2>
+                <p class="funciona-desc">Em poucos passos, você se cadastra, conhece a plataforma e começa a atender
+                    pacientes online.</p>
+
+                <div class="passos-lista">
+                    <div class="passo-item">
+                        <span class="passo-numero">1</span>
+                        <div class="passo-texto">
+                            <strong>Cadastre seu interesse</strong>
+                            <span>Preencha o formulário ao lado.</span>
+                        </div>
+                    </div>
+
+                    <div class="passo-item">
+                        <span class="passo-numero">2</span>
+                        <div class="passo-texto">
+                            <strong>Conheça a plataforma</strong>
+                            <span>Saiba como funciona e tire suas dúvidas.</span>
+                        </div>
+                    </div>
+
+                    <div class="passo-item">
+                        <span class="passo-numero">3</span>
+                        <div class="passo-texto">
+                            <strong>Envie seus dados profissionais</strong>
+                            <span>Dados de formação e especialidade.</span>
+                        </div>
+                    </div>
+
+                    <div class="passo-item">
+                        <span class="passo-numero">4</span>
+                        <div class="passo-texto">
+                            <strong>Nossa equipe entra em contato</strong>
+                            <span>Vamos analisar seu perfil e dar o próximo passo.</span>
+                        </div>
+                    </div>
+
+                    <div class="passo-item">
+                        <span class="passo-numero">5</span>
+                        <div class="passo-texto">
+                            <strong>Após aprovação</strong>
+                            <span>Você poderá integrar nossa rede e começar a atender.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloco Direito: Formulário de Cadastro de Interesse -->
+            <div class="como-funciona-right">
+                <div class="form-card">
+                    <h3>Cadastre seu interesse</h3>
+                    <p class="form-subtitle">Preencha os dados abaixo e nossa equipe entrará em contato em breve.</p>
+
+                    <form action="#" method="POST">
+                        <div class="form-group">
+                            <label>Nome completo *</label>
+                            <input type="text" placeholder="Digite seu nome completo" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>E-mail *</label>
+                            <input type="email" placeholder="Digite seu e-mail" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Especialidade *</label>
+                            <select required>
+                                <option value="" disabled selected>Selecione sua especialidade</option>
+                                <option value="psicologia">Psicologia</option>
+                                <option value="nutricao">Nutrição</option>
+                                <option value="fonoaudiologia">Fonoaudiologia</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>CRP / CRN / CREFONO *</label>
+                            <input type="text" placeholder="Digite seu registro profissional" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Você já atende online? *</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="atende-online" value="sim"> Sim</label>
+                                <label><input type="radio" name="atende-online" value="nao"> Não</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" required> Li e concordo com a <a href="#"
+                                    target="_blank">Política de Privacidade</a>.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-enviar-interesse">Enviar meu interesse →</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- RODAPÉ / FOOTER -->
+    <footer class="footer-site">
+        <div class="footer-container">
+
+            <!-- Bloco Esquerdo: Logo em branco -->
+            <div class="footer-logo">
+                <img src="img/logo.png" alt="Ícone Integra Saúde" class="footer-icone">
+                <img src="img/LogoIntegraTexto3.png" alt="Integra Saúde" class="footer-texto">
+            </div>
+
+            <!-- Bloco Central: Especialidades com divisores -->
+            <div class="footer-specialties">
+                <div class="footer-spec-item">
+                    <img src="img/psicologia2.png" alt="Psicologia">
+                    <span>Psicologia</span>
+                </div>
+
+                <div class="footer-divider"></div>
+
+                <div class="footer-spec-item">
+                    <img src="img/nutri.png" alt="Nutrição">
+                    <span>Nutrição</span>
+                </div>
+
+                <div class="footer-divider"></div>
+
+                <div class="footer-spec-item">
+                    <img src="img/fono.png" alt="Fonoaudiologia">
+                    <span>Fonoaudiologia</span>
+                </div>
+            </div>
+
+            <!-- Bloco Direito: Apenas Instagram e Texto -->
+            <div class="footer-right">
+                <a href="#" target="_blank" aria-label="Instagram" class="footer-social-link">
+                    <img src="img/instagram.png" alt="Instagram">
+                </a>
+                <div class="footer-tagline">
+                    <span>Atendimento online</span>
+                    <span>para todo o Brasil.</span>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+</body>
+
+</html>
