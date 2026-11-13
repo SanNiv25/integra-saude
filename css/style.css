@@ -2139,17 +2139,6 @@ body {
 /* =====================================================
    🔹 RODAPÉ (ESTILO COLUNAS)
 ===================================================== */
-.footer-novo {
-  background-color: #0F4C5C;
-  color: white;
-  padding: 50px 8%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 30px;
-  margin-top: 60px;
-}
-
 .footer-col {
   display: flex;
   flex-direction: column;
