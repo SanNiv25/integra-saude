@@ -469,87 +469,6 @@ body {
   background-color: #168a63;
 }
 
-/* =====================================================
-   🔹 NOVO FOOTER (RODAPÉ)
-===================================================== */
-
-.footer-novo {
-  background-color: #0F4C5C;
-  color: white;
-  padding: 50px 8%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 30px;
-  margin-top: 60px;
-}
-
-.footer-col {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  /* Espaço uniforme entre os links */
-}
-
-/* Títulos das colunas reduzidos e alinhados */
-.footer-col h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #ffffff;
-}
-
-/* Links reduzidos e mais discretos */
-.footer-col a {
-  color: #a3c9d1;
-  text-decoration: none;
-  font-size: 13px;
-  transition: 0.3s;
-  display: block;
-  /* Faz cada link ficar em uma linha nova sem precisar de <br> */
-  margin-bottom: 5px;
-}
-
-.footer-col a:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
-
-/* Estilo específico para a "Área do Paciente" atuar como título e link ao mesmo tempo */
-.footer-col a.titulo-link {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 5px;
-}
-
-.footer-logo {
-  width: 190px;
-  max-width: 100%;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-}
-
-/* Configuração do Ícone do Coração no Rodapé */
-.footer-icon {
-  width: 70px;
-  /* Tamanho ideal para ficar equilibrado com o texto */
-  height: auto;
-  object-fit: contain;
-  margin-bottom: 5px;
-  /* Espaço entre o coração e o texto */
-}
-
-.footer-copyright {
-  width: 100%;
-  text-align: center;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 13px;
-  color: #a3c9d1;
-}
-
 /* RESPONSIVO */
 
 @media (max-width: 768px) {
@@ -1547,19 +1466,6 @@ body {
     width: 100%;
     margin-top: 5px !important;
   }
-
-  /* 8. RODAPÉ (FOOTER) */
-  .footer-novo {
-    flex-direction: column;
-    text-align: center;
-    padding: 40px 5%;
-    gap: 40px;
-  }
-
-  .footer-col {
-    align-items: center !important;
-    /* Centraliza tudo */
-  }
 }
 
 /* =====================================================
@@ -2043,9 +1949,10 @@ body {
 .footer-site {
   background-color: #0e463b;
   color: #ffffff;
-  padding: 35px 5%;
+  padding: 35px 5% 20px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .footer-container {
@@ -2058,6 +1965,7 @@ body {
   gap: 30px;
 }
 
+/* Logo à esquerda */
 .footer-logo {
   display: flex;
   align-items: center;
@@ -2078,38 +1986,38 @@ body {
   height: 40px;
 }
 
-.footer-specialties {
+/* Colunas de links no centro */
+.footer-links {
   display: flex;
-  align-items: center;
-  gap: 25px;
+  gap: 70px;
 }
 
-.footer-spec-item {
+.footer-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8px;
 }
 
-.footer-spec-item img {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
+.footer-col h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #ffffff;
 }
 
-.footer-spec-item span {
-  font-size: 11px;
-  font-weight: 500;
-  color: #e2e8f0;
+.footer-col a {
+  color: #a3c9d1;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
 }
 
-.footer-divider {
-  width: 1px;
-  height: 35px;
-  background-color: rgba(255, 255, 255, 0.25);
+.footer-col a:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
+/* Instagram e frase à direita */
 .footer-right {
   display: flex;
   align-items: center;
@@ -2136,63 +2044,32 @@ body {
   line-height: 1.4;
 }
 
-/* =====================================================
-   🔹 RODAPÉ (ESTILO COLUNAS)
-===================================================== */
-.footer-col {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.footer-col h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #ffffff;
-}
-
-.footer-col a {
-  color: #a3c9d1;
-  text-decoration: none;
-  font-size: 13px;
-  transition: 0.3s;
-  display: block;
-  margin-bottom: 5px;
-}
-
-.footer-col a:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
-
-.footer-col a.titulo-link {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 5px;
-}
-
-.footer-logo {
-  width: 190px;
-  max-width: 100%;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-}
-
-.footer-icon {
-  width: 70px;
-  height: auto;
-  object-fit: contain;
-  margin-bottom: 5px;
-}
-
-.footer-copyright {
+/* Linha de copyright */
+.footer-bottom {
   width: 100%;
-  text-align: center;
+  max-width: 1200px;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: center;
   font-size: 13px;
   color: #a3c9d1;
+}
+
+/* Celular */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-links {
+    gap: 40px;
+    justify-content: center;
+  }
+
+  .footer-right {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
