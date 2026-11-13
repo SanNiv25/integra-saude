@@ -1799,3 +1799,121 @@ body {
     gap: 15px;
   }
 }
+
+/* =====================================================
+   🔹 ESTILOS DA PÁGINA TRABALHE CONOSCO
+===================================================== */
+
+.trabalhe-section {
+  min-height: 80vh;
+  background-color: #F2F5F7;
+  padding: 50px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.trabalhe-container {
+  width: 100%;
+  max-width: 800px;
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.trabalhe-container h2 {
+  color: #0F4C5C;
+  font-size: 28px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.trabalhe-subtitle {
+  color: #666;
+  font-size: 15px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F766E;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 6px;
+  margin: 25px 0 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.form-group-custom {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group-custom label {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 14px;
+}
+
+.form-group-custom input,
+.form-group-custom select,
+.form-group-custom textarea {
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+}
+
+.form-group-custom input:focus,
+.form-group-custom select:focus,
+.form-group-custom textarea:focus {
+  border-color: #0F766E;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.btn-enviar-ficha {
+  background-color: #0F766E;
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+}
+
+.btn-enviar-ficha:hover {
+  background-color: #0b5c54;
+}
+
+/* Responsividade do formulário em celulares */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .trabalhe-container {
+    padding: 20px;
+  }
+}
