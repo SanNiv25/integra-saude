@@ -2021,7 +2021,18 @@ body {
 .footer-right {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 40px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 50px;
+}
+
+.footer-divider {
+  width: 1px;
+  height: 60px;
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
 .footer-social-link img {
@@ -2063,13 +2074,17 @@ body {
     text-align: center;
   }
 
+  .footer-right {
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .footer-divider {
+    display: none;
+  }
+
   .footer-links {
     gap: 40px;
     justify-content: center;
-  }
-
-  .footer-right {
-    flex-direction: column;
-    gap: 10px;
   }
 }
