@@ -2287,13 +2287,12 @@ body {
 }
 
 .spec-label {
-  font-size: 11px;
+  font-size: 28px;
   font-weight: 700;
   color: #0f766e;
   letter-spacing: 1px;
   text-transform: uppercase;
   display: block;
-  margin-bottom: 10px;
 }
 
 .specialty-left h3 {
@@ -2339,9 +2338,16 @@ body {
 
 /* Título maior (era 14px) — o texto de baixo foi removido do HTML */
 .spec-item h4 {
-  font-size: 20px;
+  font-size: 14px;
   color: #0b2f3a;
+  margin-bottom: 4px;
   font-weight: 700;
+}
+
+.spec-item p {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.3;
 }
 
 /* ---------- COMO FUNCIONA + FORMULÁRIO ---------- */
@@ -2620,4 +2626,12 @@ body {
   .form-scroll {
     max-height: 480px;
   }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.form-card {
+  scroll-margin-top: 30px;
 }
