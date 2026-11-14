@@ -105,16 +105,18 @@
 
         <div class="form-row">
           <div class="form-group-custom">
-            <label>Bairro *</label>
+            <label for="candBairro">Bairro *</label>
             <input type="text" id="candBairro" placeholder="Bairro" required>
           </div>
-          <div class="query-group" style="flex: 1;"> <!-- ou form-group-custom -->
-            <label>Cidade *</label>
+
+          <div class="form-group-custom">
+            <label for="candCidade">Cidade *</label>
             <input type="text" id="candCidade" placeholder="Cidade" required>
           </div>
-          <div class="form-group-custom" style="flex: 0.7;">
-            <label>UF *</label>
-            <input type="text" id="candUf" maxlength="2" placeholder="UF" required>
+
+          <div class="form-group-custom">
+            <label for="candUf">UF *</label>
+            <input type="text" id="candUf" placeholder="UF" maxlength="2" required>
           </div>
         </div>
 
@@ -158,6 +160,13 @@
         <div class="form-group-custom">
           <label>Principais áreas de atuação *</label>
           <input type="text" id="candAtuacao" placeholder="Ex: Terapia Cognitivo-Comportamental, Ansiedade..." required>
+        </div>
+
+        <div class="form-section-title">Currículo</div>
+        <div class="form-group-custom">
+          <label for="candCurriculo">Anexe seu currículo (PDF) *</label>
+          <input type="file" id="candCurriculo" accept="application/pdf,.pdf" required>
+          <small class="file-hint">Apenas arquivos PDF, até 5 MB.</small>
         </div>
 
         <button type="submit" class="btn-enviar-ficha">Enviar Ficha para Avaliação →</button>

@@ -1905,8 +1905,35 @@ if (formTrabalheConosco) {
     });
   }
 
+  // Validação do currículo (somente PDF, até 5 MB)
+  const inputCurriculo = document.getElementById("candCurriculo");
+  const MAX_MB = 5;
+
+  function validarCurriculo() {
+    const file = inputCurriculo.files[0];
+    if (!file) return false;
+
+    const ehPdf = file.type === "application/pdf" &&
+      file.name.toLowerCase().endsWith(".pdf");
+
+    if (!ehPdf) {
+      alert("Envie apenas arquivos em formato PDF.");
+      inputCurriculo.value = "";
+      return false;
+    }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      alert("O currículo deve ter no máximo " + MAX_MB + " MB.");
+      inputCurriculo.value = "";
+      return false;
+    }
+    return true;
+  }
+
+  inputCurriculo.addEventListener("change", validarCurriculo);
+
   formTrabalheConosco.addEventListener("submit", async function (e) {
     e.preventDefault();
+    if (!validarCurriculo()) return;   // <- linha nova
     let cpfLimpo = document.getElementById("candCpf").value.replace(/\D/g, "");
     let registroDigitado = document.getElementById("candRegistro").value.trim();
 
@@ -1946,6 +1973,20 @@ if (formTrabalheConosco) {
       return;
     }
 
+    // Envia o currículo para o Storage
+    const arquivo = inputCurriculo.files[0];
+    const caminhoCurriculo = `${Date.now()}_${cpfLimpo}.pdf`;
+
+    const { error: erroUpload } = await supabaseClient
+      .storage.from("curriculos")
+      .upload(caminhoCurriculo, arquivo, { contentType: "application/pdf" });
+
+    if (erroUpload) {
+      console.error(erroUpload);
+      alert("Erro ao enviar o currículo. Tente novamente mais tarde.");
+      return;
+    }
+
     // 4. Insere a nova ficha no Supabase se tudo estiver correto
     const novoCandidato = {
       nome: document.getElementById("candNome").value.trim(),
@@ -1965,7 +2006,8 @@ if (formTrabalheConosco) {
       complemento: document.getElementById("candComplemento").value,
       bairro: document.getElementById("candBairro").value,
       cidade: document.getElementById("candCidade").value,
-      uf: document.getElementById("candUf").value
+      uf: document.getElementById("candUf").value,
+      curriculo_path: caminhoCurriculo
     };
 
     const { error } = await supabaseClient
@@ -1974,6 +2016,7 @@ if (formTrabalheConosco) {
 
     if (error) {
       console.error(error);
+      await supabaseClient.storage.from("curriculos").remove([caminhoCurriculo]);
       alert("Erro ao enviar a ficha. Tente novamente mais tarde.");
     } else {
       alert("✅ Ficha enviada com sucesso! Nossa equipe entrará em contato.");
@@ -2019,6 +2062,7 @@ window.renderizarAdminCandidatos = async function () {
         </div>
         <p style="font-size: 14px; color: #444; margin-bottom: 20px;"><strong>Áreas de atuação:</strong> ${cand.atuacao}</p>
         <p style="font-size: 14px; color: #444; margin-bottom: 20px;"><strong>Endereço:</strong> ${cand.rua}, ${cand.numero} ${cand.complemento ? ' - ' + cand.complemento : ''} - ${cand.bairro}, ${cand.cidade}/${cand.uf} (CEP: ${cand.cep})</p>
+        ${cand.curriculo_path ? `<button onclick="abrirCurriculo('${cand.curriculo_path}')" style="background:#0F766E; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold; margin-bottom:15px;">📄 Ver currículo</button>` : ""}
         <div style="display: flex; gap: 15px;">
           <button onclick='aprovarCandidato("${cand.cpf}")' style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ CADASTRAR (Aprovar e Enviar Whats)</button>
           <button onclick="recusarCandidato('${cand.cpf}')" style="background: #d9534f; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">❌ RECUSAR (Apagar e Enviar Whats)</button>
@@ -4903,4 +4947,17 @@ window.carregarHistoricoFinanceiroAdmin = async function (filtros = {}) {
       </div>
     `;
   });
+};
+
+window.abrirCurriculo = async function (caminho) {
+  const { data, error } = await supabaseClient
+    .storage.from("curriculos")
+    .createSignedUrl(caminho, 60); // link válido por 60 segundos
+
+  if (error) {
+    alert("Não foi possível abrir o currículo.");
+    console.error(error);
+    return;
+  }
+  window.open(data.signedUrl, "_blank");
 };
