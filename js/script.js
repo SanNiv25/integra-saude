@@ -2007,6 +2007,9 @@ if (formTrabalheConosco) {
       bairro: document.getElementById("candBairro").value,
       cidade: document.getElementById("candCidade").value,
       uf: document.getElementById("candUf").value,
+      atende_online: document.querySelector('input[name="atendeOnline"]:checked')?.value === "Sim",
+      como_conheceu: [...document.querySelectorAll('input[name="comoConheceu"]:checked')]
+        .map(i => i.value).join(", ") || null,
       curriculo_path: caminhoCurriculo
     };
 

@@ -11,9 +11,8 @@
 
 <body>
 
-  <!-- CABEÇALHO PADRÃO ATUALIZADO -->
+  <!-- CABEÇALHO PADRÃO -->
   <header class="header-site">
-    <!-- Logo, Barrinha vertical e Slogan duplo -->
     <div class="header-logo-area">
       <img src="img/logo.png" alt="Ícone Integra Saúde" class="icone">
       <img src="img/LogoIntegraTexto.jpg" alt="Integra Saúde" class="texto">
@@ -24,12 +23,10 @@
       </div>
     </div>
 
-    <!-- Grupo à direita: Links de navegação e botão de destaque -->
     <div class="header-right-group">
       <ul class="header-nav">
         <li><a href="index.html">Home</a></li>
         <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
-        <!-- Adicione os demais links para as outras páginas aqui, se necessário -->
         <li><a href="profissionais.html">Profissionais</a></li>
         <li><a href="contato.html">Contato</a></li>
         <li><a href="area-paciente.html">Área do paciente</a></li>
@@ -40,143 +37,304 @@
     </div>
   </header>
 
-  <!-- SEÇÃO DO FORMULÁRIO -->
-  <section class="trabalhe-section">
-    <div class="trabalhe-container">
-      <h2>Trabalhe Conosco</h2>
-      <p class="trabalhe-subtitle">Preencha sua ficha abaixo. Nossa equipe avaliará seu perfil e entrará em contato.</p>
+  <!-- SEÇÃO PRINCIPAL (BANNER / HERO) -->
+  <section class="hero-section">
+    <img src="img/fundo2.jpg" alt="Fundo Consultório" class="hero-bg-img">
+    <div class="hero-container">
+      <div class="hero-content">
+        <span class="hero-tag">Profissional da Saúde,</span>
+        <h1 class="hero-title">Seu trabalho e cuidado podem chegar mais longe com a Integra Saúde.</h1>
+        <p class="hero-subtitle">Faça parte da Integra Saúde, uma plataforma que conecta profissionais e
+          pacientes por meio do atendimento online.</p>
 
-      <form id="formTrabalheConosco">
-
-        <!-- DADOS PESSOAIS -->
-        <div class="form-section-title">Dados Pessoais</div>
-
-        <div class="form-group-custom">
-          <label>Nome completo *</label>
-          <input type="text" id="candNome" placeholder="Digite seu nome completo" required>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group-custom">
-            <label>CPF *</label>
-            <input type="text" id="candCpf" maxlength="14" placeholder="000.000.000-00" required>
-          </div>
-          <div class="form-group-custom">
-            <label>Data de nascimento *</label>
-            <input type="date" id="candNascimento" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group-custom">
-            <label>Telefone / WhatsApp *</label>
-            <input type="tel" id="candTelefone" placeholder="(00) 00000-0000" required>
-          </div>
-          <div class="form-group-custom">
-            <label>E-mail *</label>
-            <input type="email" id="candEmail" placeholder="Digite seu e-mail" required>
-          </div>
-        </div>
-
-        <!-- ENDEREÇO -->
-        <div class="form-section-title">Endereço</div>
-
-        <div class="form-row">
-          <div class="form-group-custom" style="flex: 1;">
-            <label>CEP *</label>
-            <input type="text" id="candCep" maxlength="9" placeholder="00000-000" required>
-          </div>
-          <div class="form-group-custom" style="flex: 2;">
-            <label>Rua / Logradouro *</label>
-            <input type="text" id="candRua" placeholder="Nome da rua" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group-custom" style="flex: 1;">
-            <label>Número *</label>
-            <input type="text" id="candNumero" placeholder="Número" required>
-          </div>
-          <div class="form-group-custom" style="flex: 2;">
-            <label>Complemento</label>
-            <input type="text" id="candComplemento" placeholder="Apto, Bloco, etc.">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group-custom">
-            <label for="candBairro">Bairro *</label>
-            <input type="text" id="candBairro" placeholder="Bairro" required>
-          </div>
-
-          <div class="form-group-custom">
-            <label for="candCidade">Cidade *</label>
-            <input type="text" id="candCidade" placeholder="Cidade" required>
-          </div>
-
-          <div class="form-group-custom">
-            <label for="candUf">UF *</label>
-            <input type="text" id="candUf" placeholder="UF" maxlength="2" required>
-          </div>
-        </div>
-
-        <!-- REGISTRO PROFISSIONAL -->
-        <div class="form-section-title">Registro Profissional</div>
-
-        <div class="form-row">
-          <div class="form-group-custom" style="flex: 2;">
-            <label>Profissão / Especialidade *</label>
-            <select id="candProfissao" required>
-              <option value="" disabled selected>Selecione sua especialidade</option>
-              <option value="Psicologia">Psicologia</option>
-              <option value="Nutrição">Nutrição</option>
-              <option value="Fonoaudiologia">Fonoaudiologia</option>
-            </select>
-          </div>
-          <div class="form-group-custom" style="flex: 2;">
-            <label>Nº Registro (CRP/CRN/CRFa) *</label>
-            <input type="text" id="candRegistro" placeholder="Número do registro" required>
-          </div>
-          <div class="form-group-custom" style="flex: 1;">
-            <label>UF Reg. *</label>
-            <input type="text" id="candEstado" maxlength="2" placeholder="UF" required>
-          </div>
-        </div>
-
-        <!-- EXPERIÊNCIA -->
-        <div class="form-section-title">Experiência Profissional</div>
-
-        <div class="form-row">
-          <div class="form-group-custom">
-            <label>Anos de experiência *</label>
-            <input type="number" id="candExp" min="0" placeholder="Ex: 3" required>
-          </div>
-          <div class="form-group-custom">
-            <label>Público atendido *</label>
-            <input type="text" id="candPublico" placeholder="Ex: Adultos, Crianças, Casais" required>
-          </div>
-        </div>
-
-        <div class="form-group-custom">
-          <label>Principais áreas de atuação *</label>
-          <input type="text" id="candAtuacao" placeholder="Ex: Terapia Cognitivo-Comportamental, Ansiedade..." required>
-        </div>
-
-        <div class="form-section-title">Currículo</div>
-        <div class="form-group-custom">
-          <label for="candCurriculo">Anexe seu currículo (PDF) *</label>
-          <input type="file" id="candCurriculo" accept="application/pdf,.pdf" required>
-          <small class="file-hint">Apenas arquivos PDF, até 5 MB.</small>
-        </div>
-
-        <button type="submit" class="btn-enviar-ficha">Enviar Ficha para Avaliação →</button>
-      </form>
-
-      <div id="msgSucessoTrabalhe"
-        style="display: none; background-color: #d4edda; color: #155724; padding: 25px; border-radius: 8px; margin-top: 20px; text-align: center; border: 1px solid #c3e6cb;">
-        <h3 style="margin-bottom: 10px;">Ficha enviada com sucesso!</h3>
-        <p>O seu formulário será analisado pela nossa equipe. Entraremos em contato em breve pelo WhatsApp.</p>
+        <a href="#cadastro" class="btn-quero-profissional">
+          Quero ser profissional <span>→</span>
+        </a>
       </div>
+    </div>
+  </section>
+
+  <!-- SEÇÃO DE DIFERENCIAIS -->
+  <section class="features-bar-section">
+    <div class="features-bar-container">
+      <div class="feat-card">
+        <img src="img/atendimento.png" alt="Atendimento Online">
+        <h4>Atendimento online</h4>
+        <p>Atue de onde estiver,<br>com toda a segurança.</p>
+      </div>
+      <div class="feat-divider"></div>
+      <div class="feat-card">
+        <img src="img/brasil.png" alt="Pacientes de todo o Brasil">
+        <h4>Pacientes de todo o Brasil</h4>
+        <p>Amplie seu alcance e ajude<br>pacientes em crescimento.</p>
+      </div>
+      <div class="feat-divider"></div>
+      <div class="feat-card">
+        <img src="img/grupo.png" alt="Plataforma Integrada">
+        <h4>Plataforma integrada</h4>
+        <p>Mais praticidade, segurança<br>e suporte para o seu dia a dia.</p>
+      </div>
+      <div class="feat-divider"></div>
+      <div class="feat-card">
+        <img src="img/seguranca.png" alt="Profissionais Qualificados">
+        <h4>Profissionais qualificados</h4>
+        <p>Juntos por um cuidado<br>mais completo e humano.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEÇÃO DE ESPECIALIDADES -->
+  <section class="specialties-section">
+    <div class="specialties-container">
+      <div class="specialty-left">
+        <span class="spec-label">ESPECIALIDADES</span>
+        <h3>Nas áreas de<br>Psicologia, Nutrição e<br>Fonoaudiologia.</h3>
+      </div>
+
+      <div class="specialty-right">
+        <div class="spec-item">
+          <div class="spec-icon-circle">
+            <img src="img/psicologia2.png" alt="Psicologia">
+          </div>
+          <h4>Psicologia</h4>
+        </div>
+
+        <div class="spec-item">
+          <div class="spec-icon-circle">
+            <img src="img/nutri.png" alt="Nutrição">
+          </div>
+          <h4>Nutrição</h4>
+        </div>
+
+        <div class="spec-item">
+          <div class="spec-icon-circle">
+            <img src="img/fono.png" alt="Fonoaudiologia">
+          </div>
+          <h4>Fonoaudiologia</h4>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEÇÃO COMO FUNCIONA + FORMULÁRIO -->
+  <section class="como-funciona-section" id="cadastro">
+    <div class="como-funciona-container">
+
+      <!-- Bloco esquerdo: passo a passo (4 passos) -->
+      <div class="como-funciona-left">
+        <span class="funciona-label">COMO FUNCIONA?</span>
+        <h2>É simples fazer parte da Integra Saúde.</h2>
+        <p class="funciona-desc">Em poucos passos, você se cadastra e começa a atender pacientes online.</p>
+
+        <div class="passos-lista">
+          <div class="passo-item">
+            <span class="passo-numero">1</span>
+            <div class="passo-texto">
+              <strong>Cadastre seu interesse</strong>
+              <span>Preencha o formulário ao lado.</span>
+            </div>
+          </div>
+
+          <div class="passo-item">
+            <span class="passo-numero">2</span>
+            <div class="passo-texto">
+              <strong>Envie seus dados profissionais</strong>
+              <span>Dados de formação e especialidade.</span>
+            </div>
+          </div>
+
+          <div class="passo-item">
+            <span class="passo-numero">3</span>
+            <div class="passo-texto">
+              <strong>Nossa equipe entra em contato</strong>
+              <span>Vamos analisar seu perfil e dar o próximo passo.</span>
+            </div>
+          </div>
+
+          <div class="passo-item">
+            <span class="passo-numero">4</span>
+            <div class="passo-texto">
+              <strong>Após aprovação</strong>
+              <span>Você poderá integrar nossa rede e começar a atender.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloco direito: formulário completo com rolagem -->
+      <div class="como-funciona-right">
+        <div class="form-card">
+          <h3>Cadastre seu interesse</h3>
+          <p class="form-subtitle">Preencha sua ficha abaixo. Nossa equipe avaliará seu perfil e entrará em contato em
+            breve.</p>
+
+          <form id="formTrabalheConosco">
+
+            <!-- ÁREA COM BARRA DE ROLAGEM -->
+            <div class="form-scroll">
+
+              <!-- DADOS PESSOAIS -->
+              <div class="form-section-title">Dados Pessoais</div>
+
+              <div class="form-group-custom">
+                <label>Nome completo *</label>
+                <input type="text" id="candNome" placeholder="Digite seu nome completo" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label>CPF *</label>
+                  <input type="text" id="candCpf" maxlength="14" placeholder="000.000.000-00" required>
+                </div>
+                <div class="form-group-custom">
+                  <label>Data de nascimento *</label>
+                  <input type="date" id="candNascimento" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label>Telefone / WhatsApp *</label>
+                  <input type="tel" id="candTelefone" placeholder="(00) 00000-0000" required>
+                </div>
+                <div class="form-group-custom">
+                  <label>E-mail *</label>
+                  <input type="email" id="candEmail" placeholder="Digite seu e-mail" required>
+                </div>
+              </div>
+
+              <!-- ENDEREÇO -->
+              <div class="form-section-title">Endereço</div>
+
+              <div class="form-row">
+                <div class="form-group-custom" style="flex: 1;">
+                  <label>CEP *</label>
+                  <input type="text" id="candCep" maxlength="9" placeholder="00000-000" required>
+                </div>
+                <div class="form-group-custom" style="flex: 2;">
+                  <label>Rua / Logradouro *</label>
+                  <input type="text" id="candRua" placeholder="Nome da rua" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom" style="flex: 1;">
+                  <label>Número *</label>
+                  <input type="text" id="candNumero" placeholder="Número" required>
+                </div>
+                <div class="form-group-custom" style="flex: 2;">
+                  <label>Complemento</label>
+                  <input type="text" id="candComplemento" placeholder="Apto, Bloco, etc.">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label for="candBairro">Bairro *</label>
+                  <input type="text" id="candBairro" placeholder="Bairro" required>
+                </div>
+
+                <div class="form-group-custom">
+                  <label for="candCidade">Cidade *</label>
+                  <input type="text" id="candCidade" placeholder="Cidade" required>
+                </div>
+
+                <div class="form-group-custom" style="flex: 0.6;">
+                  <label for="candUf">UF *</label>
+                  <input type="text" id="candUf" placeholder="UF" maxlength="2" required>
+                </div>
+              </div>
+
+              <!-- REGISTRO PROFISSIONAL -->
+              <div class="form-section-title">Registro Profissional</div>
+
+              <div class="form-group-custom">
+                <label>Profissão / Especialidade *</label>
+                <select id="candProfissao" required>
+                  <option value="" disabled selected>Selecione sua especialidade</option>
+                  <option value="Psicologia">Psicologia</option>
+                  <option value="Nutrição">Nutrição</option>
+                  <option value="Fonoaudiologia">Fonoaudiologia</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom" style="flex: 2;">
+                  <label>Nº Registro (CRP/CRN/CRFa) *</label>
+                  <input type="text" id="candRegistro" placeholder="Número do registro" required>
+                </div>
+                <div class="form-group-custom" style="flex: 1;">
+                  <label>UF Reg. *</label>
+                  <input type="text" id="candEstado" maxlength="2" placeholder="UF" required>
+                </div>
+              </div>
+
+              <!-- EXPERIÊNCIA -->
+              <div class="form-section-title">Experiência Profissional</div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label>Anos de experiência *</label>
+                  <input type="number" id="candExp" min="0" placeholder="Ex: 3" required>
+                </div>
+                <div class="form-group-custom">
+                  <label>Público atendido *</label>
+                  <input type="text" id="candPublico" placeholder="Ex: Adultos, Crianças, Casais" required>
+                </div>
+              </div>
+
+              <div class="form-group-custom">
+                <label>Principais áreas de atuação *</label>
+                <input type="text" id="candAtuacao" placeholder="Ex: Terapia Cognitivo-Comportamental, Ansiedade..."
+                  required>
+              </div>
+
+              <!-- Perguntas novas -->
+              <div class="form-question">
+                <span class="form-question-label">Você já atende online? *</span>
+                <div class="opcoes-linha">
+                  <label><input type="radio" name="atendeOnline" value="Sim" required> Sim</label>
+                  <label><input type="radio" name="atendeOnline" value="Não"> Não</label>
+                </div>
+              </div>
+
+              <div class="form-question">
+                <span class="form-question-label">Como conheceu a Integra Saúde?</span>
+                <div class="opcoes-linha">
+                  <label><input type="checkbox" name="comoConheceu" value="Instagram"> Instagram</label>
+                  <label><input type="checkbox" name="comoConheceu" value="Indicação"> Indicação</label>
+                </div>
+              </div>
+
+              <div class="form-question form-aceite">
+                <label>
+                  <input type="checkbox" id="candAceitePolitica" required>
+                  <span>Li e concordo com a <a href="termos.html" target="_blank">Política de Privacidade</a>.</span>
+                </label>
+              </div>
+
+              <!-- CURRÍCULO -->
+              <div class="form-section-title">Currículo</div>
+              <div class="form-group-custom">
+                <label for="candCurriculo">Anexe seu currículo (PDF) *</label>
+                <input type="file" id="candCurriculo" accept="application/pdf,.pdf" required>
+                <small class="file-hint">Apenas arquivos PDF, até 5 MB.</small>
+              </div>
+
+            </div>
+            <!-- FIM DA ÁREA COM ROLAGEM -->
+
+            <button type="submit" class="btn-enviar-interesse">Enviar Ficha para Avaliação →</button>
+          </form>
+
+          <div id="msgSucessoTrabalhe"
+            style="display: none; background-color: #d4edda; color: #155724; padding: 25px; border-radius: 8px; margin-top: 20px; text-align: center; border: 1px solid #c3e6cb;">
+            <h3 style="margin-bottom: 10px;">Ficha enviada com sucesso!</h3>
+            <p>O seu formulário será analisado pela nossa equipe. Entraremos em contato em breve pelo WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 

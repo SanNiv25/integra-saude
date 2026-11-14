@@ -2117,3 +2117,507 @@ body {
     justify-content: center;
   }
 }
+
+/* =====================================================
+   🔹 TRABALHE CONOSCO — CORPO DA LANDING + FORMULÁRIO ROLÁVEL
+   (cole no FINAL do style.css)
+===================================================== */
+
+/* ---------- HERO ---------- */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  padding: 65px 5%;
+  min-height: 450px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  z-index: 1;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      rgba(234, 242, 236, 0.95) 0%,
+      rgba(234, 242, 236, 0.85) 40%,
+      rgba(234, 242, 236, 0) 70%);
+  z-index: 2;
+}
+
+.hero-container {
+  position: relative;
+  z-index: 3;
+  max-width: 650px;
+  width: 100%;
+}
+
+.hero-content {
+  flex: 1;
+  min-width: 320px;
+}
+
+.hero-tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f766e;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.hero-title {
+  font-size: 38px;
+  color: #0b2f3a;
+  line-height: 1.2;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  font-size: 15px;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.btn-quero-profissional {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #0f766e;
+  color: white;
+  padding: 14px 28px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  box-shadow: 0 4px 15px rgba(15, 118, 110, 0.25);
+  transition: background 0.2s;
+}
+
+.btn-quero-profissional:hover {
+  background-color: #0b5c54;
+}
+
+/* ---------- DIFERENCIAIS ---------- */
+.features-bar-section {
+  background-color: #ffffff;
+  padding: 40px 5%;
+  display: flex;
+  justify-content: center;
+}
+
+.features-bar-container {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 30px 20px;
+}
+
+.feat-card {
+  text-align: center;
+  flex: 1;
+  padding: 0 10px;
+}
+
+.feat-card img {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 12px;
+  object-fit: contain;
+}
+
+.feat-card h4 {
+  font-size: 15px;
+  color: #0b2f3a;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.feat-card p {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.feat-divider {
+  width: 1px;
+  height: 60px;
+  background-color: #e2e8f0;
+}
+
+/* ---------- ESPECIALIDADES ---------- */
+.specialties-section {
+  background-color: #eaf2ec;
+  padding: 50px 5%;
+  display: flex;
+  justify-content: center;
+}
+
+.specialties-container {
+  max-width: 1200px;
+  width: 100%;
+  background: #d8e8dc;
+  border-radius: 20px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.specialty-left {
+  flex: 0.35;
+}
+
+.spec-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f766e;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.specialty-left h3 {
+  font-size: 24px;
+  color: #0b2f3a;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.specialty-right {
+  flex: 0.65;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 30px 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+.spec-item {
+  text-align: center;
+  flex: 1;
+  padding: 0 10px;
+}
+
+.spec-icon-circle {
+  width: 65px;
+  height: 65px;
+  background-color: #d1e7d6;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 12px auto;
+}
+
+.spec-icon-circle img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* Título maior (era 14px) — o texto de baixo foi removido do HTML */
+.spec-item h4 {
+  font-size: 20px;
+  color: #0b2f3a;
+  font-weight: 700;
+}
+
+/* ---------- COMO FUNCIONA + FORMULÁRIO ---------- */
+.como-funciona-section {
+  background-color: #ffffff;
+  padding: 70px 5%;
+  display: flex;
+  justify-content: center;
+}
+
+.como-funciona-container {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 50px;
+  flex-wrap: wrap;
+}
+
+/* Duas colunas de larguras iguais: o formulário ocupa a metade direita */
+.como-funciona-left {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.como-funciona-right {
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.funciona-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f766e;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* max-width força a quebra de linha, para o texto não passar por baixo do formulário */
+.como-funciona-left h2 {
+  font-size: 32px;
+  color: #0b2f3a;
+  line-height: 1.2;
+  margin-bottom: 15px;
+  font-weight: 700;
+  max-width: 420px;
+}
+
+.funciona-desc {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 30px;
+  max-width: 420px;
+}
+
+.passos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.passo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.passo-numero {
+  width: 28px;
+  height: 28px;
+  background-color: #0f766e;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.passo-texto {
+  display: flex;
+  flex-direction: column;
+}
+
+.passo-texto strong {
+  font-size: 14px;
+  color: #0b2f3a;
+  font-weight: 700;
+}
+
+.passo-texto span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Cartão do formulário */
+.form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 35px;
+}
+
+.form-card h3 {
+  font-size: 22px;
+  color: #0b2f3a;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.form-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+/* ÁREA COM BARRA DE ROLAGEM
+   Para deixar o campo mais alto ou mais baixo, mude só o max-height */
+.form-scroll {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 14px;
+  margin-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #0f766e #e2e8f0;
+}
+
+.form-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.form-scroll::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.form-scroll::-webkit-scrollbar-thumb {
+  background: #0f766e;
+  border-radius: 10px;
+}
+
+/* Ajustes dos campos para caberem na metade da tela */
+.form-scroll .form-section-title:first-child {
+  margin-top: 0;
+}
+
+.form-scroll .form-row {
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.form-scroll .form-group-custom {
+  min-width: 0;
+  margin-bottom: 14px;
+}
+
+.form-scroll .form-group-custom label {
+  font-size: 12px;
+}
+
+.form-scroll .form-group-custom input,
+.form-scroll .form-group-custom select {
+  width: 100%;
+  min-width: 0;
+  font-size: 13px;
+  padding: 11px 12px;
+}
+
+/* Perguntas novas: Sim/Não, Instagram/Indicação e aceite */
+.form-question {
+  margin-bottom: 18px;
+}
+
+.form-question-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
+
+.opcoes-linha {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.opcoes-linha label,
+.form-aceite label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #4a5568;
+  cursor: pointer;
+}
+
+.opcoes-linha input,
+.form-aceite input {
+  width: 16px;
+  height: 16px;
+  accent-color: #0f766e;
+  cursor: pointer;
+}
+
+.form-aceite label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.form-aceite a {
+  color: #0f766e;
+  text-decoration: underline;
+}
+
+/* Botão de envio (fica fora da rolagem) */
+.btn-enviar-interesse {
+  width: 100%;
+  background-color: #0f766e;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+  margin-top: 10px;
+}
+
+.btn-enviar-interesse:hover {
+  background-color: #0b5c54;
+}
+
+/* ---------- CELULAR ---------- */
+@media (max-width: 900px) {
+  .features-bar-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .feat-divider {
+    display: none;
+  }
+
+  .specialties-container {
+    flex-direction: column;
+    padding: 25px;
+  }
+
+  .specialty-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .form-card {
+    padding: 22px;
+  }
+
+  .form-scroll {
+    max-height: 480px;
+  }
+}
