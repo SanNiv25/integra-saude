@@ -2296,6 +2296,7 @@ body {
 }
 
 .specialty-left h3 {
+  margin-top: 8px;
   font-size: 24px;
   color: #0b2f3a;
   line-height: 1.3;
