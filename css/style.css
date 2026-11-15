@@ -2287,16 +2287,16 @@ body {
 }
 
 .spec-label {
-  font-size: 28px;
+  font-size: 12px;
   font-weight: 700;
-  color: #000000;
-  letter-spacing: 1px;
+  color: #0f766e;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   display: block;
 }
 
 .specialty-left h3 {
-  margin-top: 8px;
+  margin-top: 14px;
   font-size: 24px;
   color: #0b2f3a;
   line-height: 1.3;
