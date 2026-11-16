@@ -1668,8 +1668,10 @@ body {
 }
 
 /* Botão de Destaque "Entrar em contato" */
+/* Botão "Área do paciente" */
 .btn-entrar-contato {
-  background-color: #0f766e;
+  background-color: #0aa56d;
+  /* Cor principal solicitada */
   color: white;
   padding: 12px 26px;
   border-radius: 30px;
@@ -1677,12 +1679,14 @@ body {
   font-size: 14px;
   font-weight: 600;
   transition: background 0.2s;
-  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 4px 10px rgba(10, 165, 109, 0.25);
+  /* Sombra adaptada para o novo verde */
   display: inline-block;
 }
 
 .btn-entrar-contato:hover {
-  background-color: #0b5c54;
+  background-color: #08895c;
+  /* Tom um pouco mais escuro para quando passar o mouse */
 }
 
 /* Responsividade para telas menores */
@@ -2753,16 +2757,16 @@ html {
 /* frase manuscrita no canto superior direito */
 .home-hero-tagline {
   position: absolute;
-  top: 12%;
+  top: 35%;
   /* mantém a mesma altura */
-  left: 56%;
+  left: 60%;
   /* NOVO: posição entre o título e a foto */
   right: auto;
   /* NOVO: no lugar de "right: 4%" */
   z-index: 2;
-  font-family: 'Caveat', cursive;
+  font-family: 'Nothing You Could Do', cursive;
+  font-weight: 400;
   font-size: clamp(1.4rem, 2.5vw, 2.2rem);
-  font-weight: 700;
   line-height: 1.05;
   text-align: right;
   color: #0e7a49;
@@ -2939,11 +2943,9 @@ html {
   .home-hero-tagline {
     top: auto;
     bottom: 160px;
-    left: auto;
-    /* NOVO */
-    right: 6%;
-    transform: rotate(-12deg);
-    /* NOVO */
+    left: 40%;
+    right: auto;
+    transform: translateX(-50%) rotate(-12deg);
   }
 
   .home-cards {
