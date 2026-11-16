@@ -7,6 +7,7 @@
     <title>Integra Saúde</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -29,58 +30,64 @@
                 <li><a href="conheca.html">Conheça a Integra Saúde</a></li>
                 <li><a href="profissionais.html">Profissionais</a></li>
                 <li><a href="contato.html">Contato</a></li>
-                <li><a href="area-paciente.html">Área do paciente</a></li>
+                <li><a href="area-profissional.html">Área do profissional</a></li>
             </ul>
+
+            <a href="area-paciente.html" class="btn-entrar-contato">Área do paciente</a>
         </div>
     </header>
 
     <!-- HERO -->
-    <section class="hero">
-        <div class="container hero-content">
-            <div class="hero-text">
+    <section class="home-hero">
+        <div class="home-wrap">
+            <div class="home-hero-text">
                 <h1>Plataforma Online<br>de Saúde Digital</h1>
                 <p>Psicologia, Fonoaudiologia e<br>Nutrição em um só lugar.</p>
 
-                <a href="#agendar" class="btn-primary">
+                <a href="#agendar" class="home-btn-hero">
                     Agendar Consulta
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14M13 6l6 6-6 6" />
+                    </svg>
                 </a>
             </div>
         </div>
+
+        <img src="img/fundo.png" alt="Profissional de saúde sorrindo ao lado de um notebook" class="home-hero-photo"
+            onerror="this.style.display='none'">
+
+        <p class="home-hero-tagline">Juntos por<br>mais saúde<br>e bem-estar!</p>
     </section>
 
     <!-- ESPECIALIDADES -->
-    <section id="agendar" class="especialidades">
-        <div class="container">
+    <section id="agendar" class="home-spec">
+        <div class="home-wrap">
             <h2>Especialidades</h2>
+            <span class="home-divider" aria-hidden="true"></span>
 
-            <div class="cards">
+            <div class="home-cards">
 
-                <div class="card">
-                    <img src="img/psicologia.png" alt="Psicologia" class="card-icon">
-                    <h3 class="titulo-psicologia">Psicologia</h3>
-                    <p>Cuidado emocional<br>e saúde mental.</p>
-                    <a href="profissionais.html?esp=psicologia" class="btn-secondary">
-                        Agendar
-                    </a>
-                </div>
+                <article class="home-card">
+                    <span class="home-card-icon"><img src="img/psicologia.png" alt=""></span>
+                    <h3>Psicologia</h3>
+                    <p>Atendimento para saúde mental e bem-estar emocional.</p>
+                    <a href="profissionais.html?esp=psicologia" class="home-btn-card">Agendar</a>
+                </article>
 
-                <div class="card">
-                    <img src="img/nutricao.png" alt="Nutrição" class="card-icon">
-                    <h3 class="titulo-nutricao">Nutrição</h3>
-                    <p>Plano alimentar personalizado.</p>
-                    <a href="profissionais.html?esp=nutricao" class="btn-secondary">
-                        Agendar
-                    </a>
-                </div>
+                <article class="home-card">
+                    <span class="home-card-icon"><img src="img/nutricao.png" alt=""></span>
+                    <h3>Nutrição</h3>
+                    <p>Plano alimentar personalizado para seus objetivos.</p>
+                    <a href="profissionais.html?esp=nutricao" class="home-btn-card">Agendar</a>
+                </article>
 
-                <div class="card">
-                    <img src="img/fonoaudiologo.png" alt="Fonoaudiologia" class="card-icon">
-                    <h3 class="titulo-fonoaudiologia">Fonoaudiologia</h3>
-                    <p>Desenvolvimento da<br>fala e comunicação.</p>
-                    <a href="profissionais.html?esp=fono" class="btn-secondary">
-                        Agendar
-                    </a>
-                </div>
+                <article class="home-card">
+                    <span class="home-card-icon"><img src="img/fonoaudiologo.png" alt=""></span>
+                    <h3>Fonoaudiologia</h3>
+                    <p>Terapia para comunicação, fala e deglutição.</p>
+                    <a href="profissionais.html?esp=fono" class="home-btn-card">Agendar</a>
+                </article>
 
             </div>
         </div>
