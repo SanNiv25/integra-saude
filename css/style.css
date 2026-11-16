@@ -2754,7 +2754,11 @@ html {
 .home-hero-tagline {
   position: absolute;
   top: 12%;
-  right: 4%;
+  /* mantém a mesma altura */
+  left: 56%;
+  /* NOVO: posição entre o título e a foto */
+  right: auto;
+  /* NOVO: no lugar de "right: 4%" */
   z-index: 2;
   font-family: 'Caveat', cursive;
   font-size: clamp(1.4rem, 2.5vw, 2.2rem);
@@ -2762,7 +2766,8 @@ html {
   line-height: 1.05;
   text-align: right;
   color: #0e7a49;
-  transform: rotate(-12deg);
+  transform: translateX(-50%) rotate(-12deg);
+  /* NOVO: translateX(-50%) centraliza no ponto de 56% */
 }
 
 .home-hero-tagline::after {
@@ -2934,7 +2939,11 @@ html {
   .home-hero-tagline {
     top: auto;
     bottom: 160px;
+    left: auto;
+    /* NOVO */
     right: 6%;
+    transform: rotate(-12deg);
+    /* NOVO */
   }
 
   .home-cards {
