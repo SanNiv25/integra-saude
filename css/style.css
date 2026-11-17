@@ -3031,9 +3031,9 @@ html {
 .conheca-hero-subtitulo::after {
   content: "";
   display: block;
-  width: 65px;
-  height: 3px;
-  background-color: #16a085;
+  width: 75px;
+  height: 2px;
+  background-color: #0aa56d;
   border-radius: 3px;
   margin: 16px 0 18px 0;
 }
