@@ -3081,3 +3081,158 @@ html {
     mask-image: linear-gradient(to top, #000 72%, transparent 100%);
   }
 }
+
+/* =====================================================
+   CONHEÇA A INTEGRA SAÚDE - NOSSA HISTÓRIA E PILARES
+===================================================== */
+.conheca-institucional {
+  position: relative;
+  overflow: hidden;
+  background-color: #ffffff;
+  padding: 70px 0 60px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Curva decorativa suave à direita (igual à referência) */
+.conheca-institucional::after {
+  content: "";
+  position: absolute;
+  right: -140px;
+  top: 20px;
+  width: 380px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 241, 220, 0.55) 0%, rgba(255, 255, 255, 0) 72%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---------- NOSSA HISTÓRIA (CENTRALIZADO) ---------- */
+.conheca-historia {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto 65px auto;
+  text-align: center;
+}
+
+.conheca-historia h2 {
+  font-size: clamp(1.85rem, 2.8vw, 2.3rem);
+  font-weight: 700;
+  color: #064e3b;
+  margin-bottom: 0;
+}
+
+/* Linha verde centralizada abaixo de "Nossa História" */
+.conheca-historia h2::after {
+  content: "";
+  display: block;
+  width: 65px;
+  height: 3px;
+  background-color: #16a085;
+  border-radius: 3px;
+  margin: 14px auto 24px auto;
+}
+
+.conheca-historia p {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #3b5249;
+  margin-bottom: 18px;
+}
+
+.conheca-historia p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- 3 TÓPICOS (MISSÃO, VISÃO E VALORES) ---------- */
+.conheca-pilares {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+}
+
+.conheca-pilar-card {
+  text-align: center;
+  padding: 10px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+/* Linha vertical divisória entre as colunas */
+.conheca-pilar-card:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 12%;
+  height: 76%;
+  width: 1px;
+  background-color: #6ee7b7;
+}
+
+/* Círculo verde claro atrás dos ícones */
+.conheca-pilar-icon {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background-color: #dcf6e1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.conheca-pilar-icon img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.conheca-pilar-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #064e3b;
+  margin-bottom: 12px;
+}
+
+.conheca-pilar-card p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #4a6359;
+  max-width: 300px;
+}
+
+/* ---------- RESPONSIVIDADE (CELULAR / TABLET) ---------- */
+@media (max-width: 900px) {
+  .conheca-institucional {
+    padding: 50px 0 40px;
+  }
+
+  .conheca-historia {
+    margin-bottom: 45px;
+    padding: 0 10px;
+  }
+
+  .conheca-pilares {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+
+  .conheca-pilar-card {
+    padding: 0 15px 30px;
+  }
+
+  /* No celular, a divisória vira uma linha horizontal suave */
+  .conheca-pilar-card:not(:last-child)::after {
+    right: auto;
+    left: 25%;
+    top: auto;
+    bottom: 0;
+    width: 50%;
+    height: 1px;
+  }
+}
