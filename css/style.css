@@ -3024,7 +3024,18 @@ html {
   font-weight: 700;
   line-height: 1.35;
   color: var(--conheca-green);
-  margin-bottom: 22px;
+  margin-bottom: 0;
+}
+
+/* Linha divisória abaixo do subtítulo */
+.conheca-hero-subtitulo::after {
+  content: "";
+  display: block;
+  width: 65px;
+  height: 3px;
+  background-color: #16a085;
+  border-radius: 3px;
+  margin: 16px 0 18px 0;
 }
 
 .conheca-hero-desc {
