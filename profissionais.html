@@ -36,33 +36,29 @@
         </div>
     </header>
 
-    <section class="hero3">
-        <div class="container hero-content">
-            <div class="hero-text3">
-                <h1>A Integra Saúde conecta você a<br>profissionais de diferentes áreas da saúde.</h1>
-                <p>Profissionais habilitados e comprometidos com um atendimento ético, seguro e centrado em você.</p>
-
+    <section class="pf-hero">
+        <img src="img/fundo-profissional.jpg" alt="" class="pf-hero-photo">
+        <div class="pf-wrap">
+            <div class="pf-hero-text">
+                <span class="pf-hero-bar"></span>
+                <h1>Profissionais</h1>
+                <p class="pf-hero-sub">Conectando você a especialistas comprometidos<br>com a sua saúde.</p>
+                <p class="pf-hero-desc">Contamos com uma equipe de profissionais qualificados, preparados para oferecer
+                    um atendimento humanizado, seguro e eficiente.</p>
             </div>
         </div>
     </section>
 
-    <section class="profissionais-section">
-        <div class="container">
-
-            <div class="filtros">
-                <button class="filtro-btn" onclick="mostrarEspecialidade('psicologia', this)">Psicologia</button>
-                <button class="filtro-btn" onclick="mostrarEspecialidade('nutricao', this)">Nutrição</button>
-                <button class="filtro-btn" onclick="mostrarEspecialidade('fono', this)">Fonoaudiologia</button>
-            </div>
-            <div class="profissionais-grid" id="profissionaisContainer">
+    <section class="pf-vitrine">
+        <div class="pf-wrap">
+            <div class="pf-tabs">
+                <button class="pf-tab ativo" onclick="mostrarEspecialidade('psicologia', this)">Psicologia</button>
+                <button class="pf-tab" onclick="mostrarEspecialidade('nutricao', this)">Nutrição</button>
+                <button class="pf-tab" onclick="mostrarEspecialidade('fono', this)">Fonoaudiologia</button>
             </div>
 
-
-
+            <div class="pf-grid" id="profissionaisContainer"></div>
         </div>
-
-        </div>
-    </section>
     </section>
 
     <div id="agendaContainer" class="agenda-container">

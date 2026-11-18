@@ -772,10 +772,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
           // 👇 Se for Nutrição, esconde a linha do pacote 👇
           let htmlPacote = "";
-          if (!ehNutricao) {
-            htmlPacote = `<p class="pf-pacote"><strong>Pacote (4x):</strong> R$ ${precoPacote}</p>`;
-          } else if (is_pacote) {
-            // Se for pacote e o médico for nutricionista, avisa na vitrine!
+          if (is_pacote && ehNutricao) {
             htmlPacote = `<p class="pf-pacote pf-pacote--off">🚫 Indisponível para Pacotes</p>`;
           }
 
