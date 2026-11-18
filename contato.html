@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Integra Saúde</title>
+  <title>Integra Saúde - Contato</title>
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -36,40 +36,128 @@
     </div>
   </header>
 
-  <section class="contato-section">
-    <div class="container">
-      <h1>Entre em Contato</h1>
+  <!-- CORPO DA PÁGINA CONTATO -->
+  <main class="ct-page">
 
-      <form id="formContato" class="form-contato">
+    <!-- HERO BANNER -->
+    <section class="ct-hero">
+      <img src="img/fundo-contato.jpg" alt="Atendimento Integra Saúde" class="ct-hero-bg">
+      <div class="ct-wrap">
+        <div class="ct-hero-text">
+          <h1>Contato</h1>
+          <p class="ct-hero-sub">Estamos aqui para ajudar você.</p>
+          <p class="ct-hero-desc">Entre em contato conosco e tire suas dúvidas ou solicite mais informações.</p>
+        </div>
+      </div>
+    </section>
 
-        <div class="form-group">
-          <label for="nome">Nome</label>
-          <input type="text" id="nomeContato" name="nome" required>
+    <!-- ÁREA PRINCIPAL: FORMULÁRIO + MAPA DO BRASIL -->
+    <section class="ct-main">
+      <div class="ct-wrap ct-grid">
+
+        <!-- Card do Formulário (Esquerda) -->
+        <div class="ct-form-card">
+          <h2>Envie uma mensagem</h2>
+          <p class="ct-form-subtitle">Preencha o formulário abaixo e nossa equipe entrará em contato o mais breve
+            possível.</p>
+
+          <form id="formContato" class="ct-form">
+            <div class="ct-field">
+              <label for="nomeContato">Nome</label>
+              <input type="text" id="nomeContato" name="nome" placeholder="Digite seu nome completo" required>
+            </div>
+
+            <div class="ct-field">
+              <label for="telefoneContato">Telefone</label>
+              <input type="tel" id="telefoneContato" name="telefone" placeholder="(00) 00000-0000" maxlength="15"
+                required>
+            </div>
+
+            <div class="ct-field">
+              <label for="emailContato">E-mail</label>
+              <input type="email" id="emailContato" name="email" placeholder="Digite seu e-mail" required>
+            </div>
+
+            <div class="ct-field">
+              <label for="mensagemContato">Mensagem</label>
+              <textarea id="mensagemContato" name="mensagem" rows="4" placeholder="Escreva sua mensagem..."
+                required></textarea>
+            </div>
+
+            <button type="submit" id="btnEnviarContato" class="ct-btn-submit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+              <span>Enviar Mensagem</span>
+            </button>
+          </form>
         </div>
 
-        <div class="form-group">
-          <label for="telefone">Telefone</label>
-          <input type="tel" id="telefoneContato" name="telefone" required>
+        <!-- Coluna Direita: Mapa do Brasil + Card Atendimento -->
+        <div class="ct-info-col">
+          <div class="ct-mapa-wrapper">
+            <img src="img/bras.png" alt="Atendimento conectado em todo o Brasil" class="ct-mapa-img">
+          </div>
+
+          <!-- Card "Atendimento em todo o Brasil" -->
+          <div class="ct-brasil-card">
+            <div class="ct-brasil-icon">
+              <img src="img/atendimento.png" alt="Ícone de atendimento">
+            </div>
+            <div class="ct-brasil-text">
+              <h3>Atendimento em todo o Brasil</h3>
+              <p>Nossa equipe está preparada para atender você, onde estiver.</p>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="email">E-mail</label>
-          <input type="email" id="emailContato" name="email" required>
+      </div>
+    </section>
+
+    <!-- FAIXA INFERIOR: 3 PILARES -->
+    <section class="ct-pilares-section">
+      <div class="ct-wrap">
+        <div class="ct-pilares-box">
+
+          <div class="ct-pilar-item">
+            <div class="ct-pilar-icon">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#10a372" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <polyline points="9 12 11 14 15 10" />
+              </svg>
+            </div>
+            <h4>Segurança</h4>
+            <p>Seus dados protegidos<br>com total segurança.</p>
+          </div>
+
+          <div class="ct-pilar-divider"></div>
+
+          <div class="ct-pilar-item">
+            <div class="ct-pilar-icon">
+              <img src="img/coracao.png" alt="Cuidado em todas as etapas">
+            </div>
+            <h4>Cuidado em todas as etapas</h4>
+            <p>Do primeiro contato<br>ao seu bem-estar.</p>
+          </div>
+
+          <div class="ct-pilar-divider"></div>
+
+          <div class="ct-pilar-item">
+            <div class="ct-pilar-icon">
+              <img src="img/compromisso.png" alt="Compromisso">
+            </div>
+            <h4>Compromisso</h4>
+            <p>Sempre ao seu lado,<br>em todo o Brasil.</p>
+          </div>
+
         </div>
+      </div>
+    </section>
 
-        <div class="form-group">
-          <label for="mensagem">Mensagem</label>
-          <textarea id="mensagemContato" name="mensagem" rows="5" required></textarea>
-        </div>
+  </main>
 
-        <button type="submit" id="btnEnviarContato" class="btn-primary">
-          Enviar Mensagem
-        </button>
-
-      </form>
-    </div>
-  </section>
-
+  <!-- FOOTER -->
   <footer class="footer-site">
     <div class="footer-container">
 

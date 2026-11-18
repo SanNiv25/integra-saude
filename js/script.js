@@ -1810,15 +1810,35 @@ window.marcarAusencia = async function (prof, data, hora) {
 const formContato = document.getElementById("formContato");
 
 if (formContato) {
+  // Máscara automática para o telefone: (00) 00000-0000
+  const telContatoInput = document.getElementById("telefoneContato");
+  if (telContatoInput) {
+    telContatoInput.addEventListener("input", function () {
+      let v = this.value.replace(/\D/g, "").substring(0, 11);
+      if (v.length > 10) {
+        v = v.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+      } else if (v.length > 6) {
+        v = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+      } else if (v.length > 2) {
+        v = v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+      } else if (v.length > 0) {
+        v = v.replace(/^(\d*)/, "($1");
+      }
+      this.value = v;
+    });
+  }
+
   formContato.addEventListener("submit", async function (e) {
-    e.preventDefault(); // Impede a página de recarregar
+    e.preventDefault();
 
     const btn = document.getElementById("btnEnviarContato");
-    const textoOriginal = btn.innerText;
-    btn.innerText = "⏳ Enviando...";
+    const spanTexto = btn.querySelector("span");
+    const textoOriginal = spanTexto ? spanTexto.innerText : btn.innerText;
+
+    if (spanTexto) spanTexto.innerText = "Enviando...";
+    else btn.innerText = "⏳ Enviando...";
     btn.disabled = true;
 
-    // Pega os dados preenchidos
     const novaMensagem = {
       nome: document.getElementById("nomeContato").value.trim(),
       telefone: document.getElementById("telefoneContato").value.trim(),
@@ -1826,9 +1846,6 @@ if (formContato) {
       mensagem: document.getElementById("mensagemContato").value.trim()
     };
 
-    // Salva na tabela 'mensagens_contato' do Supabase
-    // ⚠️ IMPORTANTE: Você precisará criar uma tabela chamada 'mensagens_contato' no Supabase
-    // com as colunas: id, created_at, nome, telefone, email, mensagem.
     const { error } = await supabaseClient
       .from("mensagens_contato")
       .insert([novaMensagem]);
@@ -1836,178 +1853,14 @@ if (formContato) {
     if (error) {
       console.error(error);
       alert("❌ Ocorreu um erro ao enviar sua mensagem. Tente novamente mais tarde.");
-      btn.innerText = textoOriginal;
-      btn.disabled = false;
     } else {
       alert("✅ Mensagem enviada com sucesso! A nossa equipe entrará em contato em breve.");
-      formContato.reset(); // Limpa o formulário
-      btn.innerText = textoOriginal;
-      btn.disabled = false;
-    }
-  });
-}
-
-const formTrabalheConosco = document.getElementById("formTrabalheConosco");
-
-if (formTrabalheConosco) {
-  // Mascara de CPF
-  document.getElementById("candCpf").addEventListener("input", function () {
-    let valor = this.value.replace(/\D/g, "").substring(0, 11);
-    if (valor.length > 9) valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
-    else if (valor.length > 6) valor = valor.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
-    else if (valor.length > 3) valor = valor.replace(/(\d{3})(\d{0,3})/, "$1.$2");
-    this.value = valor;
-  });
-
-  // MÁGICA DO CEP (ViaCEP - Mantido pois é uma API aberta excelente)
-  const candCepInput = document.getElementById("candCep");
-  if (candCepInput) {
-    candCepInput.addEventListener("input", function () {
-      let v = this.value.replace(/\D/g, "").substring(0, 8);
-      if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, "$1-$2");
-      this.value = v;
-    });
-
-    candCepInput.addEventListener("blur", function () {
-      let cepVal = this.value.replace(/\D/g, "");
-      if (cepVal.length === 8) {
-        fetch(`https://viacep.com.br/ws/${cepVal}/json/`)
-          .then(res => res.json())
-          .then(data => {
-            if (!data.erro) {
-              document.getElementById("candRua").value = data.logradouro;
-              document.getElementById("candBairro").value = data.bairro;
-              document.getElementById("candCidade").value = data.localidade;
-              document.getElementById("candUf").value = data.uf;
-              document.getElementById("candNumero").focus();
-            } else {
-              alert("CEP não encontrado! Verifique o número digitado.");
-            }
-          });
-      }
-    });
-  }
-
-  // Validação do currículo (somente PDF, até 5 MB)
-  const inputCurriculo = document.getElementById("candCurriculo");
-  const MAX_MB = 5;
-
-  function validarCurriculo() {
-    const file = inputCurriculo.files[0];
-    if (!file) return false;
-
-    const ehPdf = file.type === "application/pdf" &&
-      file.name.toLowerCase().endsWith(".pdf");
-
-    if (!ehPdf) {
-      alert("Envie apenas arquivos em formato PDF.");
-      inputCurriculo.value = "";
-      return false;
-    }
-    if (file.size > MAX_MB * 1024 * 1024) {
-      alert("O currículo deve ter no máximo " + MAX_MB + " MB.");
-      inputCurriculo.value = "";
-      return false;
-    }
-    return true;
-  }
-
-  inputCurriculo.addEventListener("change", validarCurriculo);
-
-  formTrabalheConosco.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    if (!validarCurriculo()) return;   // <- linha nova
-    let cpfLimpo = document.getElementById("candCpf").value.replace(/\D/g, "");
-    let registroDigitado = document.getElementById("candRegistro").value.trim();
-
-    // 1. Verifica se já existe uma ficha na fila de espera com este CPF
-    const { data: jaEnviouCpf } = await supabaseClient
-      .from("candidatos_espera")
-      .select("cpf")
-      .eq("cpf", cpfLimpo)
-      .maybeSingle();
-
-    if (jaEnviouCpf) {
-      alert("⚠️ Você já enviou uma ficha com este CPF. Aguarde o contato da nossa equipe!");
-      return;
+      formContato.reset();
     }
 
-    // 2. Verifica se já existe uma ficha com o mesmo número de Registro profissional
-    const { data: jaEnviouRegistro } = await supabaseClient
-      .from("candidatos_espera")
-      .select("registro")
-      .eq("registro", registroDigitado)
-      .maybeSingle();
-
-    if (jaEnviouRegistro) {
-      alert("⚠️ Já existe uma ficha enviada com este número de registro profissional.");
-      return;
-    }
-
-    // 3. Verifica se o CPF já pertence a um profissional ativo na plataforma
-    const { data: jaProfissional } = await supabaseClient
-      .from("profissionais")
-      .select("cpf")
-      .eq("cpf", cpfLimpo)
-      .maybeSingle();
-
-    if (jaProfissional) {
-      alert("❌ Já existe um profissional cadastrado com este CPF.");
-      return;
-    }
-
-    // Envia o currículo para o Storage
-    const arquivo = inputCurriculo.files[0];
-    const caminhoCurriculo = `${Date.now()}_${cpfLimpo}.pdf`;
-
-    const { error: erroUpload } = await supabaseClient
-      .storage.from("curriculos")
-      .upload(caminhoCurriculo, arquivo, { contentType: "application/pdf" });
-
-    if (erroUpload) {
-      console.error(erroUpload);
-      alert("Erro ao enviar o currículo. Tente novamente mais tarde.");
-      return;
-    }
-
-    // 4. Insere a nova ficha no Supabase se tudo estiver correto
-    const novoCandidato = {
-      nome: document.getElementById("candNome").value.trim(),
-      cpf: cpfLimpo,
-      nascimento: document.getElementById("candNascimento").value,
-      telefone: document.getElementById("candTelefone").value.trim(),
-      email: document.getElementById("candEmail").value.trim(),
-      profissao: document.getElementById("candProfissao").value,
-      registro: registroDigitado,
-      estado: document.getElementById("candEstado").value.trim().toUpperCase(),
-      exp: document.getElementById("candExp").value.trim(),
-      publico: document.getElementById("candPublico").value.trim(),
-      atuacao: document.getElementById("candAtuacao").value.trim(),
-      cep: document.getElementById("candCep").value,
-      rua: document.getElementById("candRua").value,
-      numero: document.getElementById("candNumero").value,
-      complemento: document.getElementById("candComplemento").value,
-      bairro: document.getElementById("candBairro").value,
-      cidade: document.getElementById("candCidade").value,
-      uf: document.getElementById("candUf").value,
-      atende_online: document.querySelector('input[name="atendeOnline"]:checked')?.value === "Sim",
-      como_conheceu: [...document.querySelectorAll('input[name="comoConheceu"]:checked')]
-        .map(i => i.value).join(", ") || null,
-      curriculo_path: caminhoCurriculo
-    };
-
-    const { error } = await supabaseClient
-      .from("candidatos_espera")
-      .insert([novoCandidato]);
-
-    if (error) {
-      console.error(error);
-      await supabaseClient.storage.from("curriculos").remove([caminhoCurriculo]);
-      alert("Erro ao enviar a ficha. Tente novamente mais tarde.");
-    } else {
-      alert("✅ Ficha enviada com sucesso! Nossa equipe entrará em contato.");
-      formTrabalheConosco.reset();
-    }
+    if (spanTexto) spanTexto.innerText = textoOriginal;
+    else btn.innerText = textoOriginal;
+    btn.disabled = false;
   });
 }
 

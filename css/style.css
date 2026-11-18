@@ -3695,3 +3695,382 @@ html {
     width: 100%;
   }
 }
+
+/* =====================================================
+   PÁGINA "CONTATO" - NOVO DESIGN
+   Classes exclusivas "ct-*": não afetam as outras páginas
+===================================================== */
+.ct-page {
+  --ct-ink: #064e3b;
+  --ct-ink-sub: #0b5d47;
+  --ct-text: #2f5d4e;
+  --ct-muted: #5a7a70;
+  --ct-green: #0aa56d;
+  --ct-green-hover: #08895c;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(180deg, #effaf4 0%, #e4f6ec 55%, #d6f0e2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.ct-wrap {
+  width: 90%;
+  max-width: 1140px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 3;
+}
+
+/* ---------- HERO BANNER ---------- */
+.ct-hero {
+  position: relative;
+  min-height: clamp(320px, 28vw, 430px);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background-color: #e6f7ee;
+}
+
+.ct-hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  z-index: 1;
+}
+
+/* Véu suave à esquerda para garantir leitura perfeita do texto sobre fundo-contato.jpg */
+.ct-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(90deg,
+      rgba(235, 249, 241, 0.96) 0%,
+      rgba(235, 249, 241, 0.88) 42%,
+      rgba(235, 249, 241, 0.15) 68%,
+      rgba(235, 249, 241, 0) 100%);
+}
+
+.ct-hero-text {
+  max-width: 500px;
+  padding: 55px 0 75px;
+}
+
+.ct-hero h1 {
+  font-size: clamp(2.4rem, 4.2vw, 3.5rem);
+  font-weight: 700;
+  color: var(--ct-ink);
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+
+.ct-hero-sub {
+  font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+  font-weight: 700;
+  color: var(--ct-ink-sub);
+  margin-bottom: 10px;
+}
+
+.ct-hero-desc {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--ct-text);
+  max-width: 410px;
+}
+
+/* ---------- SEÇÃO PRINCIPAL (FORMULÁRIO + MAPA) ---------- */
+.ct-main {
+  position: relative;
+  margin-top: -35px;
+  padding-bottom: 45px;
+  z-index: 4;
+}
+
+.ct-grid {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 42px;
+  align-items: center;
+}
+
+/* Card Branco do Formulário */
+.ct-form-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 38px 40px;
+  box-shadow: 0 14px 36px rgba(6, 78, 59, 0.08);
+  border: 1px solid rgba(16, 163, 114, 0.12);
+}
+
+.ct-form-card h2 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--ct-ink);
+  margin-bottom: 8px;
+}
+
+.ct-form-subtitle {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ct-muted);
+  margin-bottom: 24px;
+}
+
+.ct-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ct-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-field label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ct-ink);
+}
+
+.ct-field input,
+.ct-field textarea {
+  width: 100%;
+  padding: 13px 15px;
+  border: 1px solid #d5e6de;
+  border-radius: 10px;
+  background-color: #f9fcfa;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: #1e3a31;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.ct-field input::placeholder,
+.ct-field textarea::placeholder {
+  color: #97b0a7;
+}
+
+.ct-field input:focus,
+.ct-field textarea:focus {
+  background-color: #ffffff;
+  border-color: var(--ct-green);
+  box-shadow: 0 0 0 3px rgba(10, 165, 109, 0.14);
+}
+
+.ct-field textarea {
+  resize: vertical;
+  min-height: 105px;
+}
+
+.ct-btn-submit {
+  margin-top: 6px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(90deg, #10b277, #088c5d);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 34px;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(8, 140, 93, 0.28);
+  transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+}
+
+.ct-btn-submit:hover:not(:disabled) {
+  background: linear-gradient(90deg, #0c9c67, #06764e);
+  transform: translateY(-1px);
+}
+
+.ct-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Coluna Direita (Mapa + Card Brasil) */
+.ct-info-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.ct-brasil-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 18px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 26px rgba(6, 78, 59, 0.06);
+}
+
+.ct-brasil-text h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ct-ink);
+  margin-bottom: 4px;
+}
+
+.ct-brasil-text p {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--ct-text);
+}
+
+/* Mapa do Brasil (.png) */
+.ct-mapa-wrapper {
+  width: 100%;
+  max-width: 390px;
+  display: flex;
+  justify-content: center;
+}
+
+.ct-mapa-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Ícone dentro do card "Atendimento em todo o Brasil" */
+.ct-brasil-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #d7f3e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ct-brasil-icon img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+/* Ícones dos 3 pilares inferiores */
+.ct-pilar-icon {
+  height: 40px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ct-pilar-icon img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ---------- FAIXA DE 3 PILARES (SEGURANÇA / CUIDADO / COMPROMISSO) ---------- */
+.ct-pilares-section {
+  padding: 15px 0 70px;
+  position: relative;
+  z-index: 4;
+}
+
+.ct-pilares-box {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 32px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 12px 32px rgba(6, 78, 59, 0.06);
+}
+
+.ct-pilar-item {
+  flex: 1;
+  text-align: center;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ct-pilar-icon {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ct-pilar-item h4 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--ct-ink);
+  margin-bottom: 6px;
+}
+
+.ct-pilar-item p {
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--ct-muted);
+  max-width: 230px;
+}
+
+.ct-pilar-divider {
+  width: 1px;
+  height: 75px;
+  background-color: #cde6da;
+  flex-shrink: 0;
+}
+
+/* ---------- RESPONSIVIDADE (TABLET E CELULAR) ---------- */
+@media (max-width: 900px) {
+  .ct-hero::before {
+    background: linear-gradient(180deg,
+        rgba(235, 249, 241, 0.94) 0%,
+        rgba(235, 249, 241, 0.86) 65%,
+        rgba(235, 249, 241, 0.72) 100%);
+  }
+
+  .ct-hero-text {
+    padding: 40px 0 65px;
+  }
+
+  .ct-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .ct-form-card {
+    padding: 28px 22px;
+  }
+
+  .ct-btn-submit {
+    width: 100%;
+  }
+
+  .ct-pilares-box {
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px 20px;
+  }
+
+  .ct-pilar-divider {
+    width: 60%;
+    height: 1px;
+  }
+}
