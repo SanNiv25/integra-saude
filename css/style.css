@@ -3007,21 +3007,8 @@ html {
 }
 
 .conheca-hero-text {
-  max-width: 560px;
-  padding: 55px 0;
-}
-
-.conheca-hero-desc {
-  font-size: clamp(0.92rem, 1.05vw, 1.02rem);
-  font-weight: 500;
-  line-height: 1.65;
-  color: var(--conheca-text);
-  max-width: 520px;
-  margin-bottom: 14px;
-}
-
-.conheca-hero-desc:last-child {
-  margin-bottom: 0;
+  max-width: 540px;
+  padding: 50px 0;
 }
 
 .conheca-hero h1 {
@@ -3049,6 +3036,14 @@ html {
   background-color: #0aa56d;
   border-radius: 3px;
   margin: 16px 0 18px 0;
+}
+
+.conheca-hero-desc {
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--conheca-text);
+  max-width: 430px;
 }
 
 .conheca-hero-photo {
@@ -3116,7 +3111,7 @@ html {
 .conheca-historia {
   position: relative;
   z-index: 2;
-  max-width: 630px;
+  max-width: 600px;
   margin: 0 auto 65px auto;
   text-align: center;
 }
