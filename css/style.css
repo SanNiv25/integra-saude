@@ -3007,8 +3007,21 @@ html {
 }
 
 .conheca-hero-text {
-  max-width: 540px;
-  padding: 50px 0;
+  max-width: 560px;
+  padding: 55px 0;
+}
+
+.conheca-hero-desc {
+  font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--conheca-text);
+  max-width: 520px;
+  margin-bottom: 14px;
+}
+
+.conheca-hero-desc:last-child {
+  margin-bottom: 0;
 }
 
 .conheca-hero h1 {
@@ -3036,14 +3049,6 @@ html {
   background-color: #0aa56d;
   border-radius: 3px;
   margin: 16px 0 18px 0;
-}
-
-.conheca-hero-desc {
-  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
-  font-weight: 500;
-  line-height: 1.65;
-  color: var(--conheca-text);
-  max-width: 470px;
 }
 
 .conheca-hero-photo {
@@ -3111,7 +3116,7 @@ html {
 .conheca-historia {
   position: relative;
   z-index: 2;
-  max-width: 700px;
+  max-width: 630px;
   margin: 0 auto 65px auto;
   text-align: center;
 }
@@ -3233,6 +3238,111 @@ html {
     top: auto;
     bottom: 0;
     width: 50%;
+    height: 1px;
+  }
+}
+
+/* =====================================================
+   CONHEÇA A INTEGRA SAÚDE - NOSSO COMPROMISSO
+===================================================== */
+.conheca-compromisso-section {
+  background-color: #ffffff;
+  padding: 20px 0 80px;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.conheca-compromisso-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(100deg, #e2f6ec 0%, #d8f2e5 100%);
+  border-radius: 20px;
+  padding: 40px 55px;
+  display: flex;
+  align-items: center;
+  gap: 45px;
+  box-shadow: 0 8px 25px rgba(6, 78, 59, 0.04);
+}
+
+/* Detalhe circular sutil no canto direito do cartão */
+.conheca-compromisso-card::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  bottom: -90px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(167, 243, 208, 0.35);
+  pointer-events: none;
+}
+
+.conheca-compromisso-icon {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.conheca-compromisso-icon img {
+  width: 135px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Linha vertical entre a imagem e o texto */
+.conheca-compromisso-divider {
+  width: 1px;
+  height: 115px;
+  background-color: #4db6ac;
+  opacity: 0.65;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.conheca-compromisso-text {
+  position: relative;
+  z-index: 2;
+}
+
+.conheca-compromisso-text h2 {
+  font-size: clamp(1.5rem, 2.3vw, 1.95rem);
+  font-weight: 700;
+  color: #064e3b;
+  margin-bottom: 12px;
+}
+
+.conheca-compromisso-text p {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: #2f5d4e;
+  max-width: 720px;
+}
+
+/* ---------- RESPONSIVIDADE (CELULAR / TABLET) ---------- */
+@media (max-width: 768px) {
+  .conheca-compromisso-section {
+    padding: 10px 0 60px;
+  }
+
+  .conheca-compromisso-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 32px 24px;
+    gap: 22px;
+  }
+
+  .conheca-compromisso-icon img {
+    width: 110px;
+  }
+
+  /* No celular, a divisória vira horizontal */
+  .conheca-compromisso-divider {
+    width: 60%;
     height: 1px;
   }
 }
