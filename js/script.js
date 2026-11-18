@@ -724,13 +724,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   const container = document.getElementById("profissionaisContainer");
   if (container) {
     function criarTurnosHTML(turnos) {
-      let html = `<div class="turnos">`;
+      const icone = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+      const nomes = { manha: "Manhã", tarde: "Tarde", noite: "Noite" };
+      let html = `<div class="pf-turnos">`;
       turnos.forEach(turno => {
-        let texto = "";
-        if (turno === "manha") texto = "🌅 Manhã";
-        if (turno === "tarde") texto = "🌤 Tarde";
-        if (turno === "noite") texto = "🌙 Noite";
-        html += `<span class="turno ${turno}">${texto}</span>`;
+        if (nomes[turno]) html += `<span class="pf-turno">${icone} ${nomes[turno]}</span>`;
       });
       html += `</div>`;
       return html;
@@ -758,50 +756,55 @@ document.addEventListener("DOMContentLoaded", async function () {
       const is_pacote = urlParams.get('tipo') === 'pacote';
 
       if (filtrados.length > 0) {
+        let cardsHtml = "";
+
         filtrados.forEach(prof => {
-          const imagem = prof.imagem_url || "img/logo-integra.png";
+          const nomeExibido = prof.nome || "Profissional";
           const descricao = prof.miniBio || "Profissional de excelência cadastrado na Integra Saúde.";
           const turnos = (prof.agenda && prof.agenda.turnos) ? prof.agenda.turnos : ["manha", "tarde", "noite"];
-
-          const precoIndividual = parseFloat(prof.valor || 0).toFixed(2).replace('.', ',');
           const precoPacote = parseFloat(prof.valor_pacote || 0).toFixed(2).replace('.', ',');
-
           let ehNutricao = (prof.especialidade || "").toLowerCase().includes("nutri");
+
+          // 👇 Foto do profissional (ou a logo, se ainda não tiver foto) 👇
+          const fotoHtml = prof.imagem_url
+            ? `<img class="pf-card-foto" src="${prof.imagem_url}" alt="${nomeExibido}">`
+            : `<div class="pf-card-foto pf-card-foto--vazia"><img src="img/logo-integra.png" alt=""></div>`;
 
           // 👇 Se for Nutrição, esconde a linha do pacote 👇
           let htmlPacote = "";
           if (!ehNutricao) {
-            htmlPacote = `<p style="margin: 5px 0; font-size: 14px; color: #0F766E;"><strong>Pacote (4x):</strong> R$ ${precoPacote}</p>`;
+            htmlPacote = `<p class="pf-pacote"><strong>Pacote (4x):</strong> R$ ${precoPacote}</p>`;
           } else if (is_pacote) {
             // Se for pacote e o médico for nutricionista, avisa na vitrine!
-            htmlPacote = `<p style="margin: 5px 0; font-size: 12px; color: #d9534f; font-weight: bold;">🚫 Indisponível para Pacotes</p>`;
+            htmlPacote = `<p class="pf-pacote pf-pacote--off">🚫 Indisponível para Pacotes</p>`;
           }
 
           // 👇 Se for pacote e o médico for nutricionista, bloqueia o botão! 👇
-          let botaoAgendarHtml = `<a href="javascript:void(0)" class="btn-primary" style="display: block; text-align: center; margin-top: 15px;" onclick="abrirAgenda('${prof.nome}')">Agendar Consulta</a>`;
+          let botaoAgendarHtml = `<a href="javascript:void(0)" class="pf-btn" onclick="abrirAgenda('${prof.nome}')">Agendar Consulta <span aria-hidden="true">›</span></a>`;
 
           if (is_pacote && ehNutricao) {
-            botaoAgendarHtml = `<a href="javascript:void(0)" class="btn-primary" style="display: block; text-align: center; margin-top: 15px; background: #999; cursor: not-allowed; text-decoration: none;" onclick="alert('Pacotes promocionais são válidos apenas para Psicologia e Fonoaudiologia.')">Indisponível</a>`;
+            botaoAgendarHtml = `<a href="javascript:void(0)" class="pf-btn pf-btn--off" onclick="alert('Pacotes promocionais são válidos apenas para Psicologia e Fonoaudiologia.')">Indisponível</a>`;
           }
 
-          const card = `
-              <div class="prof-card">
-                <img src="${imagem}" alt="${prof.nome}" style="object-fit: contain; padding: 10px; background: #f4f9f9;">
-                <div class="prof-info">
-                  <h3 style="font-size: 24px; color: #0f4c5c; margin-bottom: 5px;">${prof.nome}</h3>
-                  <p style="font-size: 18px; font-weight: 600; margin-bottom: 2px;">${prof.especialidade}</p>
-                  <p style="font-size: 16px; color: #555; margin-bottom: 10px;">${prof.registro}</p>
-                  <p style="font-size: 16px; color: #000; margin: 8px 0;">${descricao}</p>
-
+          cardsHtml += `
+              <div class="pf-card">
+                ${fotoHtml}
+                <div class="pf-card-info">
+                  <h3>${nomeExibido}</h3>
+                  <p class="pf-esp">${prof.especialidade}</p>
+                  ${prof.registro ? `<p class="pf-registro">${prof.registro}</p>` : ""}
+                  <p class="pf-desc">${descricao}</p>
+                  ${htmlPacote}
                   ${criarTurnosHTML(turnos)}
                   ${botaoAgendarHtml}
                 </div>
               </div>
             `;
-          container.innerHTML += card;
         });
+
+        container.innerHTML = cardsHtml;
       } else {
-        container.innerHTML = `<p style="text-align: center; width: 100%; font-size: 18px; color: #555; padding: 40px;">Nenhum profissional de <strong>${especialidade}</strong> cadastrado no momento.</p>`;
+        container.innerHTML = `<p>Nenhum profissional de <strong>${especialidade}</strong> cadastrado no momento.</p>`;
       }
     }
 
@@ -809,39 +812,22 @@ document.addEventListener("DOMContentLoaded", async function () {
       // 1. Carrega a lista de médicos
       window.carregarProfissionais(especialidade);
 
-      // 2. Destaca visualmente o botão escolhido
-      const botoes = document.querySelectorAll('.filtro-btn');
+      // 2. Destaca a aba escolhida (classe "ativo")
+      const abas = document.querySelectorAll('.pf-tab');
+      abas.forEach(btn => btn.classList.remove('ativo'));
 
-      if (botoes.length > 0) {
-        // Tira o destaque de todos primeiro
-        botoes.forEach(btn => {
-          btn.style.backgroundColor = ""; // Volta pro verde original do seu CSS
-          btn.style.filter = "brightness(1)";
-          btn.style.fontWeight = "normal";
-          btn.style.border = "none";
+      if (botaoClicado) {
+        // Se o usuário clicou fisicamente na aba
+        botaoClicado.classList.add('ativo');
+      } else {
+        // Se veio da URL (da página inicial), procura a aba certa para destacar
+        const busca = especialidade.toLowerCase();
+        abas.forEach(btn => {
+          const texto = btn.innerText.toLowerCase();
+          if (busca === 'psicologia' && texto.includes('psic')) btn.classList.add('ativo');
+          if (busca === 'nutricao' && texto.includes('nutri')) btn.classList.add('ativo');
+          if (busca === 'fono' && texto.includes('fono')) btn.classList.add('ativo');
         });
-
-        // Função interna para pintar o botão de escuro
-        const destacar = (btn) => {
-          btn.style.filter = "brightness(0.7)"; // Escurece a cor atual
-          btn.style.fontWeight = "bold";
-          btn.style.border = "2px solid #0F4C5C"; // Borda escura
-        };
-
-        if (botaoClicado) {
-          // Se o usuário clicou fisicamente no botão
-          destacar(botaoClicado);
-        } else {
-          // Se veio da URL (da página inicial), procura o botão certo para destacar
-          botoes.forEach(btn => {
-            let texto = btn.innerText.toLowerCase();
-            let busca = especialidade.toLowerCase();
-
-            if (busca === 'psicologia' && texto.includes('psic')) destacar(btn);
-            if (busca === 'nutricao' && texto.includes('nutri')) destacar(btn);
-            if (busca === 'fono' && texto.includes('fono')) destacar(btn);
-          });
-        }
       }
     };
   }
