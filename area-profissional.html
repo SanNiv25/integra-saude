@@ -35,123 +35,100 @@
         </div>
     </header>
 
-    <section id="secaoAutenticacaoProf" class="prof-login-page">
+    <section id="secaoAutenticacaoProf" class="pl-page">
 
-        <!-- Topo com imagem de fundo -->
-        <div class="prof-login-hero">
-            <div class="prof-login-hero-overlay"></div>
-            <div class="prof-login-hero-content">
-                <h1>Área do Profissional</h1>
-                <p>Acesse seu painel de atendimentos, gerencie sua agenda e conecte-se com seus pacientes.</p>
+        <!-- Topo: título + foto de fundo -->
+        <div class="pl-hero">
+            <img src="img/fundo-login-profissional.jpg" alt="" class="pl-hero-photo"
+                onerror="this.style.display='none'">
+
+            <div class="pl-wrap">
+                <div class="pl-hero-text">
+                    <h1>Área do Profissional</h1>
+                    <p>Acesse o sistema exclusivo para profissionais da saúde.</p>
+                    <span class="pl-hero-line" aria-hidden="true"></span>
+                </div>
             </div>
         </div>
 
-        <!-- Card Centralizado -->
-        <div class="prof-login-wrapper">
-            <div class="prof-login-card">
+        <!-- Cartão de login -->
+        <div class="pl-card-wrap">
+            <div class="pl-card">
+                <h2>Acesso do Profissional</h2>
 
-                <div class="prof-login-badge" aria-hidden="true">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
-                        <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
-                        <circle cx="20" cy="10" r="2" />
-                    </svg>
-                </div>
-
-                <h2>Bem-vindo(a), Profissional!</h2>
-                <p class="prof-login-subtitle">Faça login para acessar sua agenda e teleconsultas</p>
-
-                <form id="formLoginProf" class="prof-login-form">
-                    <div class="prof-input-group">
-                        <label for="registroProfLogin">Registro Profissional</label>
-                        <div class="prof-input-box">
-                            <span class="prof-input-icon" aria-hidden="true">
-                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="16" rx="2" />
-                                    <circle cx="9" cy="10" r="2" />
-                                    <path d="M15 8h2" />
-                                    <path d="M15 12h2" />
-                                    <path d="M7 16h10" />
-                                </svg>
-                            </span>
-                            <input type="text" id="registroProfLogin" placeholder="Ex: CRP 05/00000" required>
-                        </div>
+                <form id="formLoginProf" class="pl-form">
+                    <div class="pl-input">
+                        <span class="pl-input-icon" aria-hidden="true">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+                            </svg>
+                        </span>
+                        <input type="text" id="registroProfLogin" placeholder="Seu Registro (Ex: CRM 00/000)"
+                            aria-label="Registro profissional" required>
                     </div>
 
-                    <div class="prof-input-group">
-                        <label for="senhaProfLogin">Senha</label>
-                        <div class="prof-input-box">
-                            <span class="prof-input-icon" aria-hidden="true">
-                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="4" y="11" width="16" height="9" rx="2" />
-                                    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-                                </svg>
-                            </span>
-                            <input type="password" id="senhaProfLogin" placeholder="Digite sua senha" required>
-                            <button type="button" class="prof-toggle-pass" onclick="toggleSenha('senhaProfLogin', this)"
-                                aria-label="Mostrar ou ocultar senha">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path
-                                        d="M12 5C5 5 2 12 2 12s3 7 10 7 10-7 10-7-3-7-10-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
-                                </svg>
-                            </button>
-                        </div>
+                    <div class="pl-input">
+                        <span class="pl-input-icon" aria-hidden="true">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="11" width="16" height="10" rx="2" />
+                                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                                <circle cx="12" cy="16" r="1" />
+                            </svg>
+                        </span>
+                        <input type="password" id="senhaProfLogin" placeholder="Senha" aria-label="Senha" required>
+                        <button type="button" class="pl-toggle" onclick="toggleSenha('senhaProfLogin', this)"
+                            aria-label="Mostrar ou ocultar senha">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M12 5C5 5 2 12 2 12s3 7 10 7 10-7 10-7-3-7-10-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z" />
+                            </svg>
+                        </button>
                     </div>
 
-                    <div class="prof-login-options">
-                        <a href="contato.html" class="prof-forgot-link"
-                            title="Solicite a redefinição de senha à equipe administrativa">Esqueci minha senha</a>
-                    </div>
-
-                    <button type="submit" class="prof-btn-submit">
-                        Entrar
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                            <polyline points="10 17 15 12 10 7" />
-                            <line x1="15" y1="12" x2="3" y2="12" />
-                        </svg>
-                    </button>
+                    <button type="submit" class="pl-btn">Acessar minha conta</button>
                 </form>
 
-                <div class="prof-login-footer">
-                    <p>Ainda não tem cadastro? <a href="trabalhe-conosco.html">Candidate-se aqui</a></p>
-                </div>
-
+                <a href="contato.html" class="pl-forgot"
+                    title="Solicite a redefinição de senha à equipe administrativa">Esqueci minha senha</a>
             </div>
         </div>
 
-        <!-- Barra Inferior de Segurança e Suporte -->
-        <div class="prof-trust-bar">
-            <div class="prof-trust-container">
-                <div class="prof-trust-item">
-                    <div class="prof-trust-icon" aria-hidden="true">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
+        <!-- Segurança e suporte -->
+        <div class="pl-trust-wrap">
+            <div class="pl-trust">
+                <div class="pl-trust-item">
+                    <span class="pl-trust-icon" aria-hidden="true">
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                            <polyline points="9 12 11 14 15 10" />
+                            <polyline points="8.5 12 11 14.5 15.5 9.5" />
                         </svg>
-                    </div>
+                    </span>
                     <div>
                         <h3>Segurança</h3>
-                        <p>Acesso protegido e criptografado</p>
+                        <p>Seus dados protegidos<br>com total confidencialidade.</p>
                     </div>
                 </div>
 
-                <div class="prof-trust-divider"></div>
+                <span class="pl-trust-divider" aria-hidden="true"></span>
 
-                <div class="prof-trust-item">
-                    <div class="prof-trust-icon">
-                        <img src="img/atendimento.png" alt="Suporte ao Profissional">
-                    </div>
+                <div class="pl-trust-item">
+                    <span class="pl-trust-icon" aria-hidden="true">
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+                            <rect x="2.5" y="13" width="4" height="6" rx="1.5" />
+                            <rect x="17.5" y="13" width="4" height="6" rx="1.5" />
+                            <path d="M19.5 19c0 1.7-2 3-5 3h-1.5" />
+                        </svg>
+                    </span>
                     <div>
                         <h3>Suporte</h3>
-                        <p>Dúvidas? <a href="contato.html">Fale com nossa equipe</a></p>
+                        <p>Conte com nosso suporte<br>sempre que precisar.</p>
                     </div>
                 </div>
             </div>
