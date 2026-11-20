@@ -3348,12 +3348,13 @@ html {
 ===================================================== */
 .pf-hero,
 .pf-vitrine {
-  --pf-bg: #f2fbf9;
-  --pf-ink: #00525d;
-  --pf-ink-dark: #005862;
-  --pf-blue: #0b3b7f;
-  --pf-mint: #d0f0e8;
-  --pf-green: #10b878;
+  --pf-bg: #effaf4;
+  --pf-ink: #064e3b;
+  --pf-ink-dark: #064e3b;
+  --pf-sub: #0e9461;
+  --pf-text: #2f5d4e;
+  --pf-mint: #dcf6e1;
+  --pf-green: #0aa56d;
   font-family: 'Montserrat', sans-serif;
 }
 
@@ -3441,7 +3442,7 @@ html {
   font-weight: 700;
   line-height: 1.3;
   text-align: left;
-  color: var(--pf-ink-dark);
+  color: var(--pf-sub);
 }
 
 .pf-hero-desc {
@@ -3450,7 +3451,67 @@ html {
   font-size: clamp(0.92rem, 1.25vw, 1.05rem);
   line-height: 1.55;
   text-align: left;
-  color: var(--pf-blue);
+  color: var(--pf-text);
+}
+
+.pf-tab {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 999px;
+  background: var(--pf-mint);
+  color: var(--pf-ink);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pf-tab:hover {
+  background: #c6ebd0;
+}
+
+.pf-tab.ativo {
+  background: var(--pf-ink);
+  color: #ffffff;
+}
+
+.pf-tab:focus-visible,
+.pf-btn:focus-visible {
+  outline: 3px solid var(--pf-ink);
+  outline-offset: 3px;
+}
+
+.pf-esp {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pf-sub);
+}
+
+.pf-registro {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #5a7a70;
+}
+
+.pf-desc {
+  margin: 6px 0 4px;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  color: var(--pf-text);
+}
+
+.pf-turno {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--pf-mint);
+  color: var(--pf-ink);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* ---------- ABAS + LISTA ---------- */
@@ -3702,7 +3763,8 @@ html {
 ===================================================== */
 .ct-page {
   --ct-ink: #064e3b;
-  --ct-ink-sub: #0b5d47;
+  --ct-ink-sub: #0e9461;
+  /* igual à Home e Conheça */
   --ct-text: #2f5d4e;
   --ct-muted: #5a7a70;
   --ct-green: #0aa56d;
@@ -4080,18 +4142,18 @@ html {
    Classes exclusivas "pl-*"
 ===================================================== */
 .pl-page {
-  --pl-ink: #025965;
-  --pl-ink-2: #025b70;
-  --pl-text: #095980;
-  --pl-green: #00b078;
-  --pl-green-dark: #009a69;
+  --pl-ink: #064e3b;
+  --pl-ink-2: #2f5d4e;
+  --pl-text: #2f5d4e;
+  --pl-green: #0aa56d;
+  --pl-green-dark: #08895c;
   position: relative;
   overflow: hidden;
   font-family: 'Montserrat', sans-serif;
   background:
-    radial-gradient(ellipse 22% 38% at 0% 62%, #d3f1e5 0%, rgba(211, 241, 229, 0) 100%),
-    radial-gradient(ellipse 20% 46% at 100% 70%, #cdf0e3 0%, rgba(205, 240, 227, 0) 100%),
-    linear-gradient(180deg, #e4f8f0 0%, #f4fcf9 55%, #ffffff 100%);
+    radial-gradient(ellipse 22% 38% at 0% 62%, #d4f1dc 0%, rgba(212, 241, 220, 0) 100%),
+    radial-gradient(ellipse 20% 46% at 100% 70%, #d4f1dc 0%, rgba(212, 241, 220, 0) 100%),
+    linear-gradient(180deg, #e8f8ed 0%, #f4fbf7 55%, #ffffff 100%);
 }
 
 .pl-page.hidden {
@@ -4185,7 +4247,85 @@ html {
   margin: 0 0 18px;
   font-size: clamp(1.35rem, 2vw, 1.7rem);
   font-weight: 700;
-  color: #025667;
+  color: var(--pl-ink);
+}
+
+.pl-input-icon {
+  position: absolute;
+  left: 18px;
+  display: flex;
+  color: var(--pl-ink);
+  pointer-events: none;
+}
+
+.pl-input input {
+  width: 100%;
+  height: 52px;
+  padding: 0 56px 0 64px;
+  border: 1px solid #d5e6de;
+  border-radius: 12px;
+  background: #f2fbf6;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--pl-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pl-toggle {
+  position: absolute;
+  right: 16px;
+  display: flex;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--pl-ink);
+  cursor: pointer;
+}
+
+.pl-forgot {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0e9461;
+  text-decoration: underline;
+}
+
+.pl-forgot:hover {
+  color: var(--pl-ink);
+}
+
+.pl-btn:focus-visible,
+.pl-toggle:focus-visible,
+.pl-forgot:focus-visible {
+  outline: 3px solid var(--pl-ink);
+  outline-offset: 3px;
+}
+
+.pl-trust-icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--pl-green);
+}
+
+.pl-trust-item h3 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--pl-ink);
+}
+
+.pl-trust-item p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--pl-text);
+}
+
+.pl-trust-divider {
+  width: 1px;
+  height: 78px;
+  background: #cde6da;
 }
 
 .pl-form {
@@ -4200,27 +4340,6 @@ html {
   align-items: center;
 }
 
-.pl-input-icon {
-  position: absolute;
-  left: 18px;
-  display: flex;
-  color: #075d75;
-  pointer-events: none;
-}
-
-.pl-input input {
-  width: 100%;
-  height: 52px;
-  padding: 0 56px 0 64px;
-  border: 1px solid #d9e8f5;
-  border-radius: 12px;
-  background: #e8f1fb;
-  font-family: inherit;
-  font-size: 1rem;
-  color: var(--pl-text);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
 .pl-input input::placeholder {
   color: var(--pl-text);
   opacity: 0.9;
@@ -4230,17 +4349,6 @@ html {
   outline: none;
   border-color: var(--pl-green);
   box-shadow: 0 0 0 3px rgba(0, 176, 120, 0.18);
-}
-
-.pl-toggle {
-  position: absolute;
-  right: 16px;
-  display: flex;
-  padding: 4px;
-  border: none;
-  background: none;
-  color: #075d75;
-  cursor: pointer;
 }
 
 .pl-btn {
@@ -4259,26 +4367,6 @@ html {
 
 .pl-btn:hover {
   background: linear-gradient(90deg, #00a96f, #009a69);
-}
-
-.pl-forgot {
-  display: inline-block;
-  margin-top: 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #02a465;
-  text-decoration: underline;
-}
-
-.pl-forgot:hover {
-  color: #018a55;
-}
-
-.pl-btn:focus-visible,
-.pl-toggle:focus-visible,
-.pl-forgot:focus-visible {
-  outline: 3px solid #025965;
-  outline-offset: 3px;
 }
 
 /* ---------- SEGURANÇA E SUPORTE ---------- */
