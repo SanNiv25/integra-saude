@@ -5139,3 +5139,22 @@ html {
     height: 1px;
   }
 }
+
+/* Garante que os blocos da tela de login fiquem sempre empilhados na vertical */
+.pac-auth-page {
+  display: block;
+}
+
+/* Dá espaçamento correto aos campos dentro do formulário de cadastro */
+#cadastroForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Ajuste para o campo de data no Recuperar Senha combinar com o resto */
+#recuperarCard .input-group input {
+  background: #f0f6f7;
+  border: 1px solid #d5e6de;
+  border-radius: 12px;
+}

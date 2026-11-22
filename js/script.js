@@ -605,7 +605,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (window.atualizarContadorPacote) window.atualizarContadorPacote();
       if (window.carregarMinhasConsultas) window.carregarMinhasConsultas();
     } else {
-      if (authSection) authSection.style.display = "flex";
+      if (authSection) authSection.style.display = "block"; // 👈 Mude de "flex" para "block"
       if (dashboardSection) dashboardSection.classList.add("hidden");
     }
   }
