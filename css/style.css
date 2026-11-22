@@ -4483,7 +4483,15 @@ html {
   flex-direction: column;
   gap: 30px;
   padding: 40px 20px;
-  background-color: #0F4C5C;
+  background-color: #0e463b;
+  /* Mesma cor do rodapé */
+  color: #ffffff;
+}
+
+/* Destaque do item ativo / hover na barra lateral em verde harmônico */
+.dashboard-wrapper .sidebar-menu li.ativo a,
+.dashboard-wrapper .sidebar-menu li a:hover {
+  background-color: #166353;
   color: #ffffff;
 }
 
