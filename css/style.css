@@ -1080,7 +1080,7 @@ body {
 /* SIDEBAR LATERAL */
 .dashboard-sidebar {
   width: 280px;
-  background-color: #0F4C5C;
+  background-color: #0e463b;
   color: white;
   padding: 40px 20px;
   display: flex;
@@ -4703,5 +4703,439 @@ html {
 @media (max-width: 768px) {
   .prontuario-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================
+   👤 ÁREA DO PACIENTE - NOVA TELA DE LOGIN
+   Classes exclusivas "pac-*"
+===================================================== */
+.pac-auth-page {
+  --pac-ink: #064e3b;
+  --pac-text: #2f5d4e;
+  --pac-green: #0aa56d;
+  --pac-green-dark: #08895c;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+  background:
+    radial-gradient(ellipse 24% 38% at 0% 62%, #d4f1dc 0%, rgba(212, 241, 220, 0) 100%),
+    radial-gradient(ellipse 22% 46% at 100% 72%, #d4f1dc 0%, rgba(212, 241, 220, 0) 100%),
+    linear-gradient(180deg, #e8f8ed 0%, #f4fbf7 58%, #ffffff 100%);
+}
+
+.pac-wrap {
+  position: relative;
+  z-index: 4;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ---------- TOPO (HERO) ---------- */
+.pac-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  min-height: clamp(360px, 29vw, 470px);
+  overflow: hidden;
+}
+
+.pac-hero-photo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(64%, 940px);
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 32%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 32%);
+}
+
+/* Curva suave separando o topo do restante da página */
+.pac-hero::after {
+  content: "";
+  position: absolute;
+  left: -15%;
+  bottom: -1px;
+  width: 130%;
+  height: 65px;
+  background: #f4fbf7;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pac-hero-text {
+  max-width: 530px;
+  padding: 75px 0 0;
+}
+
+.pac-hero h1 {
+  margin: 0 0 14px;
+  font-size: clamp(2.1rem, 3.4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--pac-ink);
+}
+
+.pac-hero-text p {
+  max-width: 460px;
+  margin: 0;
+  font-size: clamp(1.02rem, 1.5vw, 1.3rem);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--pac-text);
+}
+
+.pac-hero-line {
+  display: block;
+  width: 110px;
+  height: 3px;
+  margin-top: 16px;
+  border-radius: 3px;
+  background: var(--pac-green);
+}
+
+/* ---------- CARD CENTRAL ---------- */
+.pac-card-wrap {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+  margin-top: clamp(-125px, -8vw, -75px);
+}
+
+.pac-card {
+  width: 100%;
+  max-width: 500px;
+  padding: 32px 42px 30px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 12px 38px rgba(6, 78, 59, 0.11);
+  text-align: center;
+}
+
+.pac-card.active {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pac-card--wide.active {
+  max-width: 650px;
+}
+
+.pac-card h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.45rem, 2.1vw, 1.85rem);
+  font-weight: 700;
+  color: var(--pac-ink);
+}
+
+.pac-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pac-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pac-input-prefix {
+  position: absolute;
+  left: 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0e7a57;
+  pointer-events: none;
+}
+
+.pac-input-icon {
+  position: absolute;
+  left: 18px;
+  display: flex;
+  color: var(--pac-ink);
+  pointer-events: none;
+}
+
+.pac-input input {
+  width: 100%;
+  height: 50px;
+  padding: 0 48px 0 58px;
+  border: 1px solid #d5e6de;
+  border-radius: 12px;
+  background: #f0f6f7;
+  font-family: inherit;
+  font-size: 0.98rem;
+  color: var(--pac-text);
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.pac-input input::placeholder {
+  color: #647f78;
+}
+
+.pac-input input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--pac-green);
+  box-shadow: 0 0 0 3px rgba(10, 165, 109, 0.18);
+}
+
+.pac-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.pac-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--pac-ink);
+}
+
+.pac-btn {
+  width: 100%;
+  height: 50px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0aa56d, #08895c);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(8, 137, 92, 0.24);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.pac-btn:hover {
+  background: linear-gradient(90deg, #08895c, #067652);
+}
+
+.pac-card-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.pac-forgot {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0e9461;
+  text-decoration: underline;
+}
+
+.pac-forgot:hover {
+  color: var(--pac-ink);
+}
+
+.pac-register-text {
+  font-size: 0.88rem;
+  color: #5a7a70;
+  margin: 0;
+}
+
+.pac-register-text a {
+  color: var(--pac-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pac-register-text a:hover {
+  text-decoration: underline;
+}
+
+.pac-form-section {
+  font-size: 15px;
+  color: var(--pac-ink);
+  margin: 14px 0 8px;
+  border-bottom: 1px solid #d5e6de;
+  padding-bottom: 5px;
+}
+
+/* ---------- CARDS INFERIORES (BENEFÍCIOS E SEGURANÇA) ---------- */
+.pac-info-wrap {
+  position: relative;
+  z-index: 4;
+  max-width: 1020px;
+  margin: 0 auto;
+  padding: 34px 20px 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pac-features-box {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 32px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 8px 28px rgba(6, 78, 59, 0.06);
+}
+
+.pac-feature-item {
+  flex: 1;
+  text-align: center;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pac-feature-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #dcf6e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.pac-feature-circle img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.pac-feature-item h3 {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--pac-ink);
+  margin-bottom: 6px;
+}
+
+.pac-feature-item p {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--pac-text);
+  max-width: 240px;
+  margin: 0;
+}
+
+.pac-feature-divider {
+  width: 1px;
+  height: 115px;
+  background-color: #cde6da;
+  flex-shrink: 0;
+}
+
+.pac-security-box {
+  background: linear-gradient(100deg, #e4f7ec 0%, #dbf3e6 100%);
+  border: 1px solid rgba(16, 163, 114, 0.14);
+  border-radius: 20px;
+  padding: 24px 36px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  box-shadow: 0 6px 22px rgba(6, 78, 59, 0.05);
+}
+
+.pac-security-icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--pac-green);
+}
+
+.pac-security-divider {
+  width: 1px;
+  height: 62px;
+  background-color: #b7decb;
+  flex-shrink: 0;
+}
+
+.pac-security-text h3 {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--pac-ink);
+  margin-bottom: 4px;
+}
+
+.pac-security-text p {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--pac-text);
+  margin: 0;
+}
+
+/* ---------- BARRA LATERAL DO DASHBOARD DO PACIENTE (MESMA COR DO RODAPÉ) ---------- */
+.dashboard-sidebar {
+  background-color: #0e463b;
+}
+
+.dashboard-sidebar .sidebar-menu li.ativo a,
+.dashboard-sidebar .sidebar-menu li a:hover {
+  background-color: #166353;
+  color: #ffffff;
+}
+
+/* ---------- RESPONSIVIDADE ---------- */
+@media (max-width: 900px) {
+  .pac-hero {
+    min-height: 0;
+  }
+
+  .pac-hero-photo {
+    width: 100%;
+    height: 100%;
+    opacity: 0.35;
+    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  }
+
+  .pac-hero-text {
+    max-width: none;
+    padding: 44px 0 120px;
+  }
+
+  .pac-card-wrap {
+    margin-top: -85px;
+  }
+
+  .pac-card {
+    padding: 26px 22px;
+  }
+
+  .pac-features-box {
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px 20px;
+  }
+
+  .pac-feature-divider {
+    width: 60%;
+    height: 1px;
+  }
+
+  .pac-security-box {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 20px;
+    gap: 16px;
+  }
+
+  .pac-security-divider {
+    width: 50%;
+    height: 1px;
   }
 }
