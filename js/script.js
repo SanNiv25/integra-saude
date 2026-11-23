@@ -59,14 +59,29 @@ async function getUsuarioLogado() {
   if (!session) return null;
 
   // Busca os detalhes completos do paciente na tabela baseado no email autenticado
-  const { data: paciente, error } = await supabaseClient
+  let { data: paciente, error } = await supabaseClient
     .from('pacientes')
     .select('*')
-    .eq('email', session.user.email)
-    .single();
+    .eq('auth_id', session.user.id)
+    .maybeSingle();
 
-  if (error) return null;
-  return paciente;
+  if (!paciente && !error && session.user.email) {
+    const resEmail = await supabaseClient
+      .from('pacientes')
+      .select('*')
+      .eq('email', session.user.email)
+      .limit(1);
+
+    if (!resEmail.error && resEmail.data && resEmail.data.length > 0) {
+      paciente = resEmail.data[0];
+    }
+  }
+
+  if (error) {
+    console.error("Erro ao buscar paciente logado:", error);
+    return null;
+  }
+  return paciente || null;
 }
 
 function getProfissionalLogado() {
@@ -253,7 +268,7 @@ window.atualizarDashboardPaciente = async function () {
         if (agora.getTime() >= tempo24hAntes) {
           btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled title="Não é possível cancelar com menos de 24h de antecedência.">❌ Cancelar (Bloqueado)</button>`;
         } else {
-          btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.profissional}', '${consulta.data}', '${consulta.hora}')">❌ Cancelar</button>`;
+          btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.id}', '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}', ${Boolean(consulta.is_pacote)}, ${consulta.sessao_numero || 'null'}, '${consulta.pacote_id || ''}')">❌ Cancelar</button>`;
         }
         let btnMeet = `<button class="btn-primary btn-disabled" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" disabled title="O botão estará ativo 10 minutos antes do horário agendado.">Iniciar Consulta</button>`;
 
@@ -645,48 +660,52 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // --- LOGIN DO PACIENTE (SUPABASE AUTH) ---
+
   const loginForm = document.getElementById("loginForm");
 
   if (loginForm) {
     loginForm.addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const cpf = document.getElementById("cpfLogin").value.replace(/\D/g, "");
+      const cpfLimpo = document.getElementById("cpfLogin").value.replace(/\D/g, "");
+      const cpfSemZero = cpfLimpo.replace(/^0+/, "");
       const senha = document.getElementById("senhaLogin").value;
 
       try {
-        // 1. Busca o e-mail do paciente pelo CPF
-        const { data: paciente, error: pacienteError } = await supabaseClient
-          .from('pacientes')
-          .select('email')
-          .eq('cpf', cpf)
-          .single();
+        // 1. Busca o e-mail do paciente pelo CPF (tentando exato e sem zeros à esquerda)
+        const candidatosCpf = Array.from(new Set([cpfLimpo, cpfSemZero].filter(Boolean)));
 
-        if (pacienteError || !paciente) {
+        const { data: pacientesEncontrados, error: pacienteError } = await supabaseClient
+          .from('pacientes')
+          .select('email, cpf')
+          .in('cpf', candidatosCpf)
+          .limit(1);
+
+        const paciente = pacientesEncontrados && pacientesEncontrados[0];
+
+        if (pacienteError || !paciente || !paciente.email) {
           alert("Paciente não encontrado.");
           return;
         }
 
         // 2. Realiza o login seguro via Supabase Auth
-        const { error } = await supabaseClient.auth.signInWithPassword({
+        const { error: authError } = await supabaseClient.auth.signInWithPassword({
           email: paciente.email,
           password: senha
         });
 
-        if (error) {
-          alert("Senha incorreta.");
+        if (authError) {
+          console.error("Erro Supabase Auth:", authError);
+          alert(authError.message || "Não foi possível entrar. Verifique seu e-mail e senha.");
           return;
         }
 
-        // 👇 Removido o localStorage. O Supabase já gerencia a sessão de forma segura. 👇
         window.location.reload();
-
       } catch (err) {
         console.error("Erro ao realizar login.", err);
         alert("Erro ao realizar login.");
       }
-    }
-    );
+    });
   }
 
   // --- LOGIN DO PROFISSIONAL (BACKEND) ---
@@ -1606,12 +1625,12 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
 window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPacote, sessaoNumero, pacoteId) {
   consultaParaCancelar = {
     id: consultaId,
-    profissional: profissional,
-    data: data,
-    hora: hora,
-    is_pacote: isPacote,
+    profissional: decodeURIComponent(profissional),
+    data: decodeURIComponent(data),
+    hora: decodeURIComponent(hora),
+    is_pacote: Boolean(isPacote),
     sessaoNumero: sessaoNumero,
-    pacote_id: pacoteId
+    pacote_id: pacoteId || null
   };
 
   const divConfirmacao = document.getElementById("estadoConfirmacao");
@@ -2152,7 +2171,8 @@ window.fecharModalReagendar = function () {
 window.mudarProfissionalReagendamento = function () {
   let nomeEscolhido = document.getElementById("selectProfissionalReagendar").value;
   // Puxa do cache que criamos no abrirModalReagendar
-  profissionalReagendarAtual = window.profissionaisReagendarCache.find(p => p.nome === nomeEscolhido);
+  profissionalReagendarAtual = (window.profissionaisReagendarCache || []).find(p => p.nome === nomeEscolhido) || null;
+  if (!profissionalReagendarAtual) return;
   if (!profissionalReagendarAtual.agenda) profissionalReagendarAtual.agenda = { turnos: ["manha", "tarde", "noite"] };
 
   dataSelecionada = null; horarioSelecionado = null;
