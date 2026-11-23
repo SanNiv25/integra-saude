@@ -1080,7 +1080,7 @@ body {
 /* SIDEBAR LATERAL */
 .dashboard-sidebar {
   width: 280px;
-  background-color: #60e67b;
+  background-color: #8ae6bc;
   color: white;
   padding: 40px 20px;
   display: flex;
@@ -4483,7 +4483,7 @@ html {
   flex-direction: column;
   gap: 30px;
   padding: 40px 20px;
-  background-color: #60e67b;
+  background-color: #8ae6bc;
   /* Mesma cor do rodapé */
   color: #ffffff;
 }
