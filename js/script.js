@@ -637,11 +637,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (document.getElementById("nomeProfDashboard")) document.getElementById("nomeProfDashboard").innerText = `Olá, ${profLogado.nome}!`;
       if (document.getElementById("nomeSidebarProf")) document.getElementById("nomeSidebarProf").innerText = profLogado.nome.toUpperCase();
 
-      const fotoExibicao = document.getElementById("fotoPerfilSidebar");
-      if (fotoExibicao && profLogado.foto_perfil_url) {
-        fotoExibicao.src = profLogado.foto_perfil_url;
-      }
-
       if (window.atualizarDashboardProfissional) window.atualizarDashboardProfissional();
     } else {
       if (authProfSection) authProfSection.classList.remove("hidden");
