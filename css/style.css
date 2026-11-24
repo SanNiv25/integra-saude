@@ -4516,6 +4516,57 @@ html {
   text-align: center;
 }
 
+.dashboard-wrapper .sidebar-titulo-painel {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #064e3b;
+}
+
+/* Botão Sair da Conta na sidebar do profissional em verde */
+.dashboard-wrapper .sidebar-menu li a.btn-sair-prof-verde {
+  background-color: #0aa56d;
+  color: #ffffff;
+  border: 1px solid #08895c;
+}
+
+.dashboard-wrapper .sidebar-menu li a.btn-sair-prof-verde:hover {
+  background-color: #08895c;
+  border-color: #067652;
+  color: #ffffff;
+}
+
+/* Botão Prontuário com o mesmo verde do botão "Área do paciente" */
+.btn-prontuario-prof {
+  background-color: #0aa56d;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-prontuario-prof:hover {
+  background-color: #08895c;
+}
+
+/* Cards realizados, perdidos e cancelados com cor da barra lateral e texto verde escuro */
+.consulta-card.card-status-sidebar {
+  background-color: #e0f5eb !important;
+  border-left: 5px solid #064e3b !important;
+  color: #064e3b !important;
+}
+
+.consulta-card.card-status-sidebar h3,
+.consulta-card.card-status-sidebar p,
+.consulta-card.card-status-sidebar strong {
+  color: #064e3b !important;
+  text-decoration: none !important;
+}
+
 .dashboard-wrapper .sidebar-profile img {
   width: 96px;
   height: 96px;

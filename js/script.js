@@ -403,7 +403,7 @@ window.atualizarDashboardProfissional = async function () {
   const { data: usuarios } = await supabaseClient.from("pacientes").select("cpf, nome");
 
   // 4. FUNÇÃO DE RENDERIZAR O CARTÃO
-  const gerarHTMLCartaoProf = (c) => {
+  const gerarHTMLCartaoProf = (c, isAbaCanceladas = false) => {
     const [ano, mes, dia] = c.data.split("-");
     const [h, m] = c.hora.split(":");
     const tempoConsulta = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime();
@@ -418,24 +418,30 @@ window.atualizarDashboardProfissional = async function () {
 
     let avisoPacoteHTML = "";
     if (c.is_pacote) {
-      avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada || '?'}/4 do Pacote N° ${c.pacoteIndexGlobal || ''}</div>`;
+      avisoPacoteHTML = `<div class="badge-pacote-card" style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada || '?'}/4 do Pacote N° ${c.pacoteIndexGlobal || ''}</div>`;
     }
 
     let btnProf = "";
-    let classePassada = "";
+    let classeStatus = "";
 
-    if (c.status_geral === 'finalizada') {
-      classePassada = "consulta-inativa consulta-finalizada";
-      btnProf = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Finalizada</p>`;
-    } else if (c.status_geral === 'ausente') {
-      classePassada = "consulta-inativa consulta-ausente";
-      btnProf = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
-    } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
-      classePassada = "consulta-inativa";
-      btnProf = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Cancelada</p>`;
-    } else if (agora.getTime() >= tempoFimComTolerancia) {
-      classePassada = "consulta-inativa consulta-esgotada";
-      btnProf = `<p style="color: #888; font-weight: bold; margin-top: 10px;">Tempo Esgotado</p>`;
+    const ehFinalizada = c.status_geral === 'finalizada';
+    const ehAusente = c.status_geral === 'ausente';
+    const ehCancelada = c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso';
+    const ehEncerradaTempo = !ehFinalizada && !ehAusente && !ehCancelada && (agora.getTime() >= tempoFimComTolerancia);
+
+    const aplicarEstiloSidebar = ehFinalizada || ehAusente || ehCancelada || ehEncerradaTempo || isAbaCanceladas;
+    if (aplicarEstiloSidebar) {
+      classeStatus = "consulta-inativa card-status-sidebar";
+    }
+
+    if (ehFinalizada) {
+      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">✅ Consulta Finalizada</p>`;
+    } else if (ehAusente) {
+      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
+    } else if (ehCancelada) {
+      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">🛑 Cancelada</p>`;
+    } else if (ehEncerradaTempo) {
+      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">Tempo Esgotado</p>`;
     } else {
       if (agora.getTime() < inicioLiberado) {
         btnProf = `<button style="width: 100%; margin-top: 15px; padding: 10px; background: #999; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed;" disabled>Aguardando horário...</button>`;
@@ -458,22 +464,22 @@ window.atualizarDashboardProfissional = async function () {
     let nomeDoPaciente = pacienteEncontrado ? pacienteEncontrado.nome : "Paciente não identificado";
 
     return `
-      <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+      <div class="consulta-card ${classeStatus}" style="border-left: 5px solid #0F766E; position: relative; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
           ${avisoPacoteHTML}
           <h3 style="color: #0F4C5C; margin-bottom: 5px; font-size: 17px;">👤 ${escaparHTML(nomeDoPaciente)}</h3>
           <p style="margin-bottom: 5px; color: #555; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
           <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
           ${btnProf}
           
-          <button class="btn-primary" style="width: 100%; margin-top: 10px; background: #17a2b8;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
+          <button class="btn-prontuario-prof" style="width: 100%; margin-top: 10px;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
       </div>
     `;
   };
 
-  const renderAba = (lista) => {
+  const renderAba = (lista, isAbaCanceladas = false) => {
     if (lista.length === 0) return `<p style="grid-column: 1 / -1; color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
     let html = '<div class="consultas-grid" style="grid-column: 1 / -1;">';
-    lista.forEach(c => { html += gerarHTMLCartaoProf(c); });
+    lista.forEach(c => { html += gerarHTMLCartaoProf(c, isAbaCanceladas); });
     html += '</div>';
     return html;
   };
@@ -489,16 +495,16 @@ window.atualizarDashboardProfissional = async function () {
 
   mural.innerHTML = menuAbas + `
     <div id="tabProfPendentes" class="tab-content-prof" style="display: block; grid-column: 1 / -1;">
-        ${renderAba(pendentes)}
+        ${renderAba(pendentes, false)}
     </div>
     <div id="tabProfRealizadas" class="tab-content-prof" style="display: none; grid-column: 1 / -1;">
-        ${renderAba(realizadas)}
+        ${renderAba(realizadas, false)}
     </div>
     <div id="tabProfCanceladas" class="tab-content-prof" style="display: none; grid-column: 1 / -1;">
-        ${renderAba(canceladas)}
+        ${renderAba(canceladas, true)}
     </div>
     <div id="tabProfAusentes" class="tab-content-prof" style="display: none; grid-column: 1 / -1;">
-        ${renderAba(ausentes)}
+        ${renderAba(ausentes, false)}
     </div>
   `;
 
@@ -650,7 +656,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (dashboardProfSection) dashboardProfSection.classList.remove("hidden");
 
       if (document.getElementById("nomeProfDashboard")) document.getElementById("nomeProfDashboard").innerText = `Olá, ${profLogado.nome}!`;
-      if (document.getElementById("nomeSidebarProf")) document.getElementById("nomeSidebarProf").innerText = profLogado.nome.toUpperCase();
 
       if (window.atualizarDashboardProfissional) window.atualizarDashboardProfissional();
     } else {
