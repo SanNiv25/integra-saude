@@ -980,9 +980,14 @@ body {
 ===================================================== */
 
 .saudacao {
-  color: #0f4c5c;
+  color: #064e3b;
   margin-bottom: 30px;
   font-size: 28px;
+}
+
+.consulta-card h3 {
+  color: #064e3b;
+  margin-bottom: 10px;
 }
 
 .consultas-grid {
@@ -997,11 +1002,6 @@ body {
   padding: 20px;
   border-left: 6px solid #1fa37a;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.consulta-card h3 {
-  color: #0E5F73;
-  margin-bottom: 10px;
 }
 
 .btn-sair {
@@ -1080,8 +1080,9 @@ body {
 /* SIDEBAR LATERAL */
 .dashboard-sidebar {
   width: 280px;
-  background-color: #8ae6bc;
-  color: white;
+  background-color: #e0f5eb;
+  border-right: 1px solid #c6ebd9;
+  color: #064e3b;
   padding: 40px 20px;
   display: flex;
   flex-direction: column;
@@ -1091,12 +1092,13 @@ body {
 .perfil-resumo {
   text-align: center;
   padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(6, 78, 59, 0.14);
 }
 
 .perfil-resumo h3 {
   font-size: 18px;
   margin-top: 10px;
+  color: #064e3b;
 }
 
 .sidebar-menu {
@@ -1108,25 +1110,29 @@ body {
 }
 
 .sidebar-menu li a {
-  color: #e0e0e0;
+  color: #064e3b;
   text-decoration: none;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   display: block;
   padding: 12px 15px;
   border-radius: 8px;
+  border: 1px solid transparent;
   transition: 0.3s;
 }
 
 .sidebar-menu li.ativo a,
 .sidebar-menu li a:hover {
-  background-color: #0E5F73;
-  color: white;
+  background-color: #f4fbf7;
+  border: 1px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(6, 78, 59, 0.06);
+  color: #064e3b;
 }
 
 .btn-sair-sidebar {
-  color: #ffb3b3 !important;
-  background-color: rgba(217, 83, 79, 0.2);
+  color: #b91c1c !important;
+  background-color: rgba(217, 83, 79, 0.12);
+  border: 1px solid rgba(217, 83, 79, 0.25) !important;
 }
 
 .btn-sair-sidebar:hover {
@@ -1144,13 +1150,14 @@ body {
 }
 
 .dashboard-header .saudacao {
-  color: #0f4c5c;
+  color: #064e3b;
   font-size: 32px;
   margin-bottom: 5px;
 }
 
 .dashboard-header p {
-  color: #666;
+  color: #0e9461;
+  font-weight: 600;
   font-size: 16px;
 }
 
@@ -1165,12 +1172,12 @@ body {
   border-radius: 12px;
   flex: 1;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-  border-left: 6px solid #1fa37a;
+  border-left: 6px solid #0aa56d;
 }
 
 .stat-card h3 {
   font-size: 13px;
-  color: #777;
+  color: #0e9461;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 10px;
@@ -1178,15 +1185,15 @@ body {
 
 .stat-card p {
   font-size: 22px;
-  color: #0F4C5C;
+  color: #064e3b;
   font-weight: bold;
 }
 
 .dashboard-main-section h2 {
   font-size: 20px;
-  color: #333;
+  color: #064e3b;
   margin-bottom: 20px;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid #d5eee2;
   padding-bottom: 10px;
 }
 
@@ -4483,21 +4490,29 @@ html {
   flex-direction: column;
   gap: 30px;
   padding: 40px 20px;
-  background-color: #8ae6bc;
-  /* Mesma cor do rodapé */
-  color: #ffffff;
+  background-color: #e0f5eb;
+  border-right: 1px solid #c6ebd9;
+  color: #064e3b;
 }
 
-/* Destaque do item ativo / hover na barra lateral em verde harmônico */
+.dashboard-wrapper .sidebar-menu li a {
+  color: #064e3b;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+/* Destaque do item ativo / hover mais claro que os itens */
 .dashboard-wrapper .sidebar-menu li.ativo a,
 .dashboard-wrapper .sidebar-menu li a:hover {
-  background-color: #166353;
-  color: #ffffff;
+  background-color: #f4fbf7;
+  border: 1px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(6, 78, 59, 0.06);
+  color: #064e3b;
 }
 
 .dashboard-wrapper .sidebar-profile {
   padding-bottom: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(6, 78, 59, 0.14);
   text-align: center;
 }
 
@@ -4505,27 +4520,28 @@ html {
   width: 96px;
   height: 96px;
   margin-bottom: 12px;
-  border: 3px solid rgba(255, 255, 255, 0.35);
+  border: 3px solid #ffffff;
   border-radius: 50%;
-  background: #e6f4f3;
+  background: #f4fbf7;
   object-fit: cover;
 }
 
 .dashboard-wrapper .sidebar-profile h3 {
   margin: 0 0 4px;
   font-size: 17px;
-  color: #ffffff;
+  color: #064e3b;
 }
 
 .dashboard-wrapper .sidebar-profile span {
   font-size: 12px;
-  color: #a3c9d1;
+  font-weight: 600;
+  color: #0e9461;
 }
 
 .dashboard-header h1 {
   margin-bottom: 5px;
   font-size: 32px;
-  color: #0f4c5c;
+  color: #064e3b;
 }
 
 @media (max-width: 900px) {
@@ -5078,15 +5094,16 @@ html {
   margin: 0;
 }
 
-/* ---------- BARRA LATERAL DO DASHBOARD DO PACIENTE (MESMA COR DO RODAPÉ) ---------- */
+/* ---------- BARRA LATERAL DO DASHBOARD DO PACIENTE ---------- */
 .dashboard-sidebar {
-  background-color: #0e463b;
+  background-color: #e0f5eb;
 }
 
 .dashboard-sidebar .sidebar-menu li.ativo a,
 .dashboard-sidebar .sidebar-menu li a:hover {
-  background-color: #166353;
-  color: #ffffff;
+  background-color: #f4fbf7;
+  border: 1px solid #ffffff;
+  color: #064e3b;
 }
 
 /* ---------- RESPONSIVIDADE ---------- */
