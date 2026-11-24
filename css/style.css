@@ -5443,3 +5443,76 @@ html {
     padding: 24px 20px;
   }
 }
+
+/* =====================================================
+   🎨 AJUSTES VISUAIS: ÁREA DO PACIENTE vs PROFISSIONAL
+   - Botão "Sair da Conta" no padrão da área do profissional
+   - Cards com o mesmo verde claro da barra lateral
+===================================================== */
+
+/* 1. Botão "Sair da Conta" na área do paciente igual ao do profissional */
+.area-paciente .btn-sair,
+.area-paciente button[id*="sair"],
+.area-paciente a[id*="sair"],
+.area-paciente button[onclick*="logout"],
+.area-paciente button[onclick*="sair"],
+.paciente-sidebar .btn-sair,
+.sidebar-paciente .btn-sair,
+[class*="paciente"] .btn-sair,
+[class*="paciente"] [class*="logout"],
+[class*="paciente"] [class*="sair"]:not(.nav-item):not(.menu-item) {
+  background: linear-gradient(135deg, #0aa56d 0%, #0e9461 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #0a8758 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(10, 165, 109, 0.22) !important;
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.area-paciente .btn-sair:hover,
+.area-paciente button[id*="sair"]:hover,
+.area-paciente a[id*="sair"]:hover,
+.area-paciente button[onclick*="logout"]:hover,
+.area-paciente button[onclick*="sair"]:hover,
+.paciente-sidebar .btn-sair:hover,
+.sidebar-paciente .btn-sair:hover,
+[class*="paciente"] .btn-sair:hover,
+[class*="paciente"] [class*="logout"]:hover,
+[class*="paciente"] [class*="sair"]:not(.nav-item):not(.menu-item):hover {
+  filter: brightness(0.95) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(10, 165, 109, 0.3) !important;
+}
+
+/* 2. Cards com a mesma cor verde claro da barra lateral */
+.area-paciente .card,
+.area-paciente .consulta-card,
+.area-paciente .agendamento-card,
+.area-paciente .pacote-card,
+.area-paciente .exame-card,
+.area-paciente .info-card,
+.area-paciente .resumo-card,
+.area-paciente .box-card,
+.area-profissional .card,
+.area-profissional .consulta-card,
+.area-profissional .agendamento-card,
+.area-profissional .pacote-card,
+.area-profissional .exame-card,
+.area-profissional .info-card,
+.area-profissional .resumo-card,
+.area-profissional .box-card,
+[class*="paciente"] [class*="card"]:not(.sidebar):not(.menu),
+[class*="profissional"] [class*="card"]:not(.sidebar):not(.menu),
+.dashboard-main [class*="card"],
+.painel-conteudo [class*="card"] {
+  background-color: #e6f6ec !important;
+  border-color: #c5e8d3 !important;
+}
+
+/* Mantém itens internos claros dentro dos cards para preservar o contraste e a leitura */
+[class*="paciente"] [class*="card"] .badge,
+[class*="profissional"] [class*="card"] .badge,
+[class*="paciente"] [class*="card"] button:not(.btn-primary):not(.btn-verde):not([class*="prontuario"]),
+[class*="profissional"] [class*="card"] button:not(.btn-primary):not(.btn-verde):not([class*="prontuario"]) {
+  background-color: #ffffff;
+}
