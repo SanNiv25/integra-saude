@@ -58,29 +58,30 @@ async function getUsuarioLogado() {
 
   if (!session) return null;
 
-  // Busca os detalhes completos do paciente na tabela baseado no email autenticado
+  const user = session.user;
+  // O Supabase Auth guarda o e-mail sempre em minúsculas
+  const emailLogin = (user.email || "").trim().toLowerCase();
+
+  // 1) Procura pelo vínculo oficial: o id da conta de acesso (auth_id)
   let { data: paciente, error } = await supabaseClient
     .from('pacientes')
     .select('*')
-    .eq('auth_id', session.user.id)
+    .eq('auth_id', user.id)
     .maybeSingle();
 
-  if (!paciente && !error && session.user.email) {
-    const resEmail = await supabaseClient
+  // 2) Se não achou, procura pelo e-mail sem diferenciar maiúsculas de minúsculas
+  if (!paciente && emailLogin) {
+    const emailBusca = emailLogin.replace(/[\\%_]/g, "\\$&"); // protege caracteres especiais do ilike
+    ({ data: paciente, error } = await supabaseClient
       .from('pacientes')
       .select('*')
-      .eq('email', session.user.email)
-      .limit(1);
-
-    if (!resEmail.error && resEmail.data && resEmail.data.length > 0) {
-      paciente = resEmail.data[0];
-    }
+      .ilike('email', emailBusca)
+      .maybeSingle());
   }
 
-  if (error) {
-    console.error("Erro ao buscar paciente logado:", error);
-    return null;
-  }
+  if (error) console.error("Erro ao buscar o paciente logado:", error);
+  if (!paciente) console.warn("Há uma sessão ativa, mas nenhum paciente foi encontrado para:", emailLogin);
+
   return paciente || null;
 }
 
@@ -268,7 +269,7 @@ window.atualizarDashboardPaciente = async function () {
         if (agora.getTime() >= tempo24hAntes) {
           btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled title="Não é possível cancelar com menos de 24h de antecedência.">❌ Cancelar (Bloqueado)</button>`;
         } else {
-          btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.id}', '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}', ${Boolean(consulta.is_pacote)}, ${consulta.sessao_numero || 'null'}, '${consulta.pacote_id || ''}')">❌ Cancelar</button>`;
+          btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.profissional}', '${consulta.data}', '${consulta.hora}')">❌ Cancelar</button>`;
         }
         let btnMeet = `<button class="btn-primary btn-disabled" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" disabled title="O botão estará ativo 10 minutos antes do horário agendado.">Iniciar Consulta</button>`;
 
@@ -403,7 +404,7 @@ window.atualizarDashboardProfissional = async function () {
   const { data: usuarios } = await supabaseClient.from("pacientes").select("cpf, nome");
 
   // 4. FUNÇÃO DE RENDERIZAR O CARTÃO
-  const gerarHTMLCartaoProf = (c, isAbaCanceladas = false) => {
+  const gerarHTMLCartaoProf = (c) => {
     const [ano, mes, dia] = c.data.split("-");
     const [h, m] = c.hora.split(":");
     const tempoConsulta = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m)).getTime();
@@ -418,30 +419,24 @@ window.atualizarDashboardProfissional = async function () {
 
     let avisoPacoteHTML = "";
     if (c.is_pacote) {
-      avisoPacoteHTML = `<div class="badge-pacote-card" style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada || '?'}/4 do Pacote N° ${c.pacoteIndexGlobal || ''}</div>`;
+      avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada || '?'}/4 do Pacote N° ${c.pacoteIndexGlobal || ''}</div>`;
     }
 
     let btnProf = "";
-    let classeStatus = "";
+    let classePassada = "";
 
-    const ehFinalizada = c.status_geral === 'finalizada';
-    const ehAusente = c.status_geral === 'ausente';
-    const ehCancelada = c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso';
-    const ehEncerradaTempo = !ehFinalizada && !ehAusente && !ehCancelada && (agora.getTime() >= tempoFimComTolerancia);
-
-    const aplicarEstiloSidebar = ehFinalizada || ehAusente || ehCancelada || ehEncerradaTempo || isAbaCanceladas;
-    if (aplicarEstiloSidebar) {
-      classeStatus = "consulta-inativa card-status-sidebar";
-    }
-
-    if (ehFinalizada) {
-      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">✅ Consulta Finalizada</p>`;
-    } else if (ehAusente) {
-      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
-    } else if (ehCancelada) {
-      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">🛑 Cancelada</p>`;
-    } else if (ehEncerradaTempo) {
-      btnProf = `<p class="status-rodape-card" style="font-weight: bold; margin-top: 10px;">Tempo Esgotado</p>`;
+    if (c.status_geral === 'finalizada') {
+      classePassada = "consulta-inativa consulta-finalizada";
+      btnProf = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Finalizada</p>`;
+    } else if (c.status_geral === 'ausente') {
+      classePassada = "consulta-inativa consulta-ausente";
+      btnProf = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
+    } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
+      classePassada = "consulta-inativa";
+      btnProf = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Cancelada</p>`;
+    } else if (agora.getTime() >= tempoFimComTolerancia) {
+      classePassada = "consulta-inativa consulta-esgotada";
+      btnProf = `<p style="color: #888; font-weight: bold; margin-top: 10px;">Tempo Esgotado</p>`;
     } else {
       if (agora.getTime() < inicioLiberado) {
         btnProf = `<button style="width: 100%; margin-top: 15px; padding: 10px; background: #999; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: not-allowed;" disabled>Aguardando horário...</button>`;
@@ -464,22 +459,22 @@ window.atualizarDashboardProfissional = async function () {
     let nomeDoPaciente = pacienteEncontrado ? pacienteEncontrado.nome : "Paciente não identificado";
 
     return `
-      <div class="consulta-card ${classeStatus}" style="border-left: 5px solid #064e3b; position: relative; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+      <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
           ${avisoPacoteHTML}
-          <h3 style="color: #064e3b; margin-bottom: 5px; font-size: 17px;">👤 ${escaparHTML(nomeDoPaciente)}</h3>
-          <p style="margin-bottom: 5px; color: #064e3b; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
-          <p style="margin-bottom: 5px; color: #064e3b; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
+          <h3 style="color: #0F4C5C; margin-bottom: 5px; font-size: 17px;">👤 ${escaparHTML(nomeDoPaciente)}</h3>
+          <p style="margin-bottom: 5px; color: #555; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
+          <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
           ${btnProf}
           
-          <button class="btn-prontuario-prof" style="width: 100%; margin-top: 10px;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
+          <button class="btn-primary" style="width: 100%; margin-top: 10px; background: #17a2b8;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
       </div>
     `;
   };
 
-  const renderAba = (lista, isAbaCanceladas = false) => {
+  const renderAba = (lista) => {
     if (lista.length === 0) return `<p style="grid-column: 1 / -1; color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
     let html = '<div class="consultas-grid" style="grid-column: 1 / -1;">';
-    lista.forEach(c => { html += gerarHTMLCartaoProf(c, isAbaCanceladas); });
+    lista.forEach(c => { html += gerarHTMLCartaoProf(c); });
     html += '</div>';
     return html;
   };
@@ -495,16 +490,16 @@ window.atualizarDashboardProfissional = async function () {
 
   mural.innerHTML = menuAbas + `
     <div id="tabProfPendentes" class="tab-content-prof" style="display: block; grid-column: 1 / -1;">
-        ${renderAba(pendentes, false)}
+        ${renderAba(pendentes)}
     </div>
     <div id="tabProfRealizadas" class="tab-content-prof" style="display: none; grid-column: 1 / -1;">
-        ${renderAba(realizadas, false)}
+        ${renderAba(realizadas)}
     </div>
     <div id="tabProfCanceladas" class="tab-content-prof" style="display: none; grid-column: 1 / -1;">
-        ${renderAba(canceladas, true)}
+        ${renderAba(canceladas)}
     </div>
     <div id="tabProfAusentes" class="tab-content-prof" style="display: none; grid-column: 1 / -1;">
-        ${renderAba(ausentes, false)}
+        ${renderAba(ausentes)}
     </div>
   `;
 
@@ -656,6 +651,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (dashboardProfSection) dashboardProfSection.classList.remove("hidden");
 
       if (document.getElementById("nomeProfDashboard")) document.getElementById("nomeProfDashboard").innerText = `Olá, ${profLogado.nome}!`;
+      if (document.getElementById("nomeSidebarProf")) document.getElementById("nomeSidebarProf").innerText = profLogado.nome.toUpperCase();
 
       if (window.atualizarDashboardProfissional) window.atualizarDashboardProfissional();
     } else {
@@ -665,52 +661,48 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // --- LOGIN DO PACIENTE (SUPABASE AUTH) ---
-
   const loginForm = document.getElementById("loginForm");
 
   if (loginForm) {
     loginForm.addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const cpfLimpo = document.getElementById("cpfLogin").value.replace(/\D/g, "");
-      const cpfSemZero = cpfLimpo.replace(/^0+/, "");
+      const cpf = document.getElementById("cpfLogin").value.replace(/\D/g, "");
       const senha = document.getElementById("senhaLogin").value;
 
       try {
-        // 1. Busca o e-mail do paciente pelo CPF (tentando exato e sem zeros à esquerda)
-        const candidatosCpf = Array.from(new Set([cpfLimpo, cpfSemZero].filter(Boolean)));
-
-        const { data: pacientesEncontrados, error: pacienteError } = await supabaseClient
+        // 1. Busca o e-mail do paciente pelo CPF
+        const { data: paciente, error: pacienteError } = await supabaseClient
           .from('pacientes')
-          .select('email, cpf')
-          .in('cpf', candidatosCpf)
-          .limit(1);
+          .select('email')
+          .eq('cpf', cpf)
+          .maybeSingle();
 
-        const paciente = pacientesEncontrados && pacientesEncontrados[0];
-
-        if (pacienteError || !paciente || !paciente.email) {
+        if (pacienteError || !paciente) {
           alert("Paciente não encontrado.");
           return;
         }
 
         // 2. Realiza o login seguro via Supabase Auth
-        const { error: authError } = await supabaseClient.auth.signInWithPassword({
+        const { error } = await supabaseClient.auth.signInWithPassword({
           email: paciente.email,
           password: senha
         });
 
-        if (authError) {
-          console.error("Erro Supabase Auth:", authError);
-          alert(authError.message || "Não foi possível entrar. Verifique seu e-mail e senha.");
+        if (error) {
+          alert("Senha incorreta.");
           return;
         }
 
+        // 👇 Removido o localStorage. O Supabase já gerencia a sessão de forma segura. 👇
         window.location.reload();
+
       } catch (err) {
         console.error("Erro ao realizar login.", err);
         alert("Erro ao realizar login.");
       }
-    });
+    }
+    );
   }
 
   // --- LOGIN DO PROFISSIONAL (BACKEND) ---
@@ -1630,12 +1622,12 @@ window.verificarStatusDia = async function (dataVerificar, dataStr, limiteTempo)
 window.abrirModalCancelar = function (consultaId, profissional, data, hora, isPacote, sessaoNumero, pacoteId) {
   consultaParaCancelar = {
     id: consultaId,
-    profissional: decodeURIComponent(profissional),
-    data: decodeURIComponent(data),
-    hora: decodeURIComponent(hora),
-    is_pacote: Boolean(isPacote),
+    profissional: profissional,
+    data: data,
+    hora: hora,
+    is_pacote: isPacote,
     sessaoNumero: sessaoNumero,
-    pacote_id: pacoteId || null
+    pacote_id: pacoteId
   };
 
   const divConfirmacao = document.getElementById("estadoConfirmacao");
@@ -2176,8 +2168,7 @@ window.fecharModalReagendar = function () {
 window.mudarProfissionalReagendamento = function () {
   let nomeEscolhido = document.getElementById("selectProfissionalReagendar").value;
   // Puxa do cache que criamos no abrirModalReagendar
-  profissionalReagendarAtual = (window.profissionaisReagendarCache || []).find(p => p.nome === nomeEscolhido) || null;
-  if (!profissionalReagendarAtual) return;
+  profissionalReagendarAtual = window.profissionaisReagendarCache.find(p => p.nome === nomeEscolhido);
   if (!profissionalReagendarAtual.agenda) profissionalReagendarAtual.agenda = { turnos: ["manha", "tarde", "noite"] };
 
   dataSelecionada = null; horarioSelecionado = null;
@@ -3650,11 +3641,11 @@ window.carregarMinhasConsultas = async function () {
     }
 
     return `
-          <div class="consulta-card ${classePassada}" style="border-left: 5px solid #064e3b; position: relative;">
+          <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative;">
               ${avisoPacoteHTML}
-              <h3 style="color: #064e3b; margin-bottom: 10px; font-size: 17px;">🧑‍⚕️ ${c.profissional}</h3>
-              <p style="margin-bottom: 5px; color: #064e3b; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
-              <p style="margin-bottom: 5px; color: #064e3b; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
+              <h3 style="color: #0F4C5C; margin-bottom: 10px; font-size: 17px;">🧑‍⚕️ ${c.profissional}</h3>
+              <p style="margin-bottom: 5px; color: #555; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
+              <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
               ${botoesRender}
           </div>
       `;
@@ -4642,7 +4633,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const nome = document.getElementById("nome").value.trim();
       const cpf = document.getElementById("cpfCadastro").value.replace(/\D/g, "");
       const nascimento = document.getElementById("nascimento").value;
-      const email = document.getElementById("emailCadastro").value.trim();
+      const email = document.getElementById("emailCadastro").value.trim().toLowerCase();
       const senha = document.getElementById("senhaCadastro").value;
       const cep = document.getElementById("cep").value.trim();
       const rua = document.getElementById("rua").value.trim();
