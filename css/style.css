@@ -5635,6 +5635,11 @@ html {
   /* altura da tela (16:10) */
   --nb-d: calc(var(--nb-w) * 0.6);
   /* profundidade da base */
+  --nb-base-t: calc(var(--nb-w) * 0.024);
+  /* espessura da base (a "frente" dela) */
+  --nb-lid-ratio: 0.25;
+  /* espessura da tampa = 25% da espessura da base */
+  --nb-lid-t: max(3px, calc(var(--nb-base-t) * var(--nb-lid-ratio)));
   position: relative;
   display: flex;
   justify-content: center;
@@ -5700,7 +5705,7 @@ html {
   left: 0;
   top: 100%;
   width: 100%;
-  height: calc(var(--nb-w) * 0.024);
+  height: var(--nb-base-t);
   transform: translateZ(var(--nb-d));
   border-radius: 0 0 20px 20px / 0 0 12px 12px;
   background: linear-gradient(180deg, #b9cdc2 0%, #98b1a4 100%);
@@ -5730,8 +5735,8 @@ html {
   display: flex;
   flex-direction: column;
   padding: 2.4% 2.4% 3.2%;
-  background: #0f1a16;
-  box-shadow: inset 0 0 0 2px #26362f, 0 14px 30px rgba(6, 78, 59, 0.18);
+  background: #0b0c0c;
+  box-shadow: inset 0 0 0 2px #232626, 0 14px 30px rgba(0, 0, 0, 0.16);
 }
 
 .nb-camera {
@@ -5740,7 +5745,7 @@ html {
   height: 5px;
   margin: 0 auto 1.2%;
   border-radius: 50%;
-  background: #3c6e5b;
+  background: #3a3f3d;
 }
 
 .nb-screen-media {
@@ -5763,9 +5768,43 @@ html {
 .nb-face-cover {
   display: grid;
   place-items: center;
-  transform: rotateY(180deg);
-  border: 2px solid #17b078;
-  background: linear-gradient(145deg, #12a06b 0%, #064e3b 100%);
+  transform: translateZ(calc(var(--nb-lid-t) * -1)) rotateY(180deg);
+  border: 2px solid #2b2f2e;
+  background: linear-gradient(145deg, #2a2d2c 0%, #0a0b0b 100%);
+}
+
+/* Laterais da tampa: dão a espessura (em cima, à esquerda e à direita) */
+.nb-lid-edge {
+  position: absolute;
+  background: linear-gradient(180deg, #1d2020 0%, #060707 100%);
+}
+
+.nb-lid-edge-top {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: var(--nb-lid-t);
+  border-radius: 14px 14px 0 0;
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg);
+}
+
+.nb-lid-edge-left {
+  left: 0;
+  top: 0;
+  width: var(--nb-lid-t);
+  height: 100%;
+  transform-origin: 0 50%;
+  transform: rotateY(90deg);
+}
+
+.nb-lid-edge-right {
+  right: 0;
+  top: 0;
+  width: var(--nb-lid-t);
+  height: 100%;
+  transform-origin: 100% 50%;
+  transform: rotateY(-90deg);
 }
 
 .nb-logo-badge {
