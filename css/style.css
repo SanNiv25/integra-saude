@@ -5520,6 +5520,9 @@ html {
 /* =====================================================
    💻 ANIMAÇÃO DO NOTEBOOK AO ROLAR (BLOG)
    Classes exclusivas "nb-*"
+   Como funciona: a seção do notebook é alta (260vh) e o palco
+   fica "grudado" na tela (sticky). Quanto mais o usuário rola
+   para baixo, mais o notebook abre; rolando para cima, ele fecha.
 ===================================================== */
 .nb-page {
   --nb-ink: #064e3b;
@@ -5568,13 +5571,23 @@ html {
   color: var(--nb-green);
 }
 
+/* ---------- PALCO FIXO (sticky) ---------- */
 .nb-stage-section {
-  padding: 64px 0 40px;
+  position: relative;
+  height: 260vh;
+}
+
+.nb-sticky {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 48px);
 }
 
 .nb-stage-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.15fr);
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.25fr);
   gap: 44px;
   align-items: center;
 }
@@ -5614,63 +5627,160 @@ html {
   color: var(--nb-green);
 }
 
-/* Cena 3D do Notebook */
+/* ---------- CENA 3D DO NOTEBOOK ---------- */
 .nb-scene {
+  --nb-w: min(46vw, 560px);
+  /* largura da tela do notebook */
+  --nb-h: calc(var(--nb-w) * 0.625);
+  /* altura da tela (16:10) */
+  --nb-d: calc(var(--nb-w) * 0.6);
+  /* profundidade da base */
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  perspective: 1200px;
-  padding: 24px 12px 10px;
+  align-items: flex-start;
+  perspective: 1500px;
+  perspective-origin: 50% -12%;
+  padding: 10px 0 calc(var(--nb-d) * 0.42);
 }
 
-.nb-notebook {
+.nb-laptop {
   position: relative;
-  width: 100%;
-  max-width: 440px;
+  width: var(--nb-w);
+  height: var(--nb-h);
   transform-style: preserve-3d;
+  /* o JS troca --p de 0 (fechado) a 1 (aberto) */
+  transform: translateY(calc((1 - var(--p, 1)) * var(--nb-h) * -0.66));
 }
 
+/* Base (teclado): deitada, saindo da dobradiça em direção a quem olha */
+.nb-base {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: var(--nb-d);
+  box-sizing: border-box;
+  transform-origin: 50% 0;
+  transform: rotateX(90deg);
+  border: 1px solid #a9c1b4;
+  border-radius: 6px 6px 22px 22px;
+  background: linear-gradient(180deg, #e8f0ec 0%, #cfdcd5 100%);
+}
+
+.nb-keys {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 9%;
+  height: 50%;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(90deg, #aebfb6 0 2px, transparent 2px calc(var(--nb-w) * 0.052)),
+    repeating-linear-gradient(0deg, #aebfb6 0 2px, transparent 2px calc(var(--nb-w) * 0.052)),
+    #dbe7e1;
+  box-shadow: inset 0 0 0 2px #b8cbc1;
+}
+
+.nb-trackpad {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  width: 32%;
+  height: 20%;
+  transform: translateX(-50%);
+  border: 1px solid #aebfb6;
+  border-radius: 8px;
+  background: #d6e3dc;
+}
+
+/* Espessura da frente da base */
+.nb-base-front {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 100%;
+  height: calc(var(--nb-w) * 0.024);
+  transform: translateZ(var(--nb-d));
+  border-radius: 0 0 20px 20px / 0 0 12px 12px;
+  background: linear-gradient(180deg, #b9cdc2 0%, #98b1a4 100%);
+}
+
+/* Tampa: gira em volta da dobradiça (borda de baixo) */
 .nb-lid {
-  position: relative;
-  width: 100%;
-  height: 255px;
-  transform-origin: bottom center;
-  transform-style: preserve-3d;
-  transform: rotateX(-102deg);
-  will-change: transform;
-  z-index: 2;
-}
-
-.nb-lid-face {
   position: absolute;
   inset: 0;
-  border-radius: 16px 16px 6px 6px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  box-shadow: 0 12px 28px rgba(6, 78, 59, 0.14);
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  transform: translateY(-2px) rotateX(-90deg);
+  will-change: transform;
 }
 
-/* Tampa externa (quando fechado) */
-.nb-lid-back {
-  background: linear-gradient(145deg, #0e9461 0%, #064e3b 100%);
-  border: 3px solid #13a86f;
+.nb-face {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border-radius: 14px 14px 4px 4px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Lado da tela (aparece quando aberto) */
+.nb-face-screen {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  padding: 2.4% 2.4% 3.2%;
+  background: #0f1a16;
+  box-shadow: inset 0 0 0 2px #26362f, 0 14px 30px rgba(6, 78, 59, 0.18);
+}
+
+.nb-camera {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  margin: 0 auto 1.2%;
+  border-radius: 50%;
+  background: #3c6e5b;
+}
+
+.nb-screen-media {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #e8f8ed;
+}
+
+.nb-screen-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 64% 22%;
+}
+
+/* Lado de fora da tampa (aparece quando fechado) */
+.nb-face-cover {
+  display: grid;
+  place-items: center;
+  transform: rotateY(180deg);
+  border: 2px solid #17b078;
+  background: linear-gradient(145deg, #12a06b 0%, #064e3b 100%);
 }
 
 .nb-logo-badge {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--nb-ink);
-  font-weight: 700;
-  font-size: 1rem;
   padding: 10px 18px;
   border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  color: var(--nb-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  /* a tampa fecha para a frente, então o logo gira para ler certo de frente */
+  transform: rotate(180deg);
 }
 
 .nb-badge-icon {
@@ -5679,117 +5789,20 @@ html {
   object-fit: contain;
 }
 
-/* Tela interna (quando abre) */
-/* Tela interna com a foto dentro do notebook */
-.nb-lid-screen {
-  background: #0f1f1a;
-  border: 7px solid #163329;
-  transform: rotateX(180deg);
-  padding: 6px 8px 8px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.nb-camera-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #3c6e5b;
-  margin: 0 auto 5px;
-  flex-shrink: 0;
-}
-
-.nb-screen-media {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #e8f8ed;
-}
-
-.nb-screen-photo {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  object-position: 72% 20%;
-}
-
-.nb-camera-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #386655;
-  margin: 0 auto 6px;
-}
-
-.nb-screen-body h3 {
-  font-size: 1rem;
-  color: var(--nb-ink);
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.nb-screen-body p {
-  font-size: 0.8rem;
-  color: var(--nb-text);
-  line-height: 1.45;
-  margin: 0;
-}
-
-/* Base / Teclado */
-.nb-base {
-  position: relative;
-  height: 22px;
-  background: linear-gradient(180deg, #dcebe3 0%, #b5d2c3 100%);
-  border: 1px solid #9bc0ad;
-  border-radius: 4px 4px 14px 14px;
-  box-shadow: 0 8px 18px rgba(6, 78, 59, 0.15);
-  z-index: 3;
-}
-
-.nb-base-lip {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 74px;
-  height: 5px;
-  border-radius: 0 0 6px 6px;
-  background: #8bb09d;
-}
-
-.nb-base::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 72px;
-  height: 5px;
-  border-radius: 0 0 6px 6px;
-  background: #8fb3a2;
-}
-
-.nb-keyboard {
-  display: none;
-}
-
 .nb-shadow {
-  width: 86%;
-  max-width: 390px;
-  height: 16px;
-  margin-top: 8px;
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--nb-d) * 0.1);
+  width: calc(var(--nb-w) * 0.96);
+  height: 22px;
+  transform: translateX(-50%) scaleX(0.9);
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(6, 78, 59, 0.35) 0%, transparent 72%);
-  transform: scaleX(0.88);
-  opacity: 0.14;
-  transition: none;
+  background: radial-gradient(ellipse at center, rgba(6, 78, 59, 0.32) 0%, transparent 70%);
+  opacity: 0.3;
+  pointer-events: none;
 }
 
-/* Cards de exemplo abaixo */
+/* ---------- CARDS DE EXEMPLO ABAIXO ---------- */
 .nb-feed-preview {
   padding-top: 24px;
 }
@@ -5830,21 +5843,37 @@ html {
   margin: 0;
 }
 
+/* ---------- CELULAR / TABLET ---------- */
 @media (max-width: 900px) {
   .nb-stage-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
     text-align: center;
   }
 
-  .nb-screen-body {
-    text-align: center;
+  /* texto explicativo some para o notebook caber na tela */
+  .nb-copy>p:not(.nb-status-texto) {
+    display: none;
   }
 
-  .nb-lid {
-    height: 215px;
+  .nb-scene {
+    --nb-w: min(82vw, 440px);
   }
 
   .nb-articles-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* quem prefere menos movimento vê o notebook já aberto, sem animação */
+@media (prefers-reduced-motion: reduce) {
+  .nb-stage-section {
+    height: auto;
+    padding: 56px 0 24px;
+  }
+
+  .nb-sticky {
+    position: static;
+    min-height: 0;
   }
 }
