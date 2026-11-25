@@ -4,14 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Integra Saúde - Blog</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Integra Saúde - Trabalhe Conosco</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <!-- HEADER -->
+  <!-- CABEÇALHO PADRÃO -->
   <header class="header-site">
     <div class="header-logo-area">
       <img src="img/logo.png" alt="Ícone Integra Saúde" class="icone">
@@ -37,101 +37,311 @@
     </div>
   </header>
 
-  <!-- CONTEÚDO DO BLOG + ANIMAÇÃO DO NOTEBOOK -->
-  <main class="nb-page">
-    <section class="nb-hero">
-      <div class="nb-wrap">
-        <span class="nb-hero-bar"></span>
-        <h1>Blog Integra Saúde</h1>
-        <p>Role a página para ver o notebook abrir e fechar com conteúdos sobre saúde digital e bem-estar.</p>
-      </div>
-    </section>
+  <!-- SEÇÃO PRINCIPAL (BANNER / HERO) -->
+  <section class="hero-section">
+    <img src="img/fundo2.jpg" alt="Fundo Consultório" class="hero-bg-img">
+    <div class="hero-container">
+      <div class="hero-content">
+        <span class="hero-tag">Profissional da Saúde,</span>
+        <h1 class="hero-title">Seu trabalho e cuidado podem chegar mais longe com a Integra Saúde.</h1>
+        <p class="hero-subtitle">Faça parte da Integra Saúde, uma plataforma que conecta profissionais e
+          pacientes por meio do atendimento online.</p>
 
-    <section class="nb-stage-section" id="nb-secao-notebook">
-      <div class="nb-wrap nb-stage-grid">
-        <div class="nb-copy">
-          <span class="nb-tag">Teleatendimento na prática</span>
-          <h2>Sua consulta na palma da mão ou na tela do seu notebook</h2>
-          <p>
-            Ao rolar para baixo, a tampa do notebook se abre revelando a prévia do portal de atendimento;
-            ao subir novamente, ela se fecha de forma suave.
-          </p>
-          <p class="nb-status-texto">
-            Abertura atual: <strong id="nb-progresso-label">0%</strong>
-          </p>
+        <a href="#formulario" class="btn-quero-profissional">
+          Quero ser profissional <span>→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEÇÃO DE DIFERENCIAIS -->
+  <section class="features-bar-section">
+    <div class="features-bar-container">
+      <div class="feat-card">
+        <img src="img/atendimento.png" alt="Atendimento Online">
+        <h4>Atendimento online</h4>
+        <p>Atue de onde estiver,<br>com toda a segurança.</p>
+      </div>
+      <div class="feat-divider"></div>
+      <div class="feat-card">
+        <img src="img/brasil.png" alt="Pacientes de todo o Brasil">
+        <h4>Pacientes de todo o Brasil</h4>
+        <p>Amplie seu alcance e ajude<br>pacientes em crescimento.</p>
+      </div>
+      <div class="feat-divider"></div>
+      <div class="feat-card">
+        <img src="img/grupo.png" alt="Plataforma Integrada">
+        <h4>Plataforma integrada</h4>
+        <p>Mais praticidade, segurança<br>e suporte para o seu dia a dia.</p>
+      </div>
+      <div class="feat-divider"></div>
+      <div class="feat-card">
+        <img src="img/seguranca.png" alt="Profissionais Qualificados">
+        <h4>Profissionais qualificados</h4>
+        <p>Juntos por um cuidado<br>mais completo e humano.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEÇÃO DE ESPECIALIDADES -->
+  <section class="specialties-section">
+    <div class="specialties-container">
+      <div class="specialty-left">
+        <span class="spec-label">ESPECIALIDADES</span>
+        <h2 class="spec-title">Atendimento nas áreas de Psicologia, Nutrição e Fonoaudiologia</h2>
+      </div>
+
+      <div class="specialty-right">
+        <div class="spec-item">
+          <div class="spec-icon-circle">
+            <img src="img/psicologia2.png" alt="Psicologia">
+          </div>
+          <h4>Psicologia</h4>
+          <p>Cuidado emocional e saúde mental.</p>
         </div>
 
-        <div class="nb-scene" aria-hidden="true">
-          <div class="nb-notebook" id="nb-notebook-3d">
-            <!-- Tampa / Tela (gira a partir da dobradiça inferior) -->
-            <div class="nb-lid" id="nb-lid">
-              <!-- Parte externa (tampa fechada) -->
-              <div class="nb-lid-face nb-lid-back">
-                <div class="nb-logo-badge">
-                  <img src="img/logo.png" alt="" class="nb-badge-icon">
-                  <span>Integra Saúde</span>
-                </div>
-              </div>
+        <div class="spec-item">
+          <div class="spec-icon-circle">
+            <img src="img/nutri.png" alt="Nutrição">
+          </div>
+          <h4>Nutrição</h4>
+          <p>Plano alimentar personalizado.</p>
+        </div>
 
-              <!-- Parte interna (tela aberta) -->
-              <div class="nb-lid-face nb-lid-screen">
-                <div class="nb-camera-dot"></div>
-                <div class="nb-screen-content">
-                  <div class="nb-screen-topbar">
-                    <span class="nb-dot"></span>
-                    <span class="nb-dot"></span>
-                    <span class="nb-dot"></span>
-                    <span class="nb-screen-url">portal.integrasaude.com.br</span>
-                  </div>
-                  <div class="nb-screen-body">
-                    <span class="nb-mini-pill">Consulta Online</span>
-                    <h3>Cuidado próximo, onde você estiver</h3>
-                    <p>Agendamento simples, sigilo profissional e acompanhamento contínuo.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div class="spec-item">
+          <div class="spec-icon-circle">
+            <img src="img/fono.png" alt="Fonoaudiologia">
+          </div>
+          <h4>Fonoaudiologia</h4>
+          <p>Desenvolvimento de fala e comunicação.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            <!-- Base / Teclado -->
-            <div class="nb-base">
-              <div class="nb-keyboard">
-                <div class="nb-key-row"></div>
-                <div class="nb-key-row"></div>
-                <div class="nb-key-row"></div>
-                <div class="nb-key-row nb-key-space-row"></div>
-              </div>
-              <div class="nb-trackpad"></div>
+  <!-- SEÇÃO COMO FUNCIONA + FORMULÁRIO -->
+  <section class="como-funciona-section" id="cadastro">
+    <div class="como-funciona-container">
+
+      <!-- Bloco esquerdo: passo a passo (4 passos) -->
+      <div class="como-funciona-left">
+        <span class="funciona-label">COMO FUNCIONA?</span>
+        <h2>É simples fazer parte da Integra Saúde.</h2>
+        <p class="funciona-desc">Em poucos passos, você se cadastra e começa a atender pacientes online.</p>
+
+        <div class="passos-lista">
+          <div class="passo-item">
+            <span class="passo-numero">1</span>
+            <div class="passo-texto">
+              <strong>Cadastre seu interesse</strong>
+              <span>Preencha o formulário ao lado.</span>
             </div>
           </div>
-          <div class="nb-shadow" id="nb-shadow"></div>
+
+          <div class="passo-item">
+            <span class="passo-numero">2</span>
+            <div class="passo-texto">
+              <strong>Envie seus dados profissionais</strong>
+              <span>Dados de formação e especialidade.</span>
+            </div>
+          </div>
+
+          <div class="passo-item">
+            <span class="passo-numero">3</span>
+            <div class="passo-texto">
+              <strong>Nossa equipe entra em contato</strong>
+              <span>Vamos analisar seu perfil e dar o próximo passo.</span>
+            </div>
+          </div>
+
+          <div class="passo-item">
+            <span class="passo-numero">4</span>
+            <div class="passo-texto">
+              <strong>Após aprovação</strong>
+              <span>Você poderá integrar nossa rede e começar a atender.</span>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
 
-    <!-- Espaço extra para testar a rolagem para cima e para baixo -->
-    <section class="nb-feed-preview">
-      <div class="nb-wrap nb-articles-grid">
-        <article class="nb-article-card">
-          <span class="nb-article-cat">Saúde Digital</span>
-          <h3>Como se preparar para a sua primeira teleconsulta</h3>
-          <p>Dicas de ambiente tranquilo, conexão estável e anotações de sintomas para aproveitar melhor os 50 minutos
-            de atendimento.</p>
-        </article>
-        <article class="nb-article-card">
-          <span class="nb-article-cat">Bem-Estar</span>
-          <h3>Rotina e saúde mental no dia a dia</h3>
-          <p>Pequenas pausas, sono regular e acompanhamento profissional ajudam a manter o equilíbrio emocional.</p>
-        </article>
-        <article class="nb-article-card">
-          <span class="nb-article-cat">Privacidade</span>
-          <h3>Sigilo e proteção de dados no atendimento online</h3>
-          <p>Entenda como os atendimentos seguem normas éticas e a LGPD para garantir segurança ao paciente.</p>
-        </article>
+      <!-- Bloco direito: formulário completo com rolagem -->
+      <div class="como-funciona-right">
+        <div class="form-card" id="formulario">
+          <h3>Cadastre seu interesse</h3>
+          <p class="form-subtitle">Preencha sua ficha abaixo. Nossa equipe avaliará seu perfil e entrará em contato em
+            breve.</p>
+
+          <form id="formTrabalheConosco">
+
+            <!-- ÁREA COM BARRA DE ROLAGEM -->
+            <div class="form-scroll">
+
+              <!-- DADOS PESSOAIS -->
+              <div class="form-section-title">Dados Pessoais</div>
+
+              <div class="form-group-custom">
+                <label>Nome completo *</label>
+                <input type="text" id="candNome" placeholder="Digite seu nome completo" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label>CPF *</label>
+                  <input type="text" id="candCpf" maxlength="14" placeholder="000.000.000-00" required>
+                </div>
+                <div class="form-group-custom">
+                  <label>Data de nascimento *</label>
+                  <input type="date" id="candNascimento" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label>Telefone / WhatsApp *</label>
+                  <input type="tel" id="candTelefone" placeholder="(00) 00000-0000" required>
+                </div>
+                <div class="form-group-custom">
+                  <label>E-mail *</label>
+                  <input type="email" id="candEmail" placeholder="Digite seu e-mail" required>
+                </div>
+              </div>
+
+              <!-- ENDEREÇO -->
+              <div class="form-section-title">Endereço</div>
+
+              <div class="form-row">
+                <div class="form-group-custom" style="flex: 1;">
+                  <label>CEP *</label>
+                  <input type="text" id="candCep" maxlength="9" placeholder="00000-000" required>
+                </div>
+                <div class="form-group-custom" style="flex: 2;">
+                  <label>Rua / Logradouro *</label>
+                  <input type="text" id="candRua" placeholder="Nome da rua" required>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom" style="flex: 1;">
+                  <label>Número *</label>
+                  <input type="text" id="candNumero" placeholder="Número" required>
+                </div>
+                <div class="form-group-custom" style="flex: 2;">
+                  <label>Complemento</label>
+                  <input type="text" id="candComplemento" placeholder="Apto, Bloco, etc.">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label for="candBairro">Bairro *</label>
+                  <input type="text" id="candBairro" placeholder="Bairro" required>
+                </div>
+
+                <div class="form-group-custom">
+                  <label for="candCidade">Cidade *</label>
+                  <input type="text" id="candCidade" placeholder="Cidade" required>
+                </div>
+
+                <div class="form-group-custom" style="flex: 0.6;">
+                  <label for="candUf">UF *</label>
+                  <input type="text" id="candUf" placeholder="UF" maxlength="2" required>
+                </div>
+              </div>
+
+              <!-- REGISTRO PROFISSIONAL -->
+              <div class="form-section-title">Registro Profissional</div>
+
+              <div class="form-group-custom">
+                <label>Profissão / Especialidade *</label>
+                <select id="candProfissao" required>
+                  <option value="" disabled selected>Selecione sua especialidade</option>
+                  <option value="Psicologia">Psicologia</option>
+                  <option value="Nutrição">Nutrição</option>
+                  <option value="Fonoaudiologia">Fonoaudiologia</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group-custom" style="flex: 2;">
+                  <label>Nº Registro (CRP/CRN/CRFa) *</label>
+                  <input type="text" id="candRegistro" placeholder="Número do registro" required>
+                </div>
+                <div class="form-group-custom" style="flex: 1;">
+                  <label>UF Reg. *</label>
+                  <input type="text" id="candEstado" maxlength="2" placeholder="UF" required>
+                </div>
+              </div>
+
+              <!-- EXPERIÊNCIA -->
+              <div class="form-section-title">Experiência Profissional</div>
+
+              <div class="form-row">
+                <div class="form-group-custom">
+                  <label>Anos de experiência *</label>
+                  <input type="number" id="candExp" min="0" placeholder="Ex: 3" required>
+                </div>
+                <div class="form-group-custom">
+                  <label>Público atendido *</label>
+                  <input type="text" id="candPublico" placeholder="Ex: Adultos, Crianças, Casais" required>
+                </div>
+              </div>
+
+              <div class="form-group-custom">
+                <label>Principais áreas de atuação *</label>
+                <input type="text" id="candAtuacao" placeholder="Ex: Terapia Cognitivo-Comportamental, Ansiedade..."
+                  required>
+              </div>
+
+              <!-- Perguntas novas -->
+              <div class="form-question">
+                <span class="form-question-label">Você já atende online? *</span>
+                <div class="opcoes-linha">
+                  <label><input type="radio" name="atendeOnline" value="Sim" required> Sim</label>
+                  <label><input type="radio" name="atendeOnline" value="Não"> Não</label>
+                </div>
+              </div>
+
+              <div class="form-question">
+                <span class="form-question-label">Como conheceu a Integra Saúde?</span>
+                <div class="opcoes-linha">
+                  <label><input type="checkbox" name="comoConheceu" value="Instagram"> Instagram</label>
+                  <label><input type="checkbox" name="comoConheceu" value="Indicação"> Indicação</label>
+                </div>
+              </div>
+
+              <div class="form-question form-aceite">
+                <label>
+                  <input type="checkbox" id="candAceitePolitica" required>
+                  <span>Li e concordo com os <a href="termos.html" target="_blank">Termos e Política de
+                      Privacidade</a>.</span>
+                </label>
+              </div>
+
+              <!-- CURRÍCULO -->
+              <div class="form-section-title">Currículo</div>
+              <div class="form-group-custom">
+                <label for="candCurriculo">Anexe seu currículo (PDF) *</label>
+                <input type="file" id="candCurriculo" accept="application/pdf,.pdf" required>
+                <small class="file-hint">Apenas arquivos PDF, até 5 MB.</small>
+              </div>
+
+            </div>
+            <!-- FIM DA ÁREA COM ROLAGEM -->
+
+            <button type="submit" class="btn-enviar-interesse">Enviar Ficha para Avaliação →</button>
+          </form>
+
+          <div id="msgSucessoTrabalhe"
+            style="display: none; background-color: #d4edda; color: #155724; padding: 25px; border-radius: 8px; margin-top: 20px; text-align: center; border: 1px solid #c3e6cb;">
+            <h3 style="margin-bottom: 10px;">Ficha enviada com sucesso!</h3>
+            <p>O seu formulário será analisado pela nossa equipe. Entraremos em contato em breve pelo WhatsApp.</p>
+          </div>
+        </div>
       </div>
-    </section>
-  </main>
 
-  <!-- FOOTER -->
+    </div>
+  </section>
+
   <footer class="footer-site">
     <div class="footer-container">
 
@@ -175,84 +385,10 @@
     </div>
   </footer>
 
+  <!-- Scripts compartilhados -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
-  <script src="js/script.js?v=900"></script>
-
-  <script>
-    (function () {
-      const secao = document.getElementById('nb-secao-notebook');
-      const lid = document.getElementById('nb-lid');
-      const shadow = document.getElementById('nb-shadow');
-      const label = document.getElementById('nb-progresso-label');
-
-      if (!secao || !lid) return;
-
-      let atualProgresso = 0;
-      let alvoProgresso = 0;
-      let rafId = null;
-
-      function calcularAlvo() {
-        const rect = secao.getBoundingClientRect();
-        const alturaViewport = window.innerHeight || document.documentElement.clientHeight;
-
-        // Começa a abrir quando a seção entra por baixo e atinge abertura máxima perto do centro da tela
-        const inicio = alturaViewport * 0.92;
-        const fim = alturaViewport * 0.22;
-        const bruto = (inicio - rect.top) / (inicio - fim);
-
-        alvoProgresso = Math.max(0, Math.min(1, bruto));
-      }
-
-      function aplicarEstado(p) {
-        // Fechado = -102deg (tampa deitada sobre a base); Aberto = 0deg (tela erguida)
-        const angulo = -102 + (p * 102);
-        lid.style.transform = `rotateX(${angulo.toFixed(2)}deg)`;
-
-        if (shadow) {
-          const escalaX = 0.88 + (p * 0.16);
-          const opacidade = 0.14 + (p * 0.14);
-          shadow.style.transform = `scaleX(${escalaX.toFixed(3)})`;
-          shadow.style.opacity = opacidade.toFixed(2);
-        }
-
-        if (label) {
-          label.textContent = `${Math.round(p * 100)}%`;
-        }
-      }
-
-      function animar() {
-        // Interpolação suave para não ficar travado ao subir ou descer
-        atualProgresso += (alvoProgresso - atualProgresso) * 0.14;
-        if (Math.abs(alvoProgresso - atualProgresso) < 0.001) {
-          atualProgresso = alvoProgresso;
-        }
-
-        aplicarEstado(atualProgresso);
-
-        if (atualProgresso !== alvoProgresso) {
-          rafId = requestAnimationFrame(animar);
-        } else {
-          rafId = null;
-        }
-      }
-
-      function onScrollOrResize() {
-        calcularAlvo();
-        if (!rafId) {
-          rafId = requestAnimationFrame(animar);
-        }
-      }
-
-      window.addEventListener('scroll', onScrollOrResize, { passive: true });
-      window.addEventListener('resize', onScrollOrResize, { passive: true });
-
-      calcularAlvo();
-      atualProgresso = alvoProgresso;
-      aplicarEstado(atualProgresso);
-    })();
-  </script>
-
+  <script src="js/script.js?v=400"></script>
 </body>
 
 </html>

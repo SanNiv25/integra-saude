@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integra Saúde - Contato</title>
+    <title>Integra Saúde - Blog</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -36,6 +36,86 @@
             <a href="area-paciente.html" class="btn-entrar-contato">Área do paciente</a>
         </div>
     </header>
+
+    <!-- CONTEÚDO DO BLOG + ANIMAÇÃO DO NOTEBOOK -->
+    <main class="nb-page">
+        <section class="nb-hero">
+            <div class="nb-wrap">
+                <span class="nb-hero-bar"></span>
+                <h1>Blog Integra Saúde</h1>
+                <p>Role a página para ver o notebook abrir e fechar com conteúdos sobre saúde digital e bem-estar.</p>
+            </div>
+        </section>
+
+        <section class="nb-stage-section" id="nb-secao-notebook">
+            <div class="nb-wrap nb-stage-grid">
+                <div class="nb-copy">
+                    <span class="nb-tag">Teleatendimento na prática</span>
+                    <h2>Sua consulta na palma da mão ou na tela do seu notebook</h2>
+                    <p>
+                        Role para baixo para abrir a tela do notebook e role para cima para fechá-la suavemente.
+                    </p>
+                    <p class="nb-status-texto">
+                        Abertura atual: <strong id="nb-progresso-label">0%</strong>
+                    </p>
+                </div>
+
+                <div class="nb-scene" aria-hidden="true">
+                    <div class="nb-notebook" id="nb-notebook-3d">
+                        <!-- Tampa / Tela -->
+                        <div class="nb-lid" id="nb-lid">
+                            <!-- Parte externa (notebook fechado) -->
+                            <div class="nb-lid-face nb-lid-back">
+                                <div class="nb-logo-badge">
+                                    <img src="img/logo.png" alt="" class="nb-badge-icon">
+                                    <span>Integra Saúde</span>
+                                </div>
+                            </div>
+
+                            <!-- Parte interna (imagem dentro da tela do notebook) -->
+                            <div class="nb-lid-face nb-lid-screen">
+                                <div class="nb-camera-dot"></div>
+                                <div class="nb-screen-media">
+                                    <img src="img/conheca-fundo.jpg" alt="Profissional sorrindo ao usar o notebook"
+                                        class="nb-screen-photo">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Base / Teclado -->
+                        <div class="nb-base">
+                            <div class="nb-base-lip"></div>
+                        </div>
+                    </div>
+                    <div class="nb-shadow" id="nb-shadow"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Espaço extra para testar a rolagem para cima e para baixo -->
+        <section class="nb-feed-preview">
+            <div class="nb-wrap nb-articles-grid">
+                <article class="nb-article-card">
+                    <span class="nb-article-cat">Saúde Digital</span>
+                    <h3>Como se preparar para a sua primeira teleconsulta</h3>
+                    <p>Dicas de ambiente tranquilo, conexão estável e anotações de sintomas para aproveitar melhor os 50
+                        minutos de atendimento.</p>
+                </article>
+                <article class="nb-article-card">
+                    <span class="nb-article-cat">Bem-Estar</span>
+                    <h3>Rotina e saúde mental no dia a dia</h3>
+                    <p>Pequenas pausas, sono regular e acompanhamento profissional ajudam a manter o equilíbrio
+                        emocional.</p>
+                </article>
+                <article class="nb-article-card">
+                    <span class="nb-article-cat">Privacidade</span>
+                    <h3>Sigilo e proteção de dados no atendimento online</h3>
+                    <p>Entenda como os atendimentos seguem normas éticas e a LGPD para garantir segurança ao paciente.
+                    </p>
+                </article>
+            </div>
+        </section>
+    </main>
 
     <!-- FOOTER -->
     <footer class="footer-site">
@@ -84,6 +164,83 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/script.js?v=900"></script>
+
+    <script>
+        (function () {
+            const secao = document.getElementById('nb-secao-notebook');
+            const lid = document.getElementById('nb-lid');
+            const shadow = document.getElementById('nb-shadow');
+            const label = document.getElementById('nb-progresso-label');
+
+            if (!secao || !lid) return;
+
+            let atualProgresso = 0;
+            let alvoProgresso = 0;
+            let rafId = null;
+
+            function calcularAlvo() {
+                const rect = secao.getBoundingClientRect();
+                const vh = window.innerHeight || document.documentElement.clientHeight;
+
+                // Abre ao entrar na viewport e fecha ao sair tanto por cima quanto por baixo
+                const centroSecao = rect.top + (rect.height * 0.5);
+                const distanciaDoCentro = Math.abs(centroSecao - (vh * 0.5));
+                const alcance = vh * 0.62;
+
+                const bruto = 1 - (distanciaDoCentro / alcance);
+                alvoProgresso = Math.max(0, Math.min(1, bruto));
+            }
+
+            function aplicarEstado(p) {
+                // Curva suave (easeInOut) para abertura/fechamento mais natural
+                const suave = p * p * (3 - 2 * p);
+
+                // -104deg = fechado sobre a base | -14deg = aberto com leve inclinação de tela
+                const angulo = -104 + (suave * 90);
+                const escala3D = 0.94 + (suave * 0.06);
+
+                lid.style.transform = `scale(${escala3D.toFixed(3)}) rotateX(${angulo.toFixed(2)}deg)`;
+
+                if (shadow) {
+                    shadow.style.transform = `scaleX(${(0.84 + suave * 0.2).toFixed(3)})`;
+                    shadow.style.opacity = (0.12 + suave * 0.18).toFixed(2);
+                }
+
+                if (label) {
+                    label.textContent = `${Math.round(suave * 100)}%`;
+                }
+            }
+
+            function animar() {
+                atualProgresso += (alvoProgresso - atualProgresso) * 0.12;
+                if (Math.abs(alvoProgresso - atualProgresso) < 0.001) {
+                    atualProgresso = alvoProgresso;
+                }
+
+                aplicarEstado(atualProgresso);
+
+                if (atualProgresso !== alvoProgresso) {
+                    rafId = requestAnimationFrame(animar);
+                } else {
+                    rafId = null;
+                }
+            }
+
+            function onScrollOrResize() {
+                calcularAlvo();
+                if (!rafId) {
+                    rafId = requestAnimationFrame(animar);
+                }
+            }
+
+            window.addEventListener('scroll', onScrollOrResize, { passive: true });
+            window.addEventListener('resize', onScrollOrResize, { passive: true });
+
+            calcularAlvo();
+            atualProgresso = alvoProgresso;
+            aplicarEstado(atualProgresso);
+        })();
+    </script>
 
 </body>
 
