@@ -4821,3 +4821,80 @@ window.carregarMinhasConsultas = async function () {
     window.open(data.signedUrl, "_blank");
   }
 };
+
+/* =====================================================
+   🔹 ANIMAÇÃO DO NOTEBOOK 3D (HOME)
+===================================================== */
+(function () {
+  const secao = document.getElementById('nb-secao-notebook');
+  const palco = document.getElementById('nb-sticky');
+  const laptop = document.getElementById('nb-laptop');
+  const lid = document.getElementById('nb-lid');
+  const shadow = document.getElementById('nb-shadow');
+  const label = document.getElementById('nb-progresso-label');
+
+  // Trava de segurança: se não estiver na Home, ele para aqui.
+  if (!secao || !palco || !lid) return;
+
+  // Ângulos da tampa: -90° = fechada | +12° = aberta
+  const ANGULO_FECHADO = -90;
+  const ANGULO_ABERTO = 12;
+  const FRACAO_ABERTURA = 0.65;
+
+  const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let atual = 0;
+  let alvo = 0;
+  let rafId = null;
+
+  function limitar(v) { return Math.max(0, Math.min(1, v)); }
+
+  function calcularAlvo() {
+    const rect = secao.getBoundingClientRect();
+    const topoFixo = parseFloat(getComputedStyle(palco).top) || 0;
+    const total = secao.offsetHeight - palco.offsetHeight;
+    const percorrido = topoFixo - rect.top;
+    const bruto = total > 0 ? percorrido / total : 1;
+    alvo = limitar(bruto / FRACAO_ABERTURA);
+  }
+
+  function aplicar(p) {
+    const s = p * p * (3 - 2 * p);
+    const angulo = ANGULO_FECHADO + s * (ANGULO_ABERTO - ANGULO_FECHADO);
+    const folga = (-2 * (1 - s)).toFixed(2);
+
+    lid.style.transform = 'translateY(' + folga + 'px) rotateX(' + angulo.toFixed(2) + 'deg)';
+    if (laptop) laptop.style.setProperty('--p', s.toFixed(3));
+
+    if (shadow) {
+      const sobe = (1 - s) * laptop.offsetHeight * -0.66;
+      shadow.style.transform = 'translateX(-50%) translateY(' + sobe.toFixed(1) + 'px) scaleX(' + (0.9 + s * 0.1).toFixed(3) + ')';
+      shadow.style.opacity = (0.3 + s * 0.12).toFixed(2);
+    }
+    if (label) label.textContent = Math.round(s * 100) + '%';
+  }
+
+  function animar() {
+    atual += (alvo - atual) * 0.14;
+    if (Math.abs(alvo - atual) < 0.0008) atual = alvo;
+    aplicar(atual);
+    rafId = (atual !== alvo) ? requestAnimationFrame(animar) : null;
+  }
+
+  function aoRolarOuRedimensionar() {
+    calcularAlvo();
+    if (!rafId) rafId = requestAnimationFrame(animar);
+  }
+
+  if (reduzirMovimento) {
+    aplicar(1);
+    return;
+  }
+
+  window.addEventListener('scroll', aoRolarOuRedimensionar, { passive: true });
+  window.addEventListener('resize', aoRolarOuRedimensionar, { passive: true });
+
+  calcularAlvo();
+  atual = alvo;
+  aplicar(atual);
+})();

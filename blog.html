@@ -36,71 +36,18 @@
         </div>
     </header>
 
-    <!-- CONTEÚDO DO BLOG + ANIMAÇÃO DO NOTEBOOK -->
+    <!-- CONTEÚDO DO BLOG -->
     <main class="nb-page">
-        <section class="nb-hero">
+        <section class="nb-hero" style="margin-bottom: 40px;">
             <div class="nb-wrap">
                 <span class="nb-hero-bar"></span>
                 <h1>Blog Integra Saúde</h1>
-                <p>Role a página para ver o notebook abrir e fechar com conteúdos sobre saúde digital e bem-estar.</p>
+                <p>Fique por dentro de conteúdos sobre saúde digital e bem-estar.</p>
             </div>
         </section>
 
-        <!-- Palco: a seção é alta e o notebook fica "grudado" na tela enquanto você rola -->
-        <!-- Palco: a seção é alta e o notebook fica "grudado" na tela enquanto você rola -->
-        <!-- Palco: a seção é alta e o notebook fica "grudado" na tela enquanto você rola -->
-        <section class="nb-stage-section" id="nb-secao-notebook">
-            <div class="nb-sticky" id="nb-sticky">
-                <div class="nb-wrap nb-stage-grid">
-                    <div class="nb-copy">
-                        <span class="nb-tag">Teleatendimento na prática</span>
-                        <h2>Sua consulta na palma da mão ou na tela do seu notebook</h2>
-                        <p>
-                            Role para baixo para abrir a tela do notebook e role para cima para fechá-la suavemente.
-                        </p>
-                        <p class="nb-status-texto">
-                            Abertura atual: <strong id="nb-progresso-label">0%</strong>
-                        </p>
-                    </div>
-
-                    <div class="nb-scene" aria-hidden="true">
-                        <div class="nb-laptop" id="nb-laptop">
-                            <!-- Base / teclado -->
-                            <div class="nb-base">
-                                <div class="nb-keys"></div>
-                                <div class="nb-trackpad"></div>
-                            </div>
-                            <div class="nb-base-front"></div>
-
-                            <!-- Tampa: um lado é a tela (foto), o outro é a capa com o logo -->
-                            <div class="nb-lid" id="nb-lid">
-                                <div class="nb-face nb-face-screen">
-                                    <div class="nb-camera"></div>
-                                    <div class="nb-screen-media">
-                                        <img src="img/conheca-fundo.jpg" alt="" class="nb-screen-photo">
-                                    </div>
-                                </div>
-                                <div class="nb-lid-edge nb-lid-edge-top"></div>
-                                <div class="nb-lid-edge nb-lid-edge-left"></div>
-                                <div class="nb-lid-edge nb-lid-edge-right"></div>
-                                <div class="nb-lid-edge nb-lid-edge-corner nb-lid-edge-corner-left"></div>
-                                <div class="nb-lid-edge nb-lid-edge-corner nb-lid-edge-corner-right"></div>
-                                <div class="nb-face nb-face-cover">
-                                    <div class="nb-logo-badge">
-                                        <img src="img/logo.png" alt="" class="nb-badge-icon">
-                                        <span>Integra Saúde</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="nb-shadow" id="nb-shadow"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Espaço extra para testar a rolagem para cima e para baixo -->
-        <section class="nb-feed-preview">
+        <!-- Feed de Artigos -->
+        <section class="nb-feed-preview" style="padding-bottom: 60px;">
             <div class="nb-wrap nb-articles-grid">
                 <article class="nb-article-card">
                     <span class="nb-article-cat">Saúde Digital</span>
@@ -123,6 +70,8 @@
             </div>
         </section>
     </main>
+
+    <!-- Remova o <script> que estava aqui -->
 
     <!-- FOOTER -->
     <footer class="footer-site">
@@ -172,88 +121,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
     <script src="js/script.js?v=900"></script>
-
-    <script>
-        (function () {
-            const secao = document.getElementById('nb-secao-notebook');
-            const palco = document.getElementById('nb-sticky');
-            const laptop = document.getElementById('nb-laptop');
-            const lid = document.getElementById('nb-lid');
-            const shadow = document.getElementById('nb-shadow');
-            const label = document.getElementById('nb-progresso-label');
-
-            if (!secao || !palco || !lid) return;
-
-            // Ângulos da tampa: -90° = fechada sobre o teclado | +12° = aberta, levemente inclinada para trás
-            const ANGULO_FECHADO = -90;
-            const ANGULO_ABERTO = 12;
-
-            // O notebook termina de abrir quando 65% da rolagem do palco foi percorrida
-            const FRACAO_ABERTURA = 0.65;
-
-            const reduzirMovimento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            let atual = 0;   // progresso exibido (0 a 1)
-            let alvo = 0;    // progresso desejado, calculado pela rolagem
-            let rafId = null;
-
-            function limitar(v) { return Math.max(0, Math.min(1, v)); }
-
-            function calcularAlvo() {
-                const rect = secao.getBoundingClientRect();
-                const topoFixo = parseFloat(getComputedStyle(palco).top) || 0;
-                // distância que o palco percorre "grudado" na tela
-                const total = secao.offsetHeight - palco.offsetHeight;
-                // quanto já foi rolado desde que o palco grudou
-                const percorrido = topoFixo - rect.top;
-                const bruto = total > 0 ? percorrido / total : 1;
-                alvo = limitar(bruto / FRACAO_ABERTURA);
-            }
-
-            function aplicar(p) {
-                // curva suave (easeInOut) para abrir e fechar de forma natural
-                const s = p * p * (3 - 2 * p);
-                const angulo = ANGULO_FECHADO + s * (ANGULO_ABERTO - ANGULO_FECHADO);
-
-                // a tampa fica 2px acima do teclado quando fechada (evita "piscar") e encosta na dobradiça quando aberta
-                const folga = (-2 * (1 - s)).toFixed(2);
-                lid.style.transform = 'translateY(' + folga + 'px) rotateX(' + angulo.toFixed(2) + 'deg)';
-                if (laptop) laptop.style.setProperty('--p', s.toFixed(3));
-
-                if (shadow) {
-                    // a sombra acompanha o notebook, que sobe um pouco enquanto abre
-                    const sobe = (1 - s) * laptop.offsetHeight * -0.66;
-                    shadow.style.transform = 'translateX(-50%) translateY(' + sobe.toFixed(1) + 'px) scaleX(' + (0.9 + s * 0.1).toFixed(3) + ')';
-                    shadow.style.opacity = (0.3 + s * 0.12).toFixed(2);
-                }
-                if (label) label.textContent = Math.round(s * 100) + '%';
-            }
-
-            function animar() {
-                atual += (alvo - atual) * 0.14;
-                if (Math.abs(alvo - atual) < 0.0008) atual = alvo;
-                aplicar(atual);
-                rafId = (atual !== alvo) ? requestAnimationFrame(animar) : null;
-            }
-
-            function aoRolarOuRedimensionar() {
-                calcularAlvo();
-                if (!rafId) rafId = requestAnimationFrame(animar);
-            }
-
-            if (reduzirMovimento) {
-                aplicar(1);   // já aberto, sem animação
-                return;
-            }
-
-            window.addEventListener('scroll', aoRolarOuRedimensionar, { passive: true });
-            window.addEventListener('resize', aoRolarOuRedimensionar, { passive: true });
-
-            calcularAlvo();
-            atual = alvo;     // se a página abrir já no meio, não anima do zero
-            aplicar(atual);
-        })();
-    </script>
 
 </body>
 

@@ -60,6 +60,68 @@
         <p class="home-hero-tagline">Juntos por<br>mais saúde<br>e bem-estar!</p>
     </section>
 
+    <!-- CONTEÚDO DO BLOG + ANIMAÇÃO DO NOTEBOOK -->
+    <main class="nb-page">
+        <section class="nb-hero">
+            <div class="nb-wrap">
+                <span class="nb-hero-bar"></span>
+                <h1>Blog Integra Saúde</h1>
+                <p>Role a página para ver o notebook abrir e fechar com conteúdos sobre saúde digital e bem-estar.</p>
+            </div>
+        </section>
+
+        <!-- Palco: a seção é alta e o notebook fica "grudado" na tela enquanto você rola -->
+        <section class="nb-stage-section" id="nb-secao-notebook">
+            <div class="nb-sticky" id="nb-sticky">
+                <div class="nb-wrap nb-stage-grid">
+                    <div class="nb-copy">
+                        <span class="nb-tag">Teleatendimento na prática</span>
+                        <h2>Sua consulta na palma da mão ou na tela do seu notebook</h2>
+                        <p>
+                            Role para baixo para abrir a tela do notebook e role para cima para fechá-la suavemente.
+                        </p>
+                        <p class="nb-status-texto">
+                            Abertura atual: <strong id="nb-progresso-label">0%</strong>
+                        </p>
+                    </div>
+
+                    <div class="nb-scene" aria-hidden="true">
+                        <div class="nb-laptop" id="nb-laptop">
+                            <!-- Base / teclado -->
+                            <div class="nb-base">
+                                <div class="nb-keys"></div>
+                                <div class="nb-trackpad"></div>
+                            </div>
+                            <div class="nb-base-front"></div>
+
+                            <!-- Tampa: um lado é a tela (foto), o outro é a capa com o logo -->
+                            <div class="nb-lid" id="nb-lid">
+                                <div class="nb-face nb-face-screen">
+                                    <div class="nb-camera"></div>
+                                    <div class="nb-screen-media">
+                                        <img src="img/conheca-fundo.jpg" alt="" class="nb-screen-photo">
+                                    </div>
+                                </div>
+                                <div class="nb-lid-edge nb-lid-edge-top"></div>
+                                <div class="nb-lid-edge nb-lid-edge-left"></div>
+                                <div class="nb-lid-edge nb-lid-edge-right"></div>
+                                <div class="nb-lid-edge nb-lid-edge-corner nb-lid-edge-corner-left"></div>
+                                <div class="nb-lid-edge nb-lid-edge-corner nb-lid-edge-corner-right"></div>
+                                <div class="nb-face nb-face-cover">
+                                    <div class="nb-logo-badge">
+                                        <img src="img/logo.png" alt="" class="nb-badge-icon">
+                                        <span>Integra Saúde</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="nb-shadow" id="nb-shadow"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
     <!-- ESPECIALIDADES -->
     <section id="agendar" class="home-spec">
         <div class="home-wrap">
