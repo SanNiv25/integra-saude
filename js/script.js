@@ -422,9 +422,8 @@ window.atualizarDashboardProfissional = async function () {
 
     let avisoPacoteHTML = "";
     if (c.is_pacote) {
-      const avisoPacoteHTML = isPacote
-        ? `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${sessaoNumero} de ${totalSessoes} (Pacote)</div>`
-        : "";
+      const numSessao = c.sessaoNumeroCalculada || 1;
+      avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
     }
 
     let btnProf = "";
@@ -3591,65 +3590,68 @@ window.carregarMinhasConsultas = async function () {
 
     if (c.is_pacote) {
       if (isAbaPrincipalPacotes) {
-        const avisoPacoteHTML = isPacote
-          ? `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${sessaoNumero} de ${totalSessoes} (Pacote)</div>`
-          : "";
+        let avisoPacoteHTML = "";
+        if (c.is_pacote) {
+          const numSessao = c.sessaoNumeroCalculada || 1;
+          avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
+        }
       } else {
-        const avisoPacoteHTML = isPacote
-          ? `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${sessaoNumero} de ${totalSessoes} (Pacote)</div>`
-          : "";
-      }
-    }
-
-    if (c.status_geral === 'finalizada') {
-      classePassada = "consulta-inativa consulta-finalizada";
-      botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Concluída</p>`;
-    } else if (c.status_geral === 'ausente') {
-      classePassada = "consulta-inativa consulta-ausente";
-      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
-    } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
-      classePassada = "consulta-inativa";
-      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Consulta Cancelada</p>`;
-    } else if (agora.getTime() >= tempoFim) {
-      classePassada = "consulta-inativa consulta-esgotada";
-      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">Consulta Encerrada</p>`;
-    } else {
-      let btnReagendar = "";
-      let btnCancelar = "";
-      let btnMeet = `<button style="flex: 1; margin: 0; background: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>Iniciar Consulta</button>`;
-
-      if (c.is_pacote) {
-        btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
-      } else if (agora.getTime() >= tempo24hAntes) {
-        btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
-      } else {
-        btnReagendar = `<button style="flex: 1; margin: 0; background-color: #5bc0de; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalReagendar('${c.profissional}', '${c.data}', '${c.hora}')">🔄 Reagendar</button>`;
-      }
-
-      if (c.is_pacote && c.sessaoNumeroCalculada !== 1) {
-        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
-      } else if (agora.getTime() >= tempo24hAntes) {
-        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
-      } else {
-        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.id}', '${c.profissional}', '${c.data}', '${c.hora}', ${c.is_pacote}, ${c.sessaoNumeroCalculada || 0}, '${c.pacote_id || ''}')">❌ Cancelar</button>`;
-      }
-
-      if (agora.getTime() >= dezMinAntes) {
-        if (c.status_profissional === 'na_sala') {
-          if (c.status_paciente === 'na_sala') {
-            btnMeet = `<button style="flex: 1; margin: 0; background: #2E7D32; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Retornar à Chamada</button>`;
-          } else {
-            btnMeet = `<button style="flex: 1; margin: 0; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Entrar na Chamada</button>`;
-          }
-        } else {
-          btnMeet = `<button style="flex: 1; margin: 0; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled title="Aguarde o profissional abrir a sala de atendimento.">Aguardando Profissional...</button>`;
+        let avisoPacoteHTML = "";
+        if (c.is_pacote) {
+          const numSessao = c.sessaoNumeroCalculada || 1;
+          avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
         }
       }
 
-      botoesRender = `<div style="display: flex; gap: 5px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
-    }
+      if (c.status_geral === 'finalizada') {
+        classePassada = "consulta-inativa consulta-finalizada";
+        botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Concluída</p>`;
+      } else if (c.status_geral === 'ausente') {
+        classePassada = "consulta-inativa consulta-ausente";
+        botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
+      } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
+        classePassada = "consulta-inativa";
+        botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Consulta Cancelada</p>`;
+      } else if (agora.getTime() >= tempoFim) {
+        classePassada = "consulta-inativa consulta-esgotada";
+        botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">Consulta Encerrada</p>`;
+      } else {
+        let btnReagendar = "";
+        let btnCancelar = "";
+        let btnMeet = `<button style="flex: 1; margin: 0; background: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>Iniciar Consulta</button>`;
 
-    return `
+        if (c.is_pacote) {
+          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
+        } else if (agora.getTime() >= tempo24hAntes) {
+          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
+        } else {
+          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #5bc0de; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalReagendar('${c.profissional}', '${c.data}', '${c.hora}')">🔄 Reagendar</button>`;
+        }
+
+        if (c.is_pacote && c.sessaoNumeroCalculada !== 1) {
+          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
+        } else if (agora.getTime() >= tempo24hAntes) {
+          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
+        } else {
+          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.id}', '${c.profissional}', '${c.data}', '${c.hora}', ${c.is_pacote}, ${c.sessaoNumeroCalculada || 0}, '${c.pacote_id || ''}')">❌ Cancelar</button>`;
+        }
+
+        if (agora.getTime() >= dezMinAntes) {
+          if (c.status_profissional === 'na_sala') {
+            if (c.status_paciente === 'na_sala') {
+              btnMeet = `<button style="flex: 1; margin: 0; background: #2E7D32; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Retornar à Chamada</button>`;
+            } else {
+              btnMeet = `<button style="flex: 1; margin: 0; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Entrar na Chamada</button>`;
+            }
+          } else {
+            btnMeet = `<button style="flex: 1; margin: 0; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled title="Aguarde o profissional abrir a sala de atendimento.">Aguardando Profissional...</button>`;
+          }
+        }
+
+        botoesRender = `<div style="display: flex; gap: 5px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
+      }
+
+      return `
           <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative;">
               ${avisoPacoteHTML}
               <h3 style="color: #0F4C5C; margin-bottom: 10px; font-size: 17px;">🧑‍⚕️ ${c.profissional}</h3>
@@ -3658,37 +3660,37 @@ window.carregarMinhasConsultas = async function () {
               ${botoesRender}
           </div>
       `;
-  };
+    };
 
-  const renderAbaPacotes = (lista) => {
-    if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhum pacote pendente no momento.</p>`;
-    let gruposArray = [];
-    lista.forEach(c => {
-      let chave = c.pacote_id || c.profissional;
-      let grupo = gruposArray.find(g => g.id === chave);
-      if (!grupo) { grupo = { id: chave, consultas: [] }; gruposArray.push(grupo); }
-      grupo.consultas.push(c);
-    });
-    gruposArray.forEach(g => { g.consultas.sort((a, b) => new Date(a.data + "T" + a.hora) - new Date(b.data + "T" + b.hora)); });
-    let html = '';
-    gruposArray.forEach((grupo, index) => {
-      html += '<div class="consultas-grid" style="margin-bottom: 20px;">';
-      grupo.consultas.forEach(c => { html += gerarHTMLCartao(c, true); });
+    const renderAbaPacotes = (lista) => {
+      if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhum pacote pendente no momento.</p>`;
+      let gruposArray = [];
+      lista.forEach(c => {
+        let chave = c.pacote_id || c.profissional;
+        let grupo = gruposArray.find(g => g.id === chave);
+        if (!grupo) { grupo = { id: chave, consultas: [] }; gruposArray.push(grupo); }
+        grupo.consultas.push(c);
+      });
+      gruposArray.forEach(g => { g.consultas.sort((a, b) => new Date(a.data + "T" + a.hora) - new Date(b.data + "T" + b.hora)); });
+      let html = '';
+      gruposArray.forEach((grupo, index) => {
+        html += '<div class="consultas-grid" style="margin-bottom: 20px;">';
+        grupo.consultas.forEach(c => { html += gerarHTMLCartao(c, true); });
+        html += '</div>';
+        if (index < gruposArray.length - 1) html += `<hr style="border: 0; border-top: 2px dashed #b2dfdb; margin: 30px 0;">`;
+      });
+      return html;
+    };
+
+    const renderAbaNormal = (lista) => {
+      if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
+      let html = '<div class="consultas-grid">';
+      lista.forEach(c => { html += gerarHTMLCartao(c, false); });
       html += '</div>';
-      if (index < gruposArray.length - 1) html += `<hr style="border: 0; border-top: 2px dashed #b2dfdb; margin: 30px 0;">`;
-    });
-    return html;
-  };
+      return html;
+    };
 
-  const renderAbaNormal = (lista) => {
-    if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
-    let html = '<div class="consultas-grid">';
-    lista.forEach(c => { html += gerarHTMLCartao(c, false); });
-    html += '</div>';
-    return html;
-  };
-
-  mural.innerHTML = menuAbas + `
+    mural.innerHTML = menuAbas + `
     <div id="tabIndividuais" class="tab-content-paciente" style="display: block;">
         ${renderAbaNormal(individuais)}
     </div>
@@ -3705,59 +3707,59 @@ window.carregarMinhasConsultas = async function () {
         ${renderAbaNormal(perdidas)}
     </div>
   `;
-  window.mudarAbaConsultas('tabIndividuais');
-};
+    window.mudarAbaConsultas('tabIndividuais');
+  };
 
-/* =====================================================
-   📦 MOTOR DE REGRAS: PACOTES DE CONSULTA (CORRIGIDO)
-===================================================== */
-window.atualizarContadorPacote = async function () {
-  const usuarioLogado = await getUsuarioLogado();
-  if (!usuarioLogado) return;
+  /* =====================================================
+     📦 MOTOR DE REGRAS: PACOTES DE CONSULTA (CORRIGIDO)
+  ===================================================== */
+  window.atualizarContadorPacote = async function () {
+    const usuarioLogado = await getUsuarioLogado();
+    if (!usuarioLogado) return;
 
-  // Busca APENAS as sessões de pacote que ainda estão AGENDADAS (pendentes)
-  const { data: sessoesAgendadas } = await supabaseClient
-    .from("consultas")
-    .select("id, data, hora")
-    .eq("paciente_cpf", usuarioLogado.cpf)
-    .eq("is_pacote", true)
-    .eq("status_geral", "agendada");
+    // Busca APENAS as sessões de pacote que ainda estão AGENDADAS (pendentes)
+    const { data: sessoesAgendadas } = await supabaseClient
+      .from("consultas")
+      .select("id, data, hora")
+      .eq("paciente_cpf", usuarioLogado.cpf)
+      .eq("is_pacote", true)
+      .eq("status_geral", "agendada");
 
-  // Busca TODAS as sessões de pacote já realizadas/registradas para calcular a sessão atual
-  const { data: todasSessoesPacote } = await supabaseClient
-    .from("consultas")
-    .select("id")
-    .eq("paciente_cpf", usuarioLogado.cpf)
-    .eq("is_pacote", true)
-    .in("status_geral", ["agendada", "finalizada", "ausente"]);
+    // Busca TODAS as sessões de pacote já realizadas/registradas para calcular a sessão atual
+    const { data: todasSessoesPacote } = await supabaseClient
+      .from("consultas")
+      .select("id")
+      .eq("paciente_cpf", usuarioLogado.cpf)
+      .eq("is_pacote", true)
+      .in("status_geral", ["agendada", "finalizada", "ausente"]);
 
-  const painel = document.getElementById("painelStatusPacote");
-  const txtSessao = document.getElementById("numSessao");
-  const txtValidade = document.getElementById("txtValidadePacote");
+    const painel = document.getElementById("painelStatusPacote");
+    const txtSessao = document.getElementById("numSessao");
+    const txtValidade = document.getElementById("txtValidadePacote");
 
-  if (!painel) return;
+    if (!painel) return;
 
-  const total = todasSessoesPacote ? todasSessoesPacote.length : 0;
-  const pendentes = sessoesAgendadas ? sessoesAgendadas.length : 0;
+    const total = todasSessoesPacote ? todasSessoesPacote.length : 0;
+    const pendentes = sessoesAgendadas ? sessoesAgendadas.length : 0;
 
-  // Só exibe o card de "Pacote Ativo" se houver consultas pendentes de pacote no futuro
-  // E se o ciclo atual de 4 sessões ainda não tiver sido concluído
-  if (pendentes > 0 && (total % 4 !== 0)) {
-    let proximaSessao = (total % 4);
-    if (proximaSessao === 0) proximaSessao = 4;
+    // Só exibe o card de "Pacote Ativo" se houver consultas pendentes de pacote no futuro
+    // E se o ciclo atual de 4 sessões ainda não tiver sido concluído
+    if (pendentes > 0 && (total % 4 !== 0)) {
+      let proximaSessao = (total % 4);
+      if (proximaSessao === 0) proximaSessao = 4;
 
-    painel.style.display = "block";
-    if (txtSessao) txtSessao.innerText = proximaSessao;
-    if (txtValidade) txtValidade.innerText = "Pacote em andamento";
-  } else {
-    // Se não há consultas pendentes de pacote ou o pacote foi concluído, oculta o card
-    painel.style.display = "none";
-  }
-};
+      painel.style.display = "block";
+      if (txtSessao) txtSessao.innerText = proximaSessao;
+      if (txtValidade) txtValidade.innerText = "Pacote em andamento";
+    } else {
+      // Se não há consultas pendentes de pacote ou o pacote foi concluído, oculta o card
+      painel.style.display = "none";
+    }
+  };
 
-// AVISO DE TERMOS DO PACOTE
-window.abrirTermosPacote = function () {
-  const termosHtml = `
+  // AVISO DE TERMOS DO PACOTE
+  window.abrirTermosPacote = function () {
+    const termosHtml = `
         <div id="modalTermosPacote" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; justify-content: center; align-items: center;">
             <div style="background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
                 <h2 style="color: #0F4C5C; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;">📦 Regras do Pacote de Consultas</h2>
@@ -3775,290 +3777,290 @@ window.abrirTermosPacote = function () {
             </div>
         </div>
     `;
-  document.body.insertAdjacentHTML('beforeend', termosHtml);
-};
+    document.body.insertAdjacentHTML('beforeend', termosHtml);
+  };
 
-/* =====================================================
-   📷 SISTEMA DE FOTO COM COMPRESSÃO E UPLOAD (SUPABASE)
-===================================================== */
+  /* =====================================================
+     📷 SISTEMA DE FOTO COM COMPRESSÃO E UPLOAD (SUPABASE)
+  ===================================================== */
 
-// 1. Função para comprimir a imagem no navegador antes de enviar
-function comprimirImagem(arquivo, callback, errorCallback) {
-  try {
-    const leitor = new FileReader();
-    leitor.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const tamanhoMaximo = 400;
-        canvas.width = tamanhoMaximo;
-        canvas.height = tamanhoMaximo;
-        ctx.drawImage(img, 0, 0, tamanhoMaximo, tamanhoMaximo);
+  // 1. Função para comprimir a imagem no navegador antes de enviar
+  function comprimirImagem(arquivo, callback, errorCallback) {
+    try {
+      const leitor = new FileReader();
+      leitor.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const tamanhoMaximo = 400;
+          canvas.width = tamanhoMaximo;
+          canvas.height = tamanhoMaximo;
+          ctx.drawImage(img, 0, 0, tamanhoMaximo, tamanhoMaximo);
 
-        canvas.toBlob((blob) => {
-          if (blob) {
-            callback(blob);
-          } else {
-            if (errorCallback) errorCallback("Erro ao comprimir imagem.");
-          }
-        }, 'image/jpeg', 0.8);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              callback(blob);
+            } else {
+              if (errorCallback) errorCallback("Erro ao comprimir imagem.");
+            }
+          }, 'image/jpeg', 0.8);
+        };
+        img.onerror = () => {
+          if (errorCallback) errorCallback("O arquivo não é uma imagem válida.");
+        };
+        img.src = e.target.result;
       };
-      img.onerror = () => {
-        if (errorCallback) errorCallback("O arquivo não é uma imagem válida.");
-      };
-      img.src = e.target.result;
-    };
-    leitor.readAsDataURL(arquivo);
-  } catch (err) {
-    if (errorCallback) errorCallback("Falha na leitura: " + err.message);
-  }
-}
-
-// 2. Helper para fazer o upload do Blob gerado direto para o SUPABASE STORAGE
-async function fazerUploadSupabase(blob, cpf) {
-  const nomeArquivo = `${cpf}.jpg`;
-
-  // Faz o upload substituindo o arquivo se ele já existir (upsert: true)
-  const { data, error } = await supabaseClient
-    .storage
-    .from('fotos-perfil') // O nome exato do seu bucket
-    .upload(nomeArquivo, blob, {
-      cacheControl: '3600',
-      upsert: true,
-      contentType: 'image/jpeg'
-    });
-
-  if (error) {
-    throw new Error("Erro no upload para o Supabase: " + error.message);
-  }
-
-  // Pega a URL pública
-  const { data: urlData } = supabaseClient
-    .storage
-    .from('fotos-perfil')
-    .getPublicUrl(nomeArquivo);
-
-  // Adicionamos um timestamp "?t=..." no final para forçar o navegador a não usar o cache antigo
-  return urlData.publicUrl + "?t=" + new Date().getTime();
-}
-
-// 3. Função de clique direto na foto da Sidebar
-window.atualizarFotoPerfil = async function (inputElement) {
-  if (!inputElement || !inputElement.files || inputElement.files.length === 0) return;
-
-  const arquivo = inputElement.files[0];
-  const usuarioLogado = await getUsuarioLogado();
-
-  if (!usuarioLogado) {
-    alert("Sessão expirada. Faça login novamente.");
-    return;
-  }
-
-  const fotoSidebar = document.getElementById("fotoPerfilSidebar");
-  const urlOriginal = fotoSidebar ? fotoSidebar.src : "";
-  if (fotoSidebar) fotoSidebar.style.opacity = "0.5";
-
-  comprimirImagem(
-    arquivo,
-    async (blobComprimido) => {
-      try {
-        // Sobe para o Supabase Storage
-        const urlFotoSupabase = await fazerUploadSupabase(blobComprimido, usuarioLogado.cpf);
-
-        // Atualiza a URL na tabela de pacientes
-        const { error } = await supabaseClient
-          .from("pacientes")
-          .update({ foto_perfil_url: urlFotoSupabase })
-          .eq("cpf", usuarioLogado.cpf); // Corrigido para cpf, dependendo do que estiver na sua tabela. Se for paciente_cpf, mude aqui.
-
-        if (error) throw error;
-
-        // Atualiza a tela
-        if (fotoSidebar) {
-          fotoSidebar.src = urlFotoSupabase;
-          fotoSidebar.style.opacity = "1";
-        }
-        alert("✅ Foto de perfil atualizada com sucesso!");
-
-      } catch (err) {
-        console.error("Erro no upload:", err);
-        alert("❌ Erro ao salvar a foto. Tente novamente.");
-        if (fotoSidebar) {
-          fotoSidebar.src = urlOriginal;
-          fotoSidebar.style.opacity = "1";
-        }
-      }
-    },
-    (erroMsg) => {
-      alert("❌ " + erroMsg);
-      if (fotoSidebar) fotoSidebar.style.opacity = "1";
+      leitor.readAsDataURL(arquivo);
+    } catch (err) {
+      if (errorCallback) errorCallback("Falha na leitura: " + err.message);
     }
-  );
-};
-
-// 4. Função do Modal Obrigatório ("Ação Necessária")
-window.salvarFotoPendente = async function () {
-  const input = document.getElementById("fotoAtualizacao");
-
-  if (!input || !input.files || input.files.length === 0) {
-    alert("Selecione uma foto do seu rosto.");
-    return;
   }
 
-  const arquivo = input.files[0];
-  const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
+  // 2. Helper para fazer o upload do Blob gerado direto para o SUPABASE STORAGE
+  async function fazerUploadSupabase(blob, cpf) {
+    const nomeArquivo = `${cpf}.jpg`;
 
-  if (!tiposPermitidos.includes(arquivo.type)) {
-    alert("Formato inválido. Use JPG, PNG ou WEBP.");
-    return;
+    // Faz o upload substituindo o arquivo se ele já existir (upsert: true)
+    const { data, error } = await supabaseClient
+      .storage
+      .from('fotos-perfil') // O nome exato do seu bucket
+      .upload(nomeArquivo, blob, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: 'image/jpeg'
+      });
+
+    if (error) {
+      throw new Error("Erro no upload para o Supabase: " + error.message);
+    }
+
+    // Pega a URL pública
+    const { data: urlData } = supabaseClient
+      .storage
+      .from('fotos-perfil')
+      .getPublicUrl(nomeArquivo);
+
+    // Adicionamos um timestamp "?t=..." no final para forçar o navegador a não usar o cache antigo
+    return urlData.publicUrl + "?t=" + new Date().getTime();
   }
 
-  if (arquivo.size > 10 * 1024 * 1024) {
-    alert("Imagem muito grande. O limite é 10MB.");
-    return;
-  }
+  // 3. Função de clique direto na foto da Sidebar
+  window.atualizarFotoPerfil = async function (inputElement) {
+    if (!inputElement || !inputElement.files || inputElement.files.length === 0) return;
 
-  const usuarioLogado = await getUsuarioLogado();
-  if (!usuarioLogado) {
-    alert("Sessão expirada.");
-    return;
-  }
+    const arquivo = inputElement.files[0];
+    const usuarioLogado = await getUsuarioLogado();
 
-  const btnSalvar = document.querySelector("#modalFaltaFoto button");
-  const textoOriginalBtn = btnSalvar ? btnSalvar.innerText : "Salvar";
-  if (btnSalvar) {
-    btnSalvar.innerText = "⏳ Processando...";
-    btnSalvar.disabled = true;
-  }
+    if (!usuarioLogado) {
+      alert("Sessão expirada. Faça login novamente.");
+      return;
+    }
 
-  comprimirImagem(
-    arquivo,
-    async (blobComprimido) => {
-      try {
-        // Sobe para o Supabase Storage
-        const urlFotoSupabase = await fazerUploadSupabase(blobComprimido, usuarioLogado.cpf);
+    const fotoSidebar = document.getElementById("fotoPerfilSidebar");
+    const urlOriginal = fotoSidebar ? fotoSidebar.src : "";
+    if (fotoSidebar) fotoSidebar.style.opacity = "0.5";
 
-        // Atualiza o banco de dados (Tabela pacientes)
-        const { error } = await supabaseClient
-          .from("pacientes")
-          .update({ foto_perfil_url: urlFotoSupabase })
-          .eq("cpf", usuarioLogado.cpf);
+    comprimirImagem(
+      arquivo,
+      async (blobComprimido) => {
+        try {
+          // Sobe para o Supabase Storage
+          const urlFotoSupabase = await fazerUploadSupabase(blobComprimido, usuarioLogado.cpf);
 
-        if (error) throw error;
+          // Atualiza a URL na tabela de pacientes
+          const { error } = await supabaseClient
+            .from("pacientes")
+            .update({ foto_perfil_url: urlFotoSupabase })
+            .eq("cpf", usuarioLogado.cpf); // Corrigido para cpf, dependendo do que estiver na sua tabela. Se for paciente_cpf, mude aqui.
 
-        // Atualiza a UI e fecha o modal
-        const fotoSidebar = document.getElementById("fotoPerfilSidebar");
-        if (fotoSidebar) fotoSidebar.src = urlFotoSupabase;
+          if (error) throw error;
 
-        const modal = document.getElementById("modalFaltaFoto");
-        if (modal) modal.remove();
+          // Atualiza a tela
+          if (fotoSidebar) {
+            fotoSidebar.src = urlFotoSupabase;
+            fotoSidebar.style.opacity = "1";
+          }
+          alert("✅ Foto de perfil atualizada com sucesso!");
 
-        alert("✅ Foto salva com sucesso! Agora você pode agendar suas consultas.");
+        } catch (err) {
+          console.error("Erro no upload:", err);
+          alert("❌ Erro ao salvar a foto. Tente novamente.");
+          if (fotoSidebar) {
+            fotoSidebar.src = urlOriginal;
+            fotoSidebar.style.opacity = "1";
+          }
+        }
+      },
+      (erroMsg) => {
+        alert("❌ " + erroMsg);
+        if (fotoSidebar) fotoSidebar.style.opacity = "1";
+      }
+    );
+  };
 
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao enviar a foto para o servidor.");
+  // 4. Função do Modal Obrigatório ("Ação Necessária")
+  window.salvarFotoPendente = async function () {
+    const input = document.getElementById("fotoAtualizacao");
+
+    if (!input || !input.files || input.files.length === 0) {
+      alert("Selecione uma foto do seu rosto.");
+      return;
+    }
+
+    const arquivo = input.files[0];
+    const tiposPermitidos = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!tiposPermitidos.includes(arquivo.type)) {
+      alert("Formato inválido. Use JPG, PNG ou WEBP.");
+      return;
+    }
+
+    if (arquivo.size > 10 * 1024 * 1024) {
+      alert("Imagem muito grande. O limite é 10MB.");
+      return;
+    }
+
+    const usuarioLogado = await getUsuarioLogado();
+    if (!usuarioLogado) {
+      alert("Sessão expirada.");
+      return;
+    }
+
+    const btnSalvar = document.querySelector("#modalFaltaFoto button");
+    const textoOriginalBtn = btnSalvar ? btnSalvar.innerText : "Salvar";
+    if (btnSalvar) {
+      btnSalvar.innerText = "⏳ Processando...";
+      btnSalvar.disabled = true;
+    }
+
+    comprimirImagem(
+      arquivo,
+      async (blobComprimido) => {
+        try {
+          // Sobe para o Supabase Storage
+          const urlFotoSupabase = await fazerUploadSupabase(blobComprimido, usuarioLogado.cpf);
+
+          // Atualiza o banco de dados (Tabela pacientes)
+          const { error } = await supabaseClient
+            .from("pacientes")
+            .update({ foto_perfil_url: urlFotoSupabase })
+            .eq("cpf", usuarioLogado.cpf);
+
+          if (error) throw error;
+
+          // Atualiza a UI e fecha o modal
+          const fotoSidebar = document.getElementById("fotoPerfilSidebar");
+          if (fotoSidebar) fotoSidebar.src = urlFotoSupabase;
+
+          const modal = document.getElementById("modalFaltaFoto");
+          if (modal) modal.remove();
+
+          alert("✅ Foto salva com sucesso! Agora você pode agendar suas consultas.");
+
+        } catch (err) {
+          console.error(err);
+          alert("Erro ao enviar a foto para o servidor.");
+          if (btnSalvar) {
+            btnSalvar.innerText = textoOriginalBtn;
+            btnSalvar.disabled = false;
+          }
+        }
+      },
+      (erroMsg) => {
+        alert("Erro: " + erroMsg);
         if (btnSalvar) {
           btnSalvar.innerText = textoOriginalBtn;
           btnSalvar.disabled = false;
         }
       }
-    },
-    (erroMsg) => {
-      alert("Erro: " + erroMsg);
-      if (btnSalvar) {
-        btnSalvar.innerText = textoOriginalBtn;
-        btnSalvar.disabled = false;
-      }
-    }
-  );
-};
+    );
+  };
 
-// =========================================
-// CARREGAR FILTRO LENDO A URL DA HOME
-// =========================================
-document.addEventListener("DOMContentLoaded", function () {
-  if (window.location.pathname.includes("profissionais")) {
-    setTimeout(() => {
-      if (typeof window.mostrarEspecialidade === "function") {
+  // =========================================
+  // CARREGAR FILTRO LENDO A URL DA HOME
+  // =========================================
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.location.pathname.includes("profissionais")) {
+      setTimeout(() => {
+        if (typeof window.mostrarEspecialidade === "function") {
 
-        // Lê o que veio no final do link (ex: ?esp=nutricao)
-        const urlParams = new URLSearchParams(window.location.search);
-        const espDaUrl = urlParams.get('esp');
+          // Lê o que veio no final do link (ex: ?esp=nutricao)
+          const urlParams = new URLSearchParams(window.location.search);
+          const espDaUrl = urlParams.get('esp');
 
-        if (espDaUrl) {
-          // Se o paciente veio clicando na Home
-          window.mostrarEspecialidade(espDaUrl);
-        } else {
-          // Se ele entrou na página de outra forma, abre Psicologia por padrão
-          window.mostrarEspecialidade('psicologia');
+          if (espDaUrl) {
+            // Se o paciente veio clicando na Home
+            window.mostrarEspecialidade(espDaUrl);
+          } else {
+            // Se ele entrou na página de outra forma, abre Psicologia por padrão
+            window.mostrarEspecialidade('psicologia');
+          }
         }
+      }, 200);
+    }
+  });
+
+  /* =====================================================
+     🔹 FUNÇÃO DE ABRIR MODAL DE CANCELAMENTO
+  ===================================================== */
+
+  // =====================================================
+  // 💰 PAINEL ADMIN: FINANCEIRO E CONSULTAS (Com alteração de status e data/hora)
+  // =====================================================
+  window.renderizarAdminFinanceiro = async function () {
+    const listaDiv = document.getElementById("listaFinanceiroAdmin");
+    if (!listaDiv) return;
+
+    listaDiv.innerHTML = "<p style='color: #666;'>Carregando transações...</p>";
+
+    const { data: consultas, error: errC } = await window.supabaseClient
+      .from("consultas")
+      .select("*")
+      .order('data', { ascending: false })
+      .order('hora', { ascending: false });
+
+    const { data: pacientes } = await window.supabaseClient
+      .from("pacientes")
+      .select("cpf, nome");
+
+    listaDiv.innerHTML = "";
+
+    if (errC) {
+      console.error("Erro no Painel Financeiro:", errC);
+      listaDiv.innerHTML = "<p style='color: #d9534f;'>Erro ao carregar as transações. Verifique o console.</p>";
+      return;
+    }
+
+    if (!consultas || consultas.length === 0) {
+      listaDiv.innerHTML = "<p>Nenhuma transação ou consulta registrada no sistema.</p>";
+      return;
+    }
+
+    consultas.forEach(consulta => {
+      let paciente = pacientes ? pacientes.find(u => String(u.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
+      let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
+
+      let dataFormatada = "Data não definida";
+      if (consulta.data) {
+        let [ano, mes, dia] = consulta.data.split('-');
+        dataFormatada = `${dia}/${mes}/${ano}`;
       }
-    }, 200);
-  }
-});
 
-/* =====================================================
-   🔹 FUNÇÃO DE ABRIR MODAL DE CANCELAMENTO
-===================================================== */
+      // Formata a data e hora da última alteração
+      let dataAtualizacaoTexto = "Não alterado recentemente";
+      if (consulta.atualizado_em) {
+        let dataObj = new Date(consulta.atualizado_em);
+        let diaAt = String(dataObj.getDate()).padStart(2, '0');
+        let mesAt = String(dataObj.getMonth() + 1).padStart(2, '0');
+        let anoAt = dataObj.getFullYear();
+        let horaAt = String(dataObj.getHours()).padStart(2, '0');
+        let minAt = String(dataObj.getMinutes()).padStart(2, '0');
+        dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
+      }
 
-// =====================================================
-// 💰 PAINEL ADMIN: FINANCEIRO E CONSULTAS (Com alteração de status e data/hora)
-// =====================================================
-window.renderizarAdminFinanceiro = async function () {
-  const listaDiv = document.getElementById("listaFinanceiroAdmin");
-  if (!listaDiv) return;
-
-  listaDiv.innerHTML = "<p style='color: #666;'>Carregando transações...</p>";
-
-  const { data: consultas, error: errC } = await window.supabaseClient
-    .from("consultas")
-    .select("*")
-    .order('data', { ascending: false })
-    .order('hora', { ascending: false });
-
-  const { data: pacientes } = await window.supabaseClient
-    .from("pacientes")
-    .select("cpf, nome");
-
-  listaDiv.innerHTML = "";
-
-  if (errC) {
-    console.error("Erro no Painel Financeiro:", errC);
-    listaDiv.innerHTML = "<p style='color: #d9534f;'>Erro ao carregar as transações. Verifique o console.</p>";
-    return;
-  }
-
-  if (!consultas || consultas.length === 0) {
-    listaDiv.innerHTML = "<p>Nenhuma transação ou consulta registrada no sistema.</p>";
-    return;
-  }
-
-  consultas.forEach(consulta => {
-    let paciente = pacientes ? pacientes.find(u => String(u.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
-    let nomePac = paciente ? paciente.nome : "Paciente Desconhecido";
-
-    let dataFormatada = "Data não definida";
-    if (consulta.data) {
-      let [ano, mes, dia] = consulta.data.split('-');
-      dataFormatada = `${dia}/${mes}/${ano}`;
-    }
-
-    // Formata a data e hora da última alteração
-    let dataAtualizacaoTexto = "Não alterado recentemente";
-    if (consulta.atualizado_em) {
-      let dataObj = new Date(consulta.atualizado_em);
-      let diaAt = String(dataObj.getDate()).padStart(2, '0');
-      let mesAt = String(dataObj.getMonth() + 1).padStart(2, '0');
-      let anoAt = dataObj.getFullYear();
-      let horaAt = String(dataObj.getHours()).padStart(2, '0');
-      let minAt = String(dataObj.getMinutes()).padStart(2, '0');
-      dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
-    }
-
-    // Renderiza o card com o histórico clicável
-    listaDiv.innerHTML += `
+      // Renderiza o card com o histórico clicável
+      listaDiv.innerHTML += `
       <div style="background: white; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 12px;">
         <div>
           <h3 style="font-size: 16px; color: #333; margin-bottom: 5px;">${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h3>
@@ -4086,153 +4088,153 @@ window.renderizarAdminFinanceiro = async function () {
         </div>
       </div>
     `;
-  });
-};
+    });
+  };
 
-// Função para processar a alteração e salvar o histórico detalhado no Supabase
-window.alterarStatusFinanceiroAdmin = async function (consultaId) {
-  const selectElement = document.getElementById(`status_${consultaId}`);
-  if (!selectElement) return;
+  // Função para processar a alteração e salvar o histórico detalhado no Supabase
+  window.alterarStatusFinanceiroAdmin = async function (consultaId) {
+    const selectElement = document.getElementById(`status_${consultaId}`);
+    if (!selectElement) return;
 
-  const novoStatus = selectElement.value;
-  const agoraISO = new Date().toISOString();
+    const novoStatus = selectElement.value;
+    const agoraISO = new Date().toISOString();
 
-  const btnSalvar = event.target;
-  let textoOriginal = btnSalvar.innerText;
-  btnSalvar.innerText = "⏳ Salvando...";
-  btnSalvar.disabled = true;
+    const btnSalvar = event.target;
+    let textoOriginal = btnSalvar.innerText;
+    btnSalvar.innerText = "⏳ Salvando...";
+    btnSalvar.disabled = true;
 
-  try {
-    // 1. Busca a consulta atual para acumular no histórico de alterações
-    const { data: consultaAtual } = await window.supabaseClient
+    try {
+      // 1. Busca a consulta atual para acumular no histórico de alterações
+      const { data: consultaAtual } = await window.supabaseClient
+        .from("consultas")
+        .select("historico_alteracoes, atualizado_em")
+        .eq("id", consultaId)
+        .single();
+
+      let historico = [];
+      if (consultaAtual && consultaAtual.historico_alteracoes) {
+        try {
+          historico = typeof consultaAtual.historico_alteracoes === 'string'
+            ? JSON.parse(consultaAtual.historico_alteracoes)
+            : consultaAtual.historico_alteracoes;
+        } catch (e) {
+          historico = [];
+        }
+      }
+
+      // Migração de compatibilidade caso haja alteração anterior simples
+      if (historico.length === 0 && consultaAtual && consultaAtual.atualizado_em) {
+        historico.push({
+          data: consultaAtual.atualizado_em,
+          autor: "Painel do Administrador (Sistema)",
+          status: "Atualização anterior"
+        });
+      }
+
+      // Identifica o admin logado
+      const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
+      const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
+
+      // Adiciona a nova alteração na lista
+      historico.push({
+        data: agoraISO,
+        autor: autorAlteracao,
+        status: novoStatus
+      });
+
+      // 2. Atualiza no Supabase
+      const { error } = await window.supabaseClient
+        .from("consultas")
+        .update({
+          status_geral: novoStatus,
+          atualizado_em: agoraISO,
+          historico_alteracoes: JSON.stringify(historico)
+        })
+        .eq("id", consultaId);
+
+      if (error) {
+        // Fallback caso a coluna historico_alteracoes não exista na tabela do Supabase
+        const { error: errFallback } = await window.supabaseClient
+          .from("consultas")
+          .update({
+            status_geral: novoStatus,
+            atualizado_em: agoraISO
+          })
+          .eq("id", consultaId);
+
+        if (errFallback) throw errFallback;
+      }
+
+      alert("✅ Status e histórico de alterações salvos com sucesso!");
+      window.renderizarAdminFinanceiro();
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
+      alert("❌ Erro ao atualizar o status da consulta.");
+      btnSalvar.innerText = textoOriginal;
+      btnSalvar.disabled = false;
+    }
+  };
+
+  // Abre o modal com a lista cronológica de alterações
+  window.abrirHistoricoAlteracoes = async function (consultaId) {
+    const { data: consulta, error } = await window.supabaseClient
       .from("consultas")
       .select("historico_alteracoes, atualizado_em")
       .eq("id", consultaId)
       .single();
 
+    if (error || !consulta) {
+      alert("Não foi possível carregar o histórico.");
+      return;
+    }
+
     let historico = [];
-    if (consultaAtual && consultaAtual.historico_alteracoes) {
+    if (consulta.historico_alteracoes) {
       try {
-        historico = typeof consultaAtual.historico_alteracoes === 'string'
-          ? JSON.parse(consultaAtual.historico_alteracoes)
-          : consultaAtual.historico_alteracoes;
+        historico = typeof consulta.historico_alteracoes === 'string'
+          ? JSON.parse(consulta.historico_alteracoes)
+          : consulta.historico_alteracoes;
       } catch (e) {
         historico = [];
       }
     }
 
-    // Migração de compatibilidade caso haja alteração anterior simples
-    if (historico.length === 0 && consultaAtual && consultaAtual.atualizado_em) {
+    if (historico.length === 0 && consulta.atualizado_em) {
       historico.push({
-        data: consultaAtual.atualizado_em,
+        data: consulta.atualizado_em,
         autor: "Painel do Administrador (Sistema)",
-        status: "Atualização anterior"
+        status: "Modificação registrada"
       });
     }
 
-    // Identifica o admin logado
-    const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
-    const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
+    const modalAntigo = document.getElementById("modalHistoricoAlteracoes");
+    if (modalAntigo) modalAntigo.remove();
 
-    // Adiciona a nova alteração na lista
-    historico.push({
-      data: agoraISO,
-      autor: autorAlteracao,
-      status: novoStatus
-    });
+    let listaHtml = "";
+    if (historico.length === 0) {
+      listaHtml = "<p style='color: #777; text-align: center; padding: 20px;'>Nenhuma alteração registrada para esta consulta.</p>";
+    } else {
+      // Ordena do mais recente para o mais antigo
+      historico.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-    // 2. Atualiza no Supabase
-    const { error } = await window.supabaseClient
-      .from("consultas")
-      .update({
-        status_geral: novoStatus,
-        atualizado_em: agoraISO,
-        historico_alteracoes: JSON.stringify(historico)
-      })
-      .eq("id", consultaId);
+      historico.forEach(h => {
+        let dataObj = new Date(h.data);
+        let dataFmt = !isNaN(dataObj.getTime())
+          ? dataObj.toLocaleDateString('pt-BR') + " às " + dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+          : h.data;
 
-    if (error) {
-      // Fallback caso a coluna historico_alteracoes não exista na tabela do Supabase
-      const { error: errFallback } = await window.supabaseClient
-        .from("consultas")
-        .update({
-          status_geral: novoStatus,
-          atualizado_em: agoraISO
-        })
-        .eq("id", consultaId);
-
-      if (errFallback) throw errFallback;
-    }
-
-    alert("✅ Status e histórico de alterações salvos com sucesso!");
-    window.renderizarAdminFinanceiro();
-  } catch (err) {
-    console.error("Erro ao atualizar status:", err);
-    alert("❌ Erro ao atualizar o status da consulta.");
-    btnSalvar.innerText = textoOriginal;
-    btnSalvar.disabled = false;
-  }
-};
-
-// Abre o modal com a lista cronológica de alterações
-window.abrirHistoricoAlteracoes = async function (consultaId) {
-  const { data: consulta, error } = await window.supabaseClient
-    .from("consultas")
-    .select("historico_alteracoes, atualizado_em")
-    .eq("id", consultaId)
-    .single();
-
-  if (error || !consulta) {
-    alert("Não foi possível carregar o histórico.");
-    return;
-  }
-
-  let historico = [];
-  if (consulta.historico_alteracoes) {
-    try {
-      historico = typeof consulta.historico_alteracoes === 'string'
-        ? JSON.parse(consulta.historico_alteracoes)
-        : consulta.historico_alteracoes;
-    } catch (e) {
-      historico = [];
-    }
-  }
-
-  if (historico.length === 0 && consulta.atualizado_em) {
-    historico.push({
-      data: consulta.atualizado_em,
-      autor: "Painel do Administrador (Sistema)",
-      status: "Modificação registrada"
-    });
-  }
-
-  const modalAntigo = document.getElementById("modalHistoricoAlteracoes");
-  if (modalAntigo) modalAntigo.remove();
-
-  let listaHtml = "";
-  if (historico.length === 0) {
-    listaHtml = "<p style='color: #777; text-align: center; padding: 20px;'>Nenhuma alteração registrada para esta consulta.</p>";
-  } else {
-    // Ordena do mais recente para o mais antigo
-    historico.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-    historico.forEach(h => {
-      let dataObj = new Date(h.data);
-      let dataFmt = !isNaN(dataObj.getTime())
-        ? dataObj.toLocaleDateString('pt-BR') + " às " + dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-        : h.data;
-
-      listaHtml += `
+        listaHtml += `
         <div style="background: #f4f9f9; padding: 12px 15px; border-radius: 6px; border-left: 4px solid #0F766E; margin-bottom: 10px;">
           <p style="font-size: 13px; color: #333; margin-bottom: 4px;"><strong>👤 Alterado por:</strong> ${escaparHTML(h.autor)}</p>
           <p style="font-size: 13px; color: #555; margin-bottom: 4px;"><strong>📌 Status definido:</strong> ${escaparHTML(h.status || 'N/A')}</p>
           <p style="font-size: 12px; color: #888; margin: 0;">🕒 <strong>Data e Horário:</strong> ${dataFmt}</p>
         </div>
       `;
-    });
-  }
+      });
+    }
 
-  const modalHtml = `
+    const modalHtml = `
     <div id="modalHistoricoAlteracoes" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: flex; justify-content: center; align-items: center;">
       <div style="background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative; text-align: left;">
         <button onclick="document.getElementById('modalHistoricoAlteracoes').remove()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: #888; font-weight: bold;">✖</button>
@@ -4245,215 +4247,215 @@ window.abrirHistoricoAlteracoes = async function (consultaId) {
     </div>
   `;
 
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-};
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  };
 
-// =====================================================
-// 🔍 SISTEMA DE FILTRO AVANÇADO E PERÍODOS (NOVO)
-// =====================================================
+  // =====================================================
+  // 🔍 SISTEMA DE FILTRO AVANÇADO E PERÍODOS (NOVO)
+  // =====================================================
 
-window.datasConsultasAdminCache = []; // Variável global para não sobrecarregar o banco de dados
+  window.datasConsultasAdminCache = []; // Variável global para não sobrecarregar o banco de dados
 
-// 1. Alternar visualização entre "Data Específica" e "Filtrar por Período"
-window.alternarTipoFiltroData = function () {
-  const tipo = document.getElementById("tipoFiltroData").value;
-  const divEspecifica = document.getElementById("containerDataEspecifica");
-  const divPeriodo = document.getElementById("containerDataPeriodo");
+  // 1. Alternar visualização entre "Data Específica" e "Filtrar por Período"
+  window.alternarTipoFiltroData = function () {
+    const tipo = document.getElementById("tipoFiltroData").value;
+    const divEspecifica = document.getElementById("containerDataEspecifica");
+    const divPeriodo = document.getElementById("containerDataPeriodo");
 
-  if (tipo === 'especifica') {
-    divEspecifica.style.display = "block";
-    divPeriodo.style.display = "none";
-  } else {
-    divEspecifica.style.display = "none";
-    divPeriodo.style.display = "flex";
-    window.carregarDatasFiltroPeriodo(); // Inicia a mágica de buscar anos disponíveis
+    if (tipo === 'especifica') {
+      divEspecifica.style.display = "block";
+      divPeriodo.style.display = "none";
+    } else {
+      divEspecifica.style.display = "none";
+      divPeriodo.style.display = "flex";
+      window.carregarDatasFiltroPeriodo(); // Inicia a mágica de buscar anos disponíveis
+    }
   }
-}
 
-// 2. Busca no Supabase as datas e carrega a caixinha de "Anos"
-window.carregarDatasFiltroPeriodo = async function () {
-  const prof = document.getElementById("filtroAdminProf").value;
-  let query = window.supabaseClient.from("consultas").select("data");
+  // 2. Busca no Supabase as datas e carrega a caixinha de "Anos"
+  window.carregarDatasFiltroPeriodo = async function () {
+    const prof = document.getElementById("filtroAdminProf").value;
+    let query = window.supabaseClient.from("consultas").select("data");
 
-  if (prof) query = query.eq("profissional", prof);
+    if (prof) query = query.eq("profissional", prof);
 
-  const { data } = await query;
-  if (data) {
-    // Salva as datas na memória para organizar
-    window.datasConsultasAdminCache = data.map(d => d.data).filter(d => d);
-    window.atualizarAnosPeriodo();
+    const { data } = await query;
+    if (data) {
+      // Salva as datas na memória para organizar
+      window.datasConsultasAdminCache = data.map(d => d.data).filter(d => d);
+      window.atualizarAnosPeriodo();
+    }
   }
-}
 
-// 3. Pega as datas salvas e preenche a lista de Anos
-window.atualizarAnosPeriodo = function () {
-  const selectAno = document.getElementById("filtroAno");
-  if (!selectAno) return;
+  // 3. Pega as datas salvas e preenche a lista de Anos
+  window.atualizarAnosPeriodo = function () {
+    const selectAno = document.getElementById("filtroAno");
+    if (!selectAno) return;
 
-  // Filtra para mostrar apenas os anos únicos (sem repetição) e em ordem decrescente
-  const anos = [...new Set(window.datasConsultasAdminCache.map(d => d.split('-')[0]))].sort((a, b) => b - a);
+    // Filtra para mostrar apenas os anos únicos (sem repetição) e em ordem decrescente
+    const anos = [...new Set(window.datasConsultasAdminCache.map(d => d.split('-')[0]))].sort((a, b) => b - a);
 
-  selectAno.innerHTML = '<option value="">Ano</option>';
-  anos.forEach(ano => {
-    selectAno.innerHTML += `<option value="${ano}">${ano}</option>`;
-  });
+    selectAno.innerHTML = '<option value="">Ano</option>';
+    anos.forEach(ano => {
+      selectAno.innerHTML += `<option value="${ano}">${ano}</option>`;
+    });
 
-  document.getElementById("filtroMes").innerHTML = '<option value="">Mês</option>';
-  document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
-}
-
-// 4. Ao escolher um Ano, preenche a lista de Meses em que ele trabalhou
-window.atualizarMesesPeriodo = function () {
-  const ano = document.getElementById("filtroAno").value;
-  const selectMes = document.getElementById("filtroMes");
-
-  if (!ano) {
-    selectMes.innerHTML = '<option value="">Mês</option>';
+    document.getElementById("filtroMes").innerHTML = '<option value="">Mês</option>';
     document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
-    return;
   }
 
-  const datasDoAno = window.datasConsultasAdminCache.filter(d => d.startsWith(ano));
-  const meses = [...new Set(datasDoAno.map(d => d.split('-')[1]))].sort(); // Mêses únicos
+  // 4. Ao escolher um Ano, preenche a lista de Meses em que ele trabalhou
+  window.atualizarMesesPeriodo = function () {
+    const ano = document.getElementById("filtroAno").value;
+    const selectMes = document.getElementById("filtroMes");
 
-  const nomesMeses = { "01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro" };
+    if (!ano) {
+      selectMes.innerHTML = '<option value="">Mês</option>';
+      document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+      return;
+    }
 
-  selectMes.innerHTML = '<option value="">Mês</option>';
-  meses.forEach(mes => {
-    selectMes.innerHTML += `<option value="${mes}">${nomesMeses[mes] || mes}</option>`;
-  });
+    const datasDoAno = window.datasConsultasAdminCache.filter(d => d.startsWith(ano));
+    const meses = [...new Set(datasDoAno.map(d => d.split('-')[1]))].sort(); // Mêses únicos
 
-  document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
-}
+    const nomesMeses = { "01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril", "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto", "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro" };
 
-// 5. Ao escolher um Mês, preenche os Dias específicos
-window.atualizarDiasPeriodo = function () {
-  const ano = document.getElementById("filtroAno").value;
-  const mes = document.getElementById("filtroMes").value;
-  const selectDia = document.getElementById("filtroDia");
+    selectMes.innerHTML = '<option value="">Mês</option>';
+    meses.forEach(mes => {
+      selectMes.innerHTML += `<option value="${mes}">${nomesMeses[mes] || mes}</option>`;
+    });
 
-  if (!ano || !mes) {
+    document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+  }
+
+  // 5. Ao escolher um Mês, preenche os Dias específicos
+  window.atualizarDiasPeriodo = function () {
+    const ano = document.getElementById("filtroAno").value;
+    const mes = document.getElementById("filtroMes").value;
+    const selectDia = document.getElementById("filtroDia");
+
+    if (!ano || !mes) {
+      selectDia.innerHTML = '<option value="">Dia</option>';
+      return;
+    }
+
+    const prefixo = `${ano}-${mes}`;
+    const datasDoMes = window.datasConsultasAdminCache.filter(d => d.startsWith(prefixo));
+    const dias = [...new Set(datasDoMes.map(d => d.split('-')[2]))].sort(); // Dias únicos
+
     selectDia.innerHTML = '<option value="">Dia</option>';
-    return;
-  }
-
-  const prefixo = `${ano}-${mes}`;
-  const datasDoMes = window.datasConsultasAdminCache.filter(d => d.startsWith(prefixo));
-  const dias = [...new Set(datasDoMes.map(d => d.split('-')[2]))].sort(); // Dias únicos
-
-  selectDia.innerHTML = '<option value="">Dia</option>';
-  dias.forEach(dia => {
-    selectDia.innerHTML += `<option value="${dia}">${dia}</option>`;
-  });
-}
-
-// 6. Carrega os profissionais no select principal
-window.carregarFiltroProfissionaisAdmin = async function () {
-  const select = document.getElementById("filtroAdminProf");
-  if (!select) return;
-
-  const { data: profissionais } = await window.supabaseClient.from("profissionais").select("nome");
-  if (profissionais) {
-    select.innerHTML = '<option value="">Todos os profissionais</option>';
-    profissionais.forEach(p => {
-      select.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+    dias.forEach(dia => {
+      selectDia.innerHTML += `<option value="${dia}">${dia}</option>`;
     });
   }
 
-  // GATILHO INTELIGENTE: Se o Admin mudar o nome do profissional e estiver na aba de "Período",
-  // ele atualiza o calendário imediatamente para mostrar as datas daquele médico específico.
-  select.addEventListener('change', function () {
-    if (document.getElementById("tipoFiltroData").value === 'periodo') {
-      window.carregarDatasFiltroPeriodo();
+  // 6. Carrega os profissionais no select principal
+  window.carregarFiltroProfissionaisAdmin = async function () {
+    const select = document.getElementById("filtroAdminProf");
+    if (!select) return;
+
+    const { data: profissionais } = await window.supabaseClient.from("profissionais").select("nome");
+    if (profissionais) {
+      select.innerHTML = '<option value="">Todos os profissionais</option>';
+      profissionais.forEach(p => {
+        select.innerHTML += `<option value="${p.nome}">${p.nome}</option>`;
+      });
     }
-  });
-}
 
-// Inicializador da página
-const renderizarOriginal = window.renderizarAdminVisaoGeral;
-window.renderizarAdminVisaoGeral = async function () {
-  if (renderizarOriginal) await renderizarOriginal();
-  await window.carregarFiltroProfissionaisAdmin();
-}
-
-// 7. Busca e renderiza os resultados (Com o select de status e botão de salvar ativos após o filtro)
-window.buscarFiltroConsultasAdmin = async function () {
-  const prof = document.getElementById("filtroAdminProf").value;
-  const status = document.getElementById("filtroAdminStatus").value;
-  const tipoData = document.getElementById("tipoFiltroData").value;
-  const resultadosDiv = document.getElementById("resultadosFiltroAdmin");
-
-  if (!resultadosDiv) return;
-  resultadosDiv.innerHTML = "<p style='color: #666; background: #fff; padding: 20px; border-radius: 8px; text-align: center;'>⏳ Buscando consultas...</p>";
-
-  let query = window.supabaseClient.from("consultas")
-    .select("*")
-    .order('data', { ascending: false })
-    .order('hora', { ascending: false });
-
-  // Aplica filtros básicos
-  if (prof) query = query.eq("profissional", prof);
-  if (status) query = query.eq("status_geral", status);
-
-  // Aplica o filtro de DATA ou PERÍODO
-  if (tipoData === 'especifica') {
-    const dataConsulta = document.getElementById("filtroAdminData").value;
-    if (dataConsulta) query = query.eq("data", dataConsulta);
-  } else {
-    const ano = document.getElementById("filtroAno").value;
-    const mes = document.getElementById("filtroMes").value;
-    const dia = document.getElementById("filtroDia").value;
-
-    if (ano && mes && dia) {
-      query = query.eq("data", `${ano}-${mes}-${dia}`);
-    } else if (ano && mes) {
-      let ultimoDia = new Date(parseInt(ano), parseInt(mes), 0).getDate();
-      query = query.gte("data", `${ano}-${mes}-01`).lte("data", `${ano}-${mes}-${ultimoDia}`);
-    } else if (ano) {
-      query = query.gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`);
-    }
+    // GATILHO INTELIGENTE: Se o Admin mudar o nome do profissional e estiver na aba de "Período",
+    // ele atualiza o calendário imediatamente para mostrar as datas daquele médico específico.
+    select.addEventListener('change', function () {
+      if (document.getElementById("tipoFiltroData").value === 'periodo') {
+        window.carregarDatasFiltroPeriodo();
+      }
+    });
   }
 
-  const { data: consultas, error } = await query;
-
-  if (error) {
-    resultadosDiv.innerHTML = `<p style="color: #d9534f; background: #fff; padding: 20px; border-radius: 8px;">Erro ao buscar dados: ${error.message}</p>`;
-    return;
+  // Inicializador da página
+  const renderizarOriginal = window.renderizarAdminVisaoGeral;
+  window.renderizarAdminVisaoGeral = async function () {
+    if (renderizarOriginal) await renderizarOriginal();
+    await window.carregarFiltroProfissionaisAdmin();
   }
 
-  if (!consultas || consultas.length === 0) {
-    resultadosDiv.innerHTML = `<p style="color: #777; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center;">Nenhuma consulta encontrada com as opções selecionadas.</p>`;
-    return;
-  }
+  // 7. Busca e renderiza os resultados (Com o select de status e botão de salvar ativos após o filtro)
+  window.buscarFiltroConsultasAdmin = async function () {
+    const prof = document.getElementById("filtroAdminProf").value;
+    const status = document.getElementById("filtroAdminStatus").value;
+    const tipoData = document.getElementById("tipoFiltroData").value;
+    const resultadosDiv = document.getElementById("resultadosFiltroAdmin");
 
-  const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
+    if (!resultadosDiv) return;
+    resultadosDiv.innerHTML = "<p style='color: #666; background: #fff; padding: 20px; border-radius: 8px; text-align: center;'>⏳ Buscando consultas...</p>";
 
-  resultadosDiv.innerHTML = `<p style="color: #0F4C5C; font-weight: bold; margin-bottom: 5px;">${consultas.length} consulta(s) encontrada(s):</p>`;
+    let query = window.supabaseClient.from("consultas")
+      .select("*")
+      .order('data', { ascending: false })
+      .order('hora', { ascending: false });
 
-  consultas.forEach(consulta => {
-    let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
-    let nomePac = paciente ? paciente.nome : "Paciente não identificado";
+    // Aplica filtros básicos
+    if (prof) query = query.eq("profissional", prof);
+    if (status) query = query.eq("status_geral", status);
 
-    let dataFormatada = "--/--/----";
-    if (consulta.data) {
-      let [ano, mes, dia] = consulta.data.split('-');
-      dataFormatada = `${dia}/${mes}/${ano}`;
+    // Aplica o filtro de DATA ou PERÍODO
+    if (tipoData === 'especifica') {
+      const dataConsulta = document.getElementById("filtroAdminData").value;
+      if (dataConsulta) query = query.eq("data", dataConsulta);
+    } else {
+      const ano = document.getElementById("filtroAno").value;
+      const mes = document.getElementById("filtroMes").value;
+      const dia = document.getElementById("filtroDia").value;
+
+      if (ano && mes && dia) {
+        query = query.eq("data", `${ano}-${mes}-${dia}`);
+      } else if (ano && mes) {
+        let ultimoDia = new Date(parseInt(ano), parseInt(mes), 0).getDate();
+        query = query.gte("data", `${ano}-${mes}-01`).lte("data", `${ano}-${mes}-${ultimoDia}`);
+      } else if (ano) {
+        query = query.gte("data", `${ano}-01-01`).lte("data", `${ano}-12-31`);
+      }
     }
 
-    // Formata a data e hora da última alteração
-    let dataAtualizacaoTexto = "Não alterado recentemente";
-    if (consulta.atualizado_em) {
-      let dataObj = new Date(consulta.atualizado_em);
-      let diaAt = String(dataObj.getDate()).padStart(2, '0');
-      let mesAt = String(dataObj.getMonth() + 1).padStart(2, '0');
-      let anoAt = dataObj.getFullYear();
-      let horaAt = String(dataObj.getHours()).padStart(2, '0');
-      let minAt = String(dataObj.getMinutes()).padStart(2, '0');
-      dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
+    const { data: consultas, error } = await query;
+
+    if (error) {
+      resultadosDiv.innerHTML = `<p style="color: #d9534f; background: #fff; padding: 20px; border-radius: 8px;">Erro ao buscar dados: ${error.message}</p>`;
+      return;
     }
 
-    // Renderiza o card contendo o select de status e o botão de salvar, igualzinho ao painel principal
-    resultadosDiv.innerHTML += `
+    if (!consultas || consultas.length === 0) {
+      resultadosDiv.innerHTML = `<p style="color: #777; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center;">Nenhuma consulta encontrada com as opções selecionadas.</p>`;
+      return;
+    }
+
+    const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
+
+    resultadosDiv.innerHTML = `<p style="color: #0F4C5C; font-weight: bold; margin-bottom: 5px;">${consultas.length} consulta(s) encontrada(s):</p>`;
+
+    consultas.forEach(consulta => {
+      let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
+      let nomePac = paciente ? paciente.nome : "Paciente não identificado";
+
+      let dataFormatada = "--/--/----";
+      if (consulta.data) {
+        let [ano, mes, dia] = consulta.data.split('-');
+        dataFormatada = `${dia}/${mes}/${ano}`;
+      }
+
+      // Formata a data e hora da última alteração
+      let dataAtualizacaoTexto = "Não alterado recentemente";
+      if (consulta.atualizado_em) {
+        let dataObj = new Date(consulta.atualizado_em);
+        let diaAt = String(dataObj.getDate()).padStart(2, '0');
+        let mesAt = String(dataObj.getMonth() + 1).padStart(2, '0');
+        let anoAt = dataObj.getFullYear();
+        let horaAt = String(dataObj.getHours()).padStart(2, '0');
+        let minAt = String(dataObj.getMinutes()).padStart(2, '0');
+        dataAtualizacaoTexto = `${diaAt}/${mesAt}/${anoAt} às ${horaAt}:${minAt}`;
+      }
+
+      // Renderiza o card contendo o select de status e o botão de salvar, igualzinho ao painel principal
+      resultadosDiv.innerHTML += `
       <div style="background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 12px;">
         <div>
           <h4 style="font-size: 15px; color: #0F4C5C; margin-bottom: 4px;">📅 ${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h4>
@@ -4482,317 +4484,317 @@ window.buscarFiltroConsultasAdmin = async function () {
         </div>
       </div>
     `;
-  });
-};
-
-// Função auxiliar exclusiva para salvar o status alterado através da busca filtrada
-window.alterarStatusFiltroAdmin = async function (consultaId) {
-  const selectElement = document.getElementById(`status_filtro_${consultaId}`);
-  if (!selectElement) return;
-
-  const novoStatus = selectElement.value;
-  const agoraISO = new Date().toISOString();
-
-  const btnSalvar = event.target;
-  let textoOriginal = btnSalvar.innerText;
-  btnSalvar.innerText = "⏳ Salvando...";
-  btnSalvar.disabled = true;
-
-  try {
-    const { data: consultaAtual } = await window.supabaseClient
-      .from("consultas")
-      .select("historico_alteracoes, atualizado_em")
-      .eq("id", consultaId)
-      .single();
-
-    let historico = [];
-    if (consultaAtual && consultaAtual.historico_alteracoes) {
-      try {
-        historico = typeof consultaAtual.historico_alteracoes === 'string'
-          ? JSON.parse(consultaAtual.historico_alteracoes)
-          : consultaAtual.historico_alteracoes;
-      } catch (e) {
-        historico = [];
-      }
-    }
-
-    const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
-    const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
-
-    historico.push({
-      data: agoraISO,
-      autor: autorAlteracao,
-      status: novoStatus
     });
+  };
 
-    const { error } = await window.supabaseClient
-      .from("consultas")
-      .update({
-        status_geral: novoStatus,
-        atualizado_em: agoraISO,
-        historico_alteracoes: JSON.stringify(historico)
-      })
-      .eq("id", consultaId);
+  // Função auxiliar exclusiva para salvar o status alterado através da busca filtrada
+  window.alterarStatusFiltroAdmin = async function (consultaId) {
+    const selectElement = document.getElementById(`status_filtro_${consultaId}`);
+    if (!selectElement) return;
 
-    if (error) {
-      const { error: errFallback } = await window.supabaseClient
+    const novoStatus = selectElement.value;
+    const agoraISO = new Date().toISOString();
+
+    const btnSalvar = event.target;
+    let textoOriginal = btnSalvar.innerText;
+    btnSalvar.innerText = "⏳ Salvando...";
+    btnSalvar.disabled = true;
+
+    try {
+      const { data: consultaAtual } = await window.supabaseClient
+        .from("consultas")
+        .select("historico_alteracoes, atualizado_em")
+        .eq("id", consultaId)
+        .single();
+
+      let historico = [];
+      if (consultaAtual && consultaAtual.historico_alteracoes) {
+        try {
+          historico = typeof consultaAtual.historico_alteracoes === 'string'
+            ? JSON.parse(consultaAtual.historico_alteracoes)
+            : consultaAtual.historico_alteracoes;
+        } catch (e) {
+          historico = [];
+        }
+      }
+
+      const adminUser = localStorage.getItem("adminUsuario") || "Administrador Geral";
+      const autorAlteracao = `Painel do Administrador (Login: ${adminUser})`;
+
+      historico.push({
+        data: agoraISO,
+        autor: autorAlteracao,
+        status: novoStatus
+      });
+
+      const { error } = await window.supabaseClient
         .from("consultas")
         .update({
           status_geral: novoStatus,
-          atualizado_em: agoraISO
+          atualizado_em: agoraISO,
+          historico_alteracoes: JSON.stringify(historico)
         })
         .eq("id", consultaId);
 
-      if (errFallback) throw errFallback;
-    }
-
-    alert("✅ Status atualizado com sucesso!");
-    window.buscarFiltroConsultasAdmin(); // Reexecuta o filtro mantendo a tela atualizada
-  } catch (err) {
-    console.error("Erro ao atualizar status:", err);
-    alert("❌ Erro ao atualizar o status da consulta.");
-    btnSalvar.innerText = textoOriginal;
-    btnSalvar.disabled = false;
-  }
-};
-
-// 8. Limpa o filtro da tela
-window.limparFiltroConsultasAdmin = function () {
-  document.getElementById("filtroAdminProf").value = "";
-  document.getElementById("filtroAdminStatus").value = "";
-  document.getElementById("tipoFiltroData").value = "especifica"; // Volta para o padrão
-  document.getElementById("filtroAdminData").value = "";
-  window.alternarTipoFiltroData(); // Restaura o visual
-
-  document.getElementById("filtroAno").value = "";
-  document.getElementById("filtroMes").innerHTML = '<option value="">Mês</option>';
-  document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
-
-  document.getElementById("resultadosFiltroAdmin").innerHTML = "";
-}
-
-/* =====================================================
-   🔹 MÁSCARAS DE CPF E CEP (CADASTRO DE PACIENTE)
-===================================================== */
-document.addEventListener("DOMContentLoaded", function () {
-  // Ajuste os seletores abaixo caso os IDs no seu HTML sejam diferentes (ex: #cpf, #cep)
-  const inputCpf = document.querySelector("#cpf") || document.querySelector("#cpfCadastro");
-  const inputCep = document.querySelector("#cep") || document.querySelector("#cepCadastro");
-
-  // 1. Formatação automática do CPF (Ex: 123.456.789-00)
-  if (inputCpf) {
-    inputCpf.addEventListener("input", function () {
-      let valor = this.value.replace(/\D/g, "").substring(0, 11);
-      if (valor.length > 9) {
-        valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
-      } else if (valor.length > 6) {
-        valor = valor.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
-      } else if (valor.length > 3) {
-        valor = valor.replace(/(\d{3})(\d{0,3})/, "$1.$2");
-      }
-      this.value = valor;
-    });
-  }
-
-  // 2. Formatação automática do CEP e busca via ViaCEP
-  if (inputCep) {
-    inputCep.addEventListener("input", function () {
-      let v = this.value.replace(/\D/g, "").substring(0, 8);
-      if (v.length > 5) {
-        v = v.replace(/^(\d{5})(\d)/, "$1-$2");
-      }
-      this.value = v;
-    });
-
-    inputCep.addEventListener("blur", function () {
-      let cepVal = this.value.replace(/\D/g, "");
-      if (cepVal.length === 8) {
-        fetch(`https://viacep.com.br/ws/${cepVal}/json/`)
-          .then(res => res.json())
-          .then(data => {
-            if (!data.erro) {
-              // Preenche os campos de endereço automaticamente
-              if (document.getElementById("rua")) document.getElementById("rua").value = data.logradouro || "";
-              if (document.getElementById("bairro")) document.getElementById("bairro").value = data.bairro || "";
-              if (document.getElementById("cidade")) document.getElementById("cidade").value = data.localidade || "";
-              if (document.getElementById("uf")) document.getElementById("uf").value = data.uf || "";
-
-              // Joga o foco para o campo de número da casa
-              if (document.getElementById("numero")) document.getElementById("numero").focus();
-            } else {
-              alert("CEP não encontrado! Verifique o número digitado.");
-            }
+      if (error) {
+        const { error: errFallback } = await window.supabaseClient
+          .from("consultas")
+          .update({
+            status_geral: novoStatus,
+            atualizado_em: agoraISO
           })
-          .catch(err => console.error("Erro ao buscar CEP:", err));
+          .eq("id", consultaId);
+
+        if (errFallback) throw errFallback;
       }
-    });
+
+      alert("✅ Status atualizado com sucesso!");
+      window.buscarFiltroConsultasAdmin(); // Reexecuta o filtro mantendo a tela atualizada
+    } catch (err) {
+      console.error("Erro ao atualizar status:", err);
+      alert("❌ Erro ao atualizar o status da consulta.");
+      btnSalvar.innerText = textoOriginal;
+      btnSalvar.disabled = false;
+    }
+  };
+
+  // 8. Limpa o filtro da tela
+  window.limparFiltroConsultasAdmin = function () {
+    document.getElementById("filtroAdminProf").value = "";
+    document.getElementById("filtroAdminStatus").value = "";
+    document.getElementById("tipoFiltroData").value = "especifica"; // Volta para o padrão
+    document.getElementById("filtroAdminData").value = "";
+    window.alternarTipoFiltroData(); // Restaura o visual
+
+    document.getElementById("filtroAno").value = "";
+    document.getElementById("filtroMes").innerHTML = '<option value="">Mês</option>';
+    document.getElementById("filtroDia").innerHTML = '<option value="">Dia</option>';
+
+    document.getElementById("resultadosFiltroAdmin").innerHTML = "";
   }
-});
 
-/* =====================================================
-   🔹 CADASTRO DE PACIENTE (SUPABASE AUTH + BANCO DE DADOS)
-===================================================== */
-document.addEventListener("DOMContentLoaded", function () {
-  const cadastroForm = document.getElementById("cadastroForm");
+  /* =====================================================
+     🔹 MÁSCARAS DE CPF E CEP (CADASTRO DE PACIENTE)
+  ===================================================== */
+  document.addEventListener("DOMContentLoaded", function () {
+    // Ajuste os seletores abaixo caso os IDs no seu HTML sejam diferentes (ex: #cpf, #cep)
+    const inputCpf = document.querySelector("#cpf") || document.querySelector("#cpfCadastro");
+    const inputCep = document.querySelector("#cep") || document.querySelector("#cepCadastro");
 
-  if (cadastroForm) {
-    cadastroForm.addEventListener("submit", async function (e) {
-      e.preventDefault();
-
-      const nome = document.getElementById("nome").value.trim();
-      const cpf = document.getElementById("cpfCadastro").value.replace(/\D/g, "");
-      const nascimento = document.getElementById("nascimento").value;
-      const email = document.getElementById("emailCadastro").value.trim().toLowerCase();
-      const senha = document.getElementById("senhaCadastro").value;
-      const cep = document.getElementById("cep").value.trim();
-      const rua = document.getElementById("rua").value.trim();
-      const numero = document.getElementById("numero").value.trim();
-      const complemento = document.getElementById("complemento").value.trim();
-      const bairro = document.getElementById("bairro").value.trim();
-      const cidade = document.getElementById("cidade").value.trim();
-      const uf = document.getElementById("uf").value.trim().toUpperCase();
-      const fileInput = document.getElementById("fotoSelfieCadastro");
-
-      try {
-        // 1. Cria a conta no Supabase Auth
-        const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
-          email: email,
-          password: senha
-        });
-
-        if (authError) {
-          alert("Erro ao criar conta de acesso: " + authError.message);
-          return;
+    // 1. Formatação automática do CPF (Ex: 123.456.789-00)
+    if (inputCpf) {
+      inputCpf.addEventListener("input", function () {
+        let valor = this.value.replace(/\D/g, "").substring(0, 11);
+        if (valor.length > 9) {
+          valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, "$1.$2.$3-$4");
+        } else if (valor.length > 6) {
+          valor = valor.replace(/(\d{3})(\d{3})(\d{0,3})/, "$1.$2.$3");
+        } else if (valor.length > 3) {
+          valor = valor.replace(/(\d{3})(\d{0,3})/, "$1.$2");
         }
+        this.value = valor;
+      });
+    }
 
-        // Verifica se o ID do utilizador foi gerado com sucesso
-        const authUserId = authData?.user?.id;
-
-        let fotoUrl = "";
-
-        // 2. Upload da selfie no Storage
-        if (fileInput && fileInput.files.length > 0) {
-          const arquivo = fileInput.files[0];
-          const nomeArquivo = `selfie_${cpf}_${Date.now()}.jpg`;
-
-          const { error: uploadError } = await window.supabaseClient.storage
-            .from('fotos-perfil')
-            .upload(nomeArquivo, arquivo);
-
-          if (!uploadError) {
-            const { data: urlData } = window.supabaseClient.storage
-              .from('fotos-perfil')
-              .getPublicUrl(nomeArquivo);
-            fotoUrl = urlData.publicUrl;
-          }
+    // 2. Formatação automática do CEP e busca via ViaCEP
+    if (inputCep) {
+      inputCep.addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "").substring(0, 8);
+        if (v.length > 5) {
+          v = v.replace(/^(\d{5})(\d)/, "$1-$2");
         }
+        this.value = v;
+      });
 
-        // 3. Salva os dados do paciente INCLUINDO o auth_id
-        const { error: dbError } = await window.supabaseClient
-          .from('pacientes')
-          .insert([{
-            auth_id: authUserId, // 👈 VINCULA O ID DA AUTENTICAÇÃO AQUI
-            nome: nome,
-            cpf: cpf,
-            nascimento: nascimento,
+      inputCep.addEventListener("blur", function () {
+        let cepVal = this.value.replace(/\D/g, "");
+        if (cepVal.length === 8) {
+          fetch(`https://viacep.com.br/ws/${cepVal}/json/`)
+            .then(res => res.json())
+            .then(data => {
+              if (!data.erro) {
+                // Preenche os campos de endereço automaticamente
+                if (document.getElementById("rua")) document.getElementById("rua").value = data.logradouro || "";
+                if (document.getElementById("bairro")) document.getElementById("bairro").value = data.bairro || "";
+                if (document.getElementById("cidade")) document.getElementById("cidade").value = data.localidade || "";
+                if (document.getElementById("uf")) document.getElementById("uf").value = data.uf || "";
+
+                // Joga o foco para o campo de número da casa
+                if (document.getElementById("numero")) document.getElementById("numero").focus();
+              } else {
+                alert("CEP não encontrado! Verifique o número digitado.");
+              }
+            })
+            .catch(err => console.error("Erro ao buscar CEP:", err));
+        }
+      });
+    }
+  });
+
+  /* =====================================================
+     🔹 CADASTRO DE PACIENTE (SUPABASE AUTH + BANCO DE DADOS)
+  ===================================================== */
+  document.addEventListener("DOMContentLoaded", function () {
+    const cadastroForm = document.getElementById("cadastroForm");
+
+    if (cadastroForm) {
+      cadastroForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const nome = document.getElementById("nome").value.trim();
+        const cpf = document.getElementById("cpfCadastro").value.replace(/\D/g, "");
+        const nascimento = document.getElementById("nascimento").value;
+        const email = document.getElementById("emailCadastro").value.trim().toLowerCase();
+        const senha = document.getElementById("senhaCadastro").value;
+        const cep = document.getElementById("cep").value.trim();
+        const rua = document.getElementById("rua").value.trim();
+        const numero = document.getElementById("numero").value.trim();
+        const complemento = document.getElementById("complemento").value.trim();
+        const bairro = document.getElementById("bairro").value.trim();
+        const cidade = document.getElementById("cidade").value.trim();
+        const uf = document.getElementById("uf").value.trim().toUpperCase();
+        const fileInput = document.getElementById("fotoSelfieCadastro");
+
+        try {
+          // 1. Cria a conta no Supabase Auth
+          const { data: authData, error: authError } = await window.supabaseClient.auth.signUp({
             email: email,
-            cep: cep,
-            rua: rua,
-            numero: numero,
-            complemento: complemento,
-            bairro: bairro,
-            cidade: cidade,
-            uf: uf,
-            foto_perfil_url: fotoUrl
-          }]);
+            password: senha
+          });
 
-        if (dbError) {
-          alert("Erro ao salvar dados do paciente no banco: " + dbError.message);
-          return;
+          if (authError) {
+            alert("Erro ao criar conta de acesso: " + authError.message);
+            return;
+          }
+
+          // Verifica se o ID do utilizador foi gerado com sucesso
+          const authUserId = authData?.user?.id;
+
+          let fotoUrl = "";
+
+          // 2. Upload da selfie no Storage
+          if (fileInput && fileInput.files.length > 0) {
+            const arquivo = fileInput.files[0];
+            const nomeArquivo = `selfie_${cpf}_${Date.now()}.jpg`;
+
+            const { error: uploadError } = await window.supabaseClient.storage
+              .from('fotos-perfil')
+              .upload(nomeArquivo, arquivo);
+
+            if (!uploadError) {
+              const { data: urlData } = window.supabaseClient.storage
+                .from('fotos-perfil')
+                .getPublicUrl(nomeArquivo);
+              fotoUrl = urlData.publicUrl;
+            }
+          }
+
+          // 3. Salva os dados do paciente INCLUINDO o auth_id
+          const { error: dbError } = await window.supabaseClient
+            .from('pacientes')
+            .insert([{
+              auth_id: authUserId, // 👈 VINCULA O ID DA AUTENTICAÇÃO AQUI
+              nome: nome,
+              cpf: cpf,
+              nascimento: nascimento,
+              email: email,
+              cep: cep,
+              rua: rua,
+              numero: numero,
+              complemento: complemento,
+              bairro: bairro,
+              cidade: cidade,
+              uf: uf,
+              foto_perfil_url: fotoUrl
+            }]);
+
+          if (dbError) {
+            alert("Erro ao salvar dados do paciente no banco: " + dbError.message);
+            return;
+          }
+
+          alert("✅ Cadastro realizado com sucesso! Faça login para continuar.");
+          window.location.reload();
+
+        } catch (err) {
+          console.error("Erro no cadastro:", err);
+          alert("Ocorreu um erro inesperado durante o cadastro.");
         }
+      });
+    }
+  });
 
-        alert("✅ Cadastro realizado com sucesso! Faça login para continuar.");
-        window.location.reload();
+  /* =====================================================
+     🔹 HISTÓRICO FINANCEIRO ADMINISTRATIVO
+  ===================================================== */
+  window.carregarHistoricoFinanceiroAdmin = async function (filtros = {}) {
+    const container = document.getElementById("listaFinanceiroAdmin");
+    if (!container) return;
 
-      } catch (err) {
-        console.error("Erro no cadastro:", err);
-        alert("Ocorreu um erro inesperado durante o cadastro.");
+    container.innerHTML = "<p style='color: #666; text-align: center; padding: 20px;'>⏳ Carregando histórico financeiro...</p>";
+
+    // Constrói a consulta base na tabela de consultas/transações
+    let query = window.supabaseClient
+      .from("consultas")
+      .select("*")
+      .order('data', { ascending: false })
+      .order('hora', { ascending: false });
+
+    // Aplica filtros opcionais se fornecidos (ex: profissional, status ou período)
+    if (filtros.profissional) {
+      query = query.eq("profissional", filtros.profissional);
+    }
+    if (filtros.status) {
+      query = query.eq("status_geral", filtros.status);
+    }
+    if (filtros.dataInicio && filtros.dataFim) {
+      query = query.gte("data", filtros.dataInicio).lte("data", filtros.dataFim);
+    }
+
+    const { data: consultas, error } = await query;
+    const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
+
+    if (error) {
+      console.error("Erro ao carregar histórico financeiro:", error);
+      container.innerHTML = "<p style='color: #d9534f; text-align: center;'>❌ Erro ao carregar os dados financeiros do servidor.</p>";
+      return;
+    }
+
+    if (!consultas || consultas.length === 0) {
+      container.innerHTML = "<p style='color: #777; text-align: center; padding: 20px;'>Nenhum registro financeiro encontrado para os filtros selecionados.</p>";
+      return;
+    }
+
+    container.innerHTML = "";
+
+    // Renderiza cada item formatado no painel administrativo
+    consultas.forEach(consulta => {
+      let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
+      let nomePac = paciente ? paciente.nome : "Paciente não identificado";
+
+      let dataFormatada = "--/--/----";
+      if (consulta.data) {
+        let [ano, mes, dia] = consulta.data.split('-');
+        dataFormatada = `${dia}/${mes}/${ano}`;
       }
-    });
-  }
-});
 
-/* =====================================================
-   🔹 HISTÓRICO FINANCEIRO ADMINISTRATIVO
-===================================================== */
-window.carregarHistoricoFinanceiroAdmin = async function (filtros = {}) {
-  const container = document.getElementById("listaFinanceiroAdmin");
-  if (!container) return;
+      let statusBadge = "";
+      switch (consulta.status_geral) {
+        case 'finalizada':
+        case 'repasse_concluido':
+          statusBadge = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDO</span>`;
+          break;
+        case 'pendente_pagamento':
+          statusBadge = `<span style="background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PENDENTE</span>`;
+          break;
+        case 'cancelada_reembolso':
+          statusBadge = `<span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">REEMBOLSO</span>`;
+          break;
+        default:
+          statusBadge = `<span style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">${consulta.status_geral ? consulta.status_geral.toUpperCase() : 'AGENDADA'}</span>`;
+      }
 
-  container.innerHTML = "<p style='color: #666; text-align: center; padding: 20px;'>⏳ Carregando histórico financeiro...</p>";
-
-  // Constrói a consulta base na tabela de consultas/transações
-  let query = window.supabaseClient
-    .from("consultas")
-    .select("*")
-    .order('data', { ascending: false })
-    .order('hora', { ascending: false });
-
-  // Aplica filtros opcionais se fornecidos (ex: profissional, status ou período)
-  if (filtros.profissional) {
-    query = query.eq("profissional", filtros.profissional);
-  }
-  if (filtros.status) {
-    query = query.eq("status_geral", filtros.status);
-  }
-  if (filtros.dataInicio && filtros.dataFim) {
-    query = query.gte("data", filtros.dataInicio).lte("data", filtros.dataFim);
-  }
-
-  const { data: consultas, error } = await query;
-  const { data: pacientes } = await window.supabaseClient.from("pacientes").select("cpf, nome");
-
-  if (error) {
-    console.error("Erro ao carregar histórico financeiro:", error);
-    container.innerHTML = "<p style='color: #d9534f; text-align: center;'>❌ Erro ao carregar os dados financeiros do servidor.</p>";
-    return;
-  }
-
-  if (!consultas || consultas.length === 0) {
-    container.innerHTML = "<p style='color: #777; text-align: center; padding: 20px;'>Nenhum registro financeiro encontrado para os filtros selecionados.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-
-  // Renderiza cada item formatado no painel administrativo
-  consultas.forEach(consulta => {
-    let paciente = pacientes ? pacientes.find(p => String(p.cpf).replace(/\D/g, "") === String(consulta.paciente_cpf).replace(/\D/g, "")) : null;
-    let nomePac = paciente ? paciente.nome : "Paciente não identificado";
-
-    let dataFormatada = "--/--/----";
-    if (consulta.data) {
-      let [ano, mes, dia] = consulta.data.split('-');
-      dataFormatada = `${dia}/${mes}/${ano}`;
-    }
-
-    let statusBadge = "";
-    switch (consulta.status_geral) {
-      case 'finalizada':
-      case 'repasse_concluido':
-        statusBadge = `<span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONCLUÍDO</span>`;
-        break;
-      case 'pendente_pagamento':
-        statusBadge = `<span style="background: #f1c40f; color: #333; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">PENDENTE</span>`;
-        break;
-      case 'cancelada_reembolso':
-        statusBadge = `<span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">REEMBOLSO</span>`;
-        break;
-      default:
-        statusBadge = `<span style="background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">${consulta.status_geral ? consulta.status_geral.toUpperCase() : 'AGENDADA'}</span>`;
-    }
-
-    container.innerHTML += `
+      container.innerHTML += `
       <div style="background: white; padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 10px;">
         <div>
           <h4 style="font-size: 15px; color: #0F4C5C; margin-bottom: 4px;">📅 ${dataFormatada} às ${consulta.hora ? consulta.hora.substring(0, 5) : '--:--'}</h4>
@@ -4805,18 +4807,19 @@ window.carregarHistoricoFinanceiroAdmin = async function (filtros = {}) {
         </div>
       </div>
     `;
-  });
-};
+    });
+  };
 
-window.abrirCurriculo = async function (caminho) {
-  const { data, error } = await supabaseClient
-    .storage.from("curriculos")
-    .createSignedUrl(caminho, 60); // link válido por 60 segundos
+  window.abrirCurriculo = async function (caminho) {
+    const { data, error } = await supabaseClient
+      .storage.from("curriculos")
+      .createSignedUrl(caminho, 60); // link válido por 60 segundos
 
-  if (error) {
-    alert("Não foi possível abrir o currículo.");
-    console.error(error);
-    return;
+    if (error) {
+      alert("Não foi possível abrir o currículo.");
+      console.error(error);
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
   }
-  window.open(data.signedUrl, "_blank");
 };

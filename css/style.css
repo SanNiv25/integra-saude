@@ -6098,3 +6098,9 @@ html {
   color: #064e3b !important;
   border: 1px solid #52b788 !important;
 }
+
+.dashboard-layout .consulta-card,
+.dashboard-wrapper .consulta-card {
+  background-color: #e6f6ec;
+  border-color: #c5e8d3;
+}
