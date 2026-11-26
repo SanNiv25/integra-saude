@@ -985,23 +985,10 @@ body {
   font-size: 28px;
 }
 
-.consulta-card h3 {
-  color: #064e3b;
-  margin-bottom: 10px;
-}
-
 .consultas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-}
-
-.consulta-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  border-left: 6px solid #1fa37a;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .btn-sair {
@@ -1035,36 +1022,6 @@ body {
 
 .btn-cancelar:hover {
   background-color: #c9302c;
-}
-
-/* =====================================================
-   🔹 ESTILOS DE CONSULTAS ENCERRADAS (CARD INTEIRO CINZA)
-===================================================== */
-/* Remove a borda lateral colorida para o card virar um bloco sólido cinza */
-.consulta-inativa {
-  border-left: none !important;
-}
-
-/* Remove o texto riscado e deixa a letra num cinza escuro elegante */
-.consulta-inativa h3,
-.consulta-inativa p {
-  text-decoration: none !important;
-  color: #666 !important;
-}
-
-/* 1. Cinza com tom leve de Verde (Consulta Finalizada) */
-.consulta-finalizada {
-  background-color: #dce3dc !important;
-}
-
-/* 2. Cinza com tom leve de Vermelho (Não compareceu) */
-.consulta-ausente {
-  background-color: #e3dcdc !important;
-}
-
-/* 3. Cinza Neutro Puro (Tempo Esgotado) */
-.consulta-esgotada {
-  background-color: #dfdfdf !important;
 }
 
 /* =====================================================
@@ -4554,18 +4511,6 @@ html {
 }
 
 /* Cards realizados, perdidos e cancelados com cor da barra lateral e texto verde escuro */
-.consulta-card.card-status-sidebar {
-  background-color: #e0f5eb !important;
-  border-left: 5px solid #064e3b !important;
-  color: #064e3b !important;
-}
-
-.consulta-card.card-status-sidebar h3,
-.consulta-card.card-status-sidebar p,
-.consulta-card.card-status-sidebar strong {
-  color: #064e3b !important;
-  text-decoration: none !important;
-}
 
 .dashboard-wrapper .sidebar-profile img {
   width: 96px;
@@ -5472,31 +5417,6 @@ html {
   box-shadow: 0 6px 16px rgba(10, 165, 109, 0.3) !important;
 }
 
-/* 2. Cards com a mesma cor verde claro da barra lateral */
-.area-paciente .card,
-.area-paciente .consulta-card,
-.area-paciente .agendamento-card,
-.area-paciente .pacote-card,
-.area-paciente .exame-card,
-.area-paciente .info-card,
-.area-paciente .resumo-card,
-.area-paciente .box-card,
-.area-profissional .card,
-.area-profissional .consulta-card,
-.area-profissional .agendamento-card,
-.area-profissional .pacote-card,
-.area-profissional .exame-card,
-.area-profissional .info-card,
-.area-profissional .resumo-card,
-.area-profissional .box-card,
-[class*="paciente"] [class*="card"]:not(.sidebar):not(.menu),
-[class*="profissional"] [class*="card"]:not(.sidebar):not(.menu),
-.dashboard-main [class*="card"],
-.painel-conteudo [class*="card"] {
-  background-color: #e6f6ec !important;
-  border-color: #c5e8d3 !important;
-}
-
 /* Mantém itens internos claros dentro dos cards para preservar o contraste e a leitura */
 [class*="paciente"] [class*="card"] .badge,
 [class*="profissional"] [class*="card"] .badge,
@@ -6085,22 +6005,80 @@ html {
 }
 
 /* =====================================================
-   📦 ETIQUETA / CONTORNO DE CONSULTAS DE PACOTES EM VERDE
+   PADRONIZAÇÃO UNIFICADA — .consulta-card
 ===================================================== */
-.consulta-pacote-badge,
-.consulta-card [class*="pacote"]:not(.pacote-card),
-.consulta-card [class*="badge"],
-.consulta-card [class*="tag"],
-.consulta-card span:has(> strong),
-.consulta-card>span:first-child,
-.consulta-card>div:first-child>span {
-  background-color: #dcf6e1 !important;
-  color: #064e3b !important;
-  border: 1px solid #52b788 !important;
+.consulta-card {
+  --card-bg: #ffffff;
+  --card-border: #1fa37a;
+  --card-text: #2f5d4e;
+  --card-title: #064e3b;
+
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 6px solid var(--card-border);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  color: var(--card-text);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
+.consulta-card h3 {
+  color: var(--card-title);
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.consulta-card p,
+.consulta-card strong {
+  margin: 0;
+  color: var(--card-text);
+  line-height: 1.5;
+}
+
+/* Mantém o mesmo padrão visual para todos os perfis e status */
+.consulta-card.consulta-inativa,
+.consulta-card.consulta-finalizada,
+.consulta-card.consulta-ausente,
+.consulta-card.consulta-esgotada,
+.consulta-card.card-status-sidebar,
 .dashboard-layout .consulta-card,
 .dashboard-wrapper .consulta-card {
-  background-color: #e6f6ec;
-  border-color: #c5e8d3;
+  background-color: var(--card-bg);
+  border-left: 6px solid var(--card-border);
+  color: var(--card-text);
+}
+
+.consulta-card.consulta-inativa h3,
+.consulta-card.consulta-inativa p,
+.consulta-card.consulta-inativa strong,
+.consulta-card.consulta-finalizada h3,
+.consulta-card.consulta-finalizada p,
+.consulta-card.consulta-finalizada strong,
+.consulta-card.consulta-ausente h3,
+.consulta-card.consulta-ausente p,
+.consulta-card.consulta-ausente strong,
+.consulta-card.consulta-esgotada h3,
+.consulta-card.consulta-esgotada p,
+.consulta-card.consulta-esgotada strong,
+.consulta-card.card-status-sidebar h3,
+.consulta-card.card-status-sidebar p,
+.consulta-card.card-status-sidebar strong {
+  color: var(--card-title);
+  text-decoration: none;
+}
+
+.consulta-card.consulta-inativa p,
+.consulta-card.consulta-inativa strong,
+.consulta-card.consulta-finalizada p,
+.consulta-card.consulta-finalizada strong,
+.consulta-card.consulta-ausente p,
+.consulta-card.consulta-ausente strong,
+.consulta-card.consulta-esgotada p,
+.consulta-card.consulta-esgotada strong,
+.consulta-card.card-status-sidebar p,
+.consulta-card.card-status-sidebar strong {
+  color: var(--card-text);
 }
