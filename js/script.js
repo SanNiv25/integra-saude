@@ -1,3 +1,6 @@
+let consultaParaReagendar = null;
+let profissionalReagendarAtual = null;
+
 /* =====================================================
    🔹 1. CONEXÃO COM O BANCO DE DADOS CENTRAL
 ===================================================== */
@@ -3255,35 +3258,35 @@ window.enviarDocumentoAssinado = async function () {
   reader.readAsDataURL(file);
 };
 
-window.selecionarArquivoPDF = function (input) {
-  const nomeTxt = document.getElementById("nome-arquivo-envio");
-  const btn = document.getElementById("btnEnviarPaciente");
-  if (input.files && input.files.length > 0) {
-    nomeTxt.innerHTML = `✅ Arquivo pronto: <b>${input.files.name}</b>`;
-    btn.disabled = false;
-    btn.style.opacity = "1";
-  } else {
-    nomeTxt.innerHTML = "Nenhum arquivo selecionado";
-    btn.disabled = true;
-    btn.style.opacity = "0.6";
-  }
-};
+function selecionarArquivoPDF(input) {
+  if (!input.files || !input.files[0]) return;
+  const arquivo = input.files[0];
 
-window.soltarArquivoPDF = function (event) {
+  if (arquivo.type !== "application/pdf") {
+    alert("Por favor, envie apenas arquivos em formato PDF.");
+    input.value = "";
+    return;
+  }
+
+  enviarArquivoProntuario(arquivo);
+}
+
+function soltarArquivoPDF(event) {
   event.preventDefault();
-  const dropzone = document.getElementById("dropzone-envio");
-  dropzone.style.backgroundColor = "#f0f7f7";
-  dropzone.style.borderColor = "#0F766E";
-  const files = event.dataTransfer.files;
+  const dropzone = event.currentTarget;
+  dropzone.style.background = "#f0f7f7";
 
-  if (files.length > 0 && files.type === "application/pdf") {
-    const fileInput = document.getElementById("uploadPdfEnvio");
-    fileInput.files = files;
-    window.selecionarArquivoPDF(fileInput);
-  } else {
-    alert("⚠️ Por favor, solte apenas arquivos no formato PDF.");
+  const files = event.dataTransfer && event.dataTransfer.files;
+  if (!files || !files[0]) return;
+
+  const arquivo = files[0];
+  if (arquivo.type !== "application/pdf") {
+    alert("Por favor, solte apenas arquivos em formato PDF.");
+    return;
   }
-};
+
+  enviarArquivoProntuario(arquivo);
+}
 
 /* =====================================================
    📁 SISTEMA DE EXAMES (CLOUDINARY + SUPABASE)
