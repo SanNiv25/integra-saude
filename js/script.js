@@ -419,7 +419,9 @@ window.atualizarDashboardProfissional = async function () {
 
     let avisoPacoteHTML = "";
     if (c.is_pacote) {
-      avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada || '?'}/4 do Pacote N° ${c.pacoteIndexGlobal || ''}</div>`;
+      const avisoPacoteHTML = isPacote
+        ? `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${sessaoNumero} de ${totalSessoes} (Pacote)</div>`
+        : "";
     }
 
     let btnProf = "";
@@ -3586,9 +3588,13 @@ window.carregarMinhasConsultas = async function () {
 
     if (c.is_pacote) {
       if (isAbaPrincipalPacotes) {
-        avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Sessão ${c.sessaoNumeroCalculada}/4 do Pacote</div>`;
+        const avisoPacoteHTML = isPacote
+          ? `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${sessaoNumero} de ${totalSessoes} (Pacote)</div>`
+          : "";
       } else {
-        avisoPacoteHTML = `<div style="background: #ffe3e3; color: #e63946; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; display: inline-block;">📦 Consulta do Pacote N° ${c.pacoteIndexGlobal}</div>`;
+        const avisoPacoteHTML = isPacote
+          ? `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${sessaoNumero} de ${totalSessoes} (Pacote)</div>`
+          : "";
       }
     }
 
