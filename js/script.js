@@ -166,10 +166,12 @@ let horarioSelecionado = null;
 let consultaParaCancelar = null;
 
 window.atualizarDashboardPaciente = async function () {
-  const dashboardSection = document.getElementById("dashboardSection");
-  if (!dashboardSection || dashboardSection.classList.contains("hidden")) return;
+  // 👇 1. AQUI ESTAVA O ERRO: O ID correto é muralDeConsultas
+  const mural = document.getElementById("muralDeConsultas");
 
-  // Busca o usuário seguro direto do banco/auth
+  // 👇 2. TRAVA DE SEGURANÇA: Se não achar a div (estiver no profissional), ele para e não vaza dados.
+  if (!mural) return;
+
   const usuarioLogado = await getUsuarioLogado();
   if (!usuarioLogado) return;
 
@@ -178,26 +180,16 @@ window.atualizarDashboardPaciente = async function () {
     fotoSidebar.src = usuarioLogado.foto_perfil_url;
   }
 
-  // OTIMIZAÇÃO DE BACKEND: Só puxa as consultas deste CPF específico
   const minhasConsultas = await buscarConsultasPaciente(usuarioLogado.cpf);
 
-  const jaTeveConsultaFinalizada = minhasConsultas.some(c => c.status_geral === 'finalizada');
   const menuPacote = document.getElementById('menuAgendarPacote');
-
   if (menuPacote) {
-    // 1. Garante que o item do menu fique sempre visível na tela
     menuPacote.style.display = 'block';
-
-    // 2. Pega o link clicável que está dentro do menu
     const linkPacote = menuPacote.querySelector('a');
-
     if (linkPacote) {
-      // REGRA LIBERADA PARA TODOS OS PACIENTES
       linkPacote.style.opacity = '1';
       linkPacote.style.cursor = 'pointer';
       linkPacote.removeAttribute('title');
-
-      // Abre os termos do pacote ao clicar
       linkPacote.onclick = function (event) {
         event.preventDefault();
         abrirTermosPacote();
@@ -205,111 +197,159 @@ window.atualizarDashboardPaciente = async function () {
     }
   }
 
-  const listaDiv = document.getElementById("listaConsultas");
   const totalConsultasText = document.getElementById("totalConsultasText");
   const proximaConsultaText = document.getElementById("proximaConsultaText");
 
+  // Atualiza o card do topo "Total de Consultas"
   if (totalConsultasText) {
-    // Filtra para contar apenas consultas que não estão pendentes de pagamento
     const consultasValidas = minhasConsultas.filter(c => c.status_geral !== 'pendente_pagamento');
     totalConsultasText.innerText = consultasValidas.length;
   }
 
+  // Atualiza o card do topo "Próxima Consulta"
   const agora = new Date();
   let proximas = minhasConsultas.filter(c => {
     const [ano, mes, dia] = c.data.split("-");
     const [h, m] = c.hora.split(":");
     const dataC = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m));
-    return dataC >= agora;
+    return dataC >= agora && c.status_geral === 'agendada';
   });
 
   if (proximas.length > 0) {
     proximas.sort((a, b) => new Date(a.data + "T" + a.hora) - new Date(b.data + "T" + b.hora));
-
-    // CORREÇÃO 1: Adicionado o que havia sumido!
-    const [ano, mes, dia] =
-      proximas[0].data.split("-");
+    const [ano, mes, dia] = proximas[0].data.split("-");
     if (proximaConsultaText) proximaConsultaText.innerText = `${dia}/${mes}/${ano} às ${proximas[0].hora}`;
   } else {
     if (proximaConsultaText) proximaConsultaText.innerText = "Nenhuma agendada";
   }
 
-  // CORREÇÃO 2: Removida a duplicação. Bloco único de renderização abaixo!
-  if (listaDiv) {
-    if (minhasConsultas.length === 0) {
-      listaDiv.innerHTML = "<p>Você ainda não possui consultas agendadas.</p>";
+  // 👇 3. SEPARAÇÃO EM ABAS (Exatamente como você pediu) 👇
+  let pendentes = minhasConsultas.filter(c => c.status_geral === 'agendada' && !c.is_pacote);
+  let pacotes = minhasConsultas.filter(c => c.status_geral === 'agendada' && c.is_pacote);
+  let realizadas = minhasConsultas.filter(c => c.status_geral === 'finalizada');
+  let canceladas = minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso');
+  let perdidas = minhasConsultas.filter(c => c.status_geral === 'ausente');
+
+  // Função que gera o HTML de cada card individual
+  const gerarCard = (consulta) => {
+    const [ano, mes, dia] = consulta.data.split("-");
+    const [h, m] = consulta.hora.split(":");
+    const dataConsulta = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m));
+
+    let minFim = parseInt(m) + 50;
+    let hFim = parseInt(h);
+    if (minFim >= 60) { hFim += 1; minFim -= 60; }
+    const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
+
+    let classePassada = "";
+    let botoesRender = "";
+
+    const tempoConsulta = dataConsulta.getTime();
+    const dezMinAntes = tempoConsulta - (10 * 60 * 1000);
+    const tempoFim = tempoConsulta + (50 * 60 * 1000);
+    const tempo24hAntes = tempoConsulta - (24 * 60 * 60 * 1000);
+
+    let btnReagendar = "";
+    let num_reagendamentos = consulta.num_reagendamentos || 0;
+
+    if (agora.getTime() >= tempo24hAntes) {
+      btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
+    } else if (num_reagendamentos >= 2) {
+      btnReagendar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; padding: 10px 5px;" onclick="abrirModalReagendar( '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}')">🔄 Reagendar (Bloqueado)</button>`;
     } else {
-      listaDiv.innerHTML = "";
-      minhasConsultas.forEach(consulta => {
-        const [ano, mes, dia] = consulta.data.split("-");
-        const [h, m] = consulta.hora.split(":");
-        const dataConsulta = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m));
-
-        let minFim = parseInt(m) + 50;
-        let hFim = parseInt(h);
-        if (minFim >= 60) { hFim += 1; minFim -= 60; }
-        const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
-
-        let classePassada = "";
-
-        const tempoConsulta = dataConsulta.getTime();
-        const dezMinAntes = tempoConsulta - (10 * 60 * 1000);
-        const tempoFim = tempoConsulta + (50 * 60 * 1000);
-        const tempo24hAntes = tempoConsulta - (24 * 60 * 60 * 1000);
-
-        let btnReagendar = "";
-        let num_reagendamentos = consulta.num_reagendamentos || 0;
-
-        if (agora.getTime() >= tempo24hAntes) {
-          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled title="Não é possível reagendar com menos de 24h de antecedência.">🔄 Reagendar (Bloqueado)</button>`;
-        } else if (num_reagendamentos >= 2) {
-          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; padding: 10px 5px;" onclick="abrirModalReagendar( '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}')">🔄 Reagendar (Bloqueado)</button>`;
-        } else {
-          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #0E5F73; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; padding: 10px 5px;" onclick="abrirModalReagendar( '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}')">🔄 Reagendar</button>`;
-        }
-
-        let btnCancelar = "";
-        if (agora.getTime() >= tempo24hAntes) {
-          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled title="Não é possível cancelar com menos de 24h de antecedência.">❌ Cancelar (Bloqueado)</button>`;
-        } else {
-          btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.profissional}', '${consulta.data}', '${consulta.hora}')">❌ Cancelar</button>`;
-        }
-        let btnMeet = `<button class="btn-primary btn-disabled" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" disabled title="O botão estará ativo 10 minutos antes do horário agendado.">Iniciar Consulta</button>`;
-
-        let botoesRender = "";
-
-        if (consulta.status_geral === 'finalizada') {
-          classePassada = "consulta-inativa consulta-finalizada";
-          botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px; text-decoration: none !important;">✅ Atendido</p>`;
-        } else if (consulta.status_geral === 'ausente') {
-          classePassada = "consulta-inativa consulta-ausente";
-          botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">❌ Não compareceu</p>`;
-        } else if (agora.getTime() >= tempoFim) {
-          classePassada = "consulta-inativa consulta-esgotada";
-          botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">Consulta Encerrada</p>`;
-        } else {
-          if (agora.getTime() >= dezMinAntes) {
-            if (consulta.status_paciente === 'na_sala') {
-              btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; background: #2E7D32; font-size: 13px; padding: 10px 5px;" onclick="window.open('${consulta.meet_link}', '_blank')">Retornar à Chamada</button>`;
-            } else {
-              btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="entrarNaChamada('${consulta.profissional}', '${consulta.data}', '${consulta.hora}')">Iniciar Consulta</button>`;
-            }
-          }
-          botoesRender = `<div style="display: flex; gap: 8px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
-        }
-
-        listaDiv.innerHTML += `
-        <div class="consulta-card ${classePassada}">
-            <h3>${escaparHTML(consulta.profissional)}</h3>
-            <p>📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
-            <p>⏰ <strong>Horário:</strong> ${consulta.hora} às ${horaFimStr}</p>
-            ${botoesRender}
-        </div>
-      `;
-      });
+      btnReagendar = `<button style="flex: 1; margin: 0; background-color: #0E5F73; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; padding: 10px 5px;" onclick="abrirModalReagendar( '${encodeURIComponent(consulta.profissional)}', '${encodeURIComponent(consulta.data)}', '${encodeURIComponent(consulta.hora)}')">🔄 Reagendar</button>`;
     }
-  }
-}
+
+    let btnCancelar = "";
+    if (agora.getTime() >= tempo24hAntes) {
+      btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled>❌ Cancelar (Bloqueado)</button>`;
+    } else {
+      // CORREÇÃO EXTRA: Adicionado o ID da consulta na chamada do cancelamento
+      btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.id}', '${consulta.profissional}', '${consulta.data}', '${consulta.hora}', ${consulta.is_pacote}, ${consulta.sessaoNumeroCalculada || 0}, '${consulta.pacote_id || ''}')">❌ Cancelar</button>`;
+    }
+
+    let btnMeet = `<button class="btn-primary btn-disabled" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" disabled title="O botão estará ativo 10 minutos antes do horário agendado.">Iniciar Consulta</button>`;
+
+    if (consulta.status_geral === 'finalizada') {
+      classePassada = "consulta-inativa consulta-finalizada";
+      botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px; text-decoration: none !important;">✅ Atendido</p>`;
+    } else if (consulta.status_geral === 'ausente') {
+      classePassada = "consulta-inativa consulta-ausente";
+      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">❌ Não compareceu</p>`;
+    } else if (agora.getTime() >= tempoFim) {
+      classePassada = "consulta-inativa consulta-esgotada";
+      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">Consulta Encerrada</p>`;
+    } else {
+      if (agora.getTime() >= dezMinAntes) {
+        if (consulta.status_paciente === 'na_sala') {
+          btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; background: #2E7D32; font-size: 13px; padding: 10px 5px;" onclick="window.open('${consulta.meet_link}', '_blank')">Retornar à Chamada</button>`;
+        } else {
+          btnMeet = `<button class="btn-primary" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="entrarNaChamada('${consulta.profissional}', '${consulta.data}', '${consulta.hora}')">Iniciar Consulta</button>`;
+        }
+      }
+      botoesRender = `<div style="display: flex; gap: 8px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
+    }
+
+    return `
+      <div class="consulta-card ${classePassada}">
+          <h3>${escaparHTML(consulta.profissional)}</h3>
+          <p>📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
+          <p>⏰ <strong>Horário:</strong> ${consulta.hora} às ${horaFimStr}</p>
+          ${botoesRender}
+      </div>
+    `;
+  };
+
+  // Função que renderiza os cards dentro de uma aba
+  const renderAba = (lista) => {
+    if (lista.length === 0) return `<p style="grid-column: 1 / -1; color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
+    let html = '<div class="consultas-grid" style="grid-column: 1 / -1;">';
+    lista.forEach(c => { html += gerarCard(c); });
+    html += '</div>';
+    return html;
+  };
+
+  // Monta o menu visual das abas
+  const menuAbas = `
+    <div style="grid-column: 1 / -1; display: flex; overflow-x: auto; gap: 15px; border-bottom: 2px solid #ddd; padding-bottom: 0px; margin-bottom: 25px; scrollbar-width: thin;">
+        <button id="btn-tabPacPendentes" class="btn-aba-pac" onclick="mudarAbaConsultasPac('tabPacPendentes')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid #0F766E; color: #0F766E; font-weight: bold;">📅 Individuais Pendentes</button>
+        <button id="btn-tabPacPacotes" class="btn-aba-pac" onclick="mudarAbaConsultasPac('tabPacPacotes')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">📦 Pacotes Pendentes</button>
+        <button id="btn-tabPacRealizadas" class="btn-aba-pac" onclick="mudarAbaConsultasPac('tabPacRealizadas')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">✅ Realizadas</button>
+        <button id="btn-tabPacCanceladas" class="btn-aba-pac" onclick="mudarAbaConsultasPac('tabPacCanceladas')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">❌ Canceladas</button>
+        <button id="btn-tabPacPerdidas" class="btn-aba-pac" onclick="mudarAbaConsultasPac('tabPacPerdidas')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; color: #777;">⚠️ Perdidas</button>
+    </div>
+  `;
+
+  // Injeta tudo na tela
+  mural.innerHTML = menuAbas + `
+    <div id="tabPacPendentes" class="tab-content-pac" style="display: block; grid-column: 1 / -1;">${renderAba(pendentes)}</div>
+    <div id="tabPacPacotes" class="tab-content-pac" style="display: none; grid-column: 1 / -1;">${renderAba(pacotes)}</div>
+    <div id="tabPacRealizadas" class="tab-content-pac" style="display: none; grid-column: 1 / -1;">${renderAba(realizadas)}</div>
+    <div id="tabPacCanceladas" class="tab-content-pac" style="display: none; grid-column: 1 / -1;">${renderAba(canceladas)}</div>
+    <div id="tabPacPerdidas" class="tab-content-pac" style="display: none; grid-column: 1 / -1;">${renderAba(perdidas)}</div>
+  `;
+
+  // Função que muda de aba quando clicado
+  window.mudarAbaConsultasPac = function (abaId) {
+    document.querySelectorAll(".tab-content-pac").forEach(tab => tab.style.display = "none");
+    document.querySelectorAll(".btn-aba-pac").forEach(btn => {
+      btn.style.borderBottom = "none";
+      btn.style.color = "#777";
+      btn.style.fontWeight = "normal";
+    });
+
+    const aba = document.getElementById(abaId);
+    if (aba) aba.style.display = "block";
+
+    const botao = document.getElementById("btn-" + abaId);
+    if (botao) {
+      botao.style.borderBottom = "3px solid #0F766E";
+      botao.style.color = "#0F766E";
+      botao.style.fontWeight = "bold";
+    }
+  };
+};
+
 /* =====================================================
    🧑‍⚕️ DASHBOARD DO PROFISSIONAL (BACKEND OTIMIZADO)
 ===================================================== */
