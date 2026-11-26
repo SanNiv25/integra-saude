@@ -166,10 +166,7 @@ let horarioSelecionado = null;
 let consultaParaCancelar = null;
 
 window.atualizarDashboardPaciente = async function () {
-  // 👇 1. AQUI ESTAVA O ERRO: O ID correto é muralDeConsultas
   const mural = document.getElementById("muralDeConsultas");
-
-  // 👇 2. TRAVA DE SEGURANÇA: Se não achar a div (estiver no profissional), ele para e não vaza dados.
   if (!mural) return;
 
   const usuarioLogado = await getUsuarioLogado();
@@ -200,13 +197,11 @@ window.atualizarDashboardPaciente = async function () {
   const totalConsultasText = document.getElementById("totalConsultasText");
   const proximaConsultaText = document.getElementById("proximaConsultaText");
 
-  // Atualiza o card do topo "Total de Consultas"
   if (totalConsultasText) {
     const consultasValidas = minhasConsultas.filter(c => c.status_geral !== 'pendente_pagamento');
     totalConsultasText.innerText = consultasValidas.length;
   }
 
-  // Atualiza o card do topo "Próxima Consulta"
   const agora = new Date();
   let proximas = minhasConsultas.filter(c => {
     const [ano, mes, dia] = c.data.split("-");
@@ -223,14 +218,35 @@ window.atualizarDashboardPaciente = async function () {
     if (proximaConsultaText) proximaConsultaText.innerText = "Nenhuma agendada";
   }
 
-  // 👇 3. SEPARAÇÃO EM ABAS (Exatamente como você pediu) 👇
+  // 👇 NOVO: CALCULAR A NUMERAÇÃO DAS SESSÕES DO PACOTE 👇
+  let historicoPacotesIDs = [];
+  let contadorSessoes = {};
+  // Ordena do mais antigo pro mais novo para contar a sessão 1, 2, 3, 4 certinho
+  let consultasCrescente = [...minhasConsultas].sort((a, b) => new Date(a.data + "T" + a.hora).getTime() - new Date(b.data + "T" + b.hora).getTime());
+
+  consultasCrescente.forEach(c => {
+    if (c.is_pacote) {
+      let chavePacote = c.pacote_id || c.paciente_cpf;
+      if (!historicoPacotesIDs.includes(chavePacote)) historicoPacotesIDs.push(chavePacote);
+
+      if (!contadorSessoes[chavePacote]) contadorSessoes[chavePacote] = 0;
+      contadorSessoes[chavePacote]++;
+
+      let original = minhasConsultas.find(orig => orig.id === c.id);
+      if (original) {
+        original.sessaoNumeroCalculada = contadorSessoes[chavePacote];
+      }
+    }
+  });
+  // 👆 FIM DO CÁLCULO DO PACOTE 👆
+
+  // SEPARAÇÃO EM ABAS
   let pendentes = minhasConsultas.filter(c => c.status_geral === 'agendada' && !c.is_pacote);
   let pacotes = minhasConsultas.filter(c => c.status_geral === 'agendada' && c.is_pacote);
   let realizadas = minhasConsultas.filter(c => c.status_geral === 'finalizada');
   let canceladas = minhasConsultas.filter(c => c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso');
   let perdidas = minhasConsultas.filter(c => c.status_geral === 'ausente');
 
-  // Função que gera o HTML de cada card individual
   const gerarCard = (consulta) => {
     const [ano, mes, dia] = consulta.data.split("-");
     const [h, m] = consulta.hora.split(":");
@@ -240,6 +256,15 @@ window.atualizarDashboardPaciente = async function () {
     let hFim = parseInt(h);
     if (minFim >= 60) { hFim += 1; minFim -= 60; }
     const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
+
+    // 👇 NOVO: CRIA A TAG DO PACOTE SE A CONSULTA FOR DE PACOTE 👇
+    let avisoPacoteHTML = "";
+    if (consulta.is_pacote) {
+      const numSessao = consulta.sessaoNumeroCalculada || 1;
+      // Usando a mesma estrutura que funciona na tela do profissional
+      avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
+    }
+    // 👆 FIM DA TAG DO PACOTE 👆
 
     let classePassada = "";
     let botoesRender = "";
@@ -264,7 +289,6 @@ window.atualizarDashboardPaciente = async function () {
     if (agora.getTime() >= tempo24hAntes) {
       btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 13px; padding: 10px 5px;" disabled>❌ Cancelar (Bloqueado)</button>`;
     } else {
-      // CORREÇÃO EXTRA: Adicionado o ID da consulta na chamada do cancelamento
       btnCancelar = `<button class="btn-cancelar" style="flex: 1; margin: 0; font-size: 13px; padding: 10px 5px;" onclick="abrirModalCancelar('${consulta.id}', '${consulta.profissional}', '${consulta.data}', '${consulta.hora}', ${consulta.is_pacote}, ${consulta.sessaoNumeroCalculada || 0}, '${consulta.pacote_id || ''}')">❌ Cancelar</button>`;
     }
 
@@ -290,8 +314,10 @@ window.atualizarDashboardPaciente = async function () {
       botoesRender = `<div style="display: flex; gap: 8px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
     }
 
+    // 👇 AQUI FOI ADICIONADO O avisoPacoteHTML DENTRO DO CARD 👇
     return `
       <div class="consulta-card ${classePassada}">
+          ${avisoPacoteHTML}
           <h3>${escaparHTML(consulta.profissional)}</h3>
           <p>📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
           <p>⏰ <strong>Horário:</strong> ${consulta.hora} às ${horaFimStr}</p>
@@ -300,7 +326,6 @@ window.atualizarDashboardPaciente = async function () {
     `;
   };
 
-  // Função que renderiza os cards dentro de uma aba
   const renderAba = (lista) => {
     if (lista.length === 0) return `<p style="grid-column: 1 / -1; color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
     let html = '<div class="consultas-grid" style="grid-column: 1 / -1;">';
@@ -309,7 +334,6 @@ window.atualizarDashboardPaciente = async function () {
     return html;
   };
 
-  // Monta o menu visual das abas
   const menuAbas = `
     <div style="grid-column: 1 / -1; display: flex; overflow-x: auto; gap: 15px; border-bottom: 2px solid #ddd; padding-bottom: 0px; margin-bottom: 25px; scrollbar-width: thin;">
         <button id="btn-tabPacPendentes" class="btn-aba-pac" onclick="mudarAbaConsultasPac('tabPacPendentes')" style="background: none; border: none; padding: 10px 5px; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid #0F766E; color: #0F766E; font-weight: bold;">📅 Individuais Pendentes</button>
@@ -320,7 +344,6 @@ window.atualizarDashboardPaciente = async function () {
     </div>
   `;
 
-  // Injeta tudo na tela
   mural.innerHTML = menuAbas + `
     <div id="tabPacPendentes" class="tab-content-pac" style="display: block; grid-column: 1 / -1;">${renderAba(pendentes)}</div>
     <div id="tabPacPacotes" class="tab-content-pac" style="display: none; grid-column: 1 / -1;">${renderAba(pacotes)}</div>
@@ -329,7 +352,6 @@ window.atualizarDashboardPaciente = async function () {
     <div id="tabPacPerdidas" class="tab-content-pac" style="display: none; grid-column: 1 / -1;">${renderAba(perdidas)}</div>
   `;
 
-  // Função que muda de aba quando clicado
   window.mudarAbaConsultasPac = function (abaId) {
     document.querySelectorAll(".tab-content-pac").forEach(tab => tab.style.display = "none");
     document.querySelectorAll(".btn-aba-pac").forEach(btn => {
