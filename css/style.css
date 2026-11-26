@@ -5937,3 +5937,78 @@ html {
     min-height: 0;
   }
 }
+
+/* =====================================================
+   🧑 BARRA LATERAL DO PACIENTE - mesma cor do rodapé (#0e463b)
+   Textos e efeitos em tons de verde claro para ficarem legíveis
+===================================================== */
+.dashboard-sidebar {
+  background-color: #0e463b;
+  border-right: 1px solid #0a3a31;
+  color: #d5f1e3;
+}
+
+/* foto, nome e "Paciente" */
+.dashboard-sidebar .perfil-resumo {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dashboard-sidebar .perfil-resumo img {
+  border-color: #4fc995 !important;
+}
+
+.dashboard-sidebar .perfil-resumo h3 {
+  color: #f1fbf6;
+}
+
+.dashboard-sidebar .perfil-resumo p {
+  color: #9ad9bb !important;
+}
+
+/* itens do menu */
+.dashboard-sidebar .sidebar-menu li a {
+  color: #d5f1e3;
+}
+
+/* efeito ao passar o mouse */
+.dashboard-sidebar .sidebar-menu li a:hover {
+  background-color: #17604f;
+  border: 1px solid #2f9a77;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+/* item selecionado (mais forte que o hover, com faixa verde à esquerda) */
+.dashboard-sidebar .sidebar-menu li.ativo a,
+.dashboard-sidebar .sidebar-menu li.ativo a:hover {
+  background-color: #1d7561;
+  border: 1px solid #4fc995;
+  box-shadow: inset 3px 0 0 #4fc995, 0 2px 8px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+}
+
+/* quadro "Pacote Ativo" */
+.dashboard-sidebar #painelStatusPacote {
+  border-color: rgba(154, 217, 187, 0.35) !important;
+}
+
+.dashboard-sidebar #painelStatusPacote p {
+  color: #9ad9bb !important;
+}
+
+.dashboard-sidebar #painelStatusPacote #txtValidadePacote {
+  color: #d5f1e3 !important;
+}
+
+/* botão "Sair da Conta" em verde mais escuro para o texto branco ficar legível */
+.dashboard-sidebar .sidebar-menu li a.btn-sair-sidebar {
+  background-color: #087a55 !important;
+  border: 1px solid #34b782 !important;
+  color: #ffffff !important;
+}
+
+.dashboard-sidebar .sidebar-menu li a.btn-sair-sidebar:hover {
+  background-color: #066747 !important;
+  border-color: #4fc995 !important;
+  color: #ffffff !important;
+}
