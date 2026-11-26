@@ -5637,8 +5637,10 @@ html {
   /* profundidade da base */
   --nb-base-t: calc(var(--nb-w) * 0.024);
   /* espessura da base (a "frente" dela) */
-  --nb-lid-ratio: 0.25;
-  /* espessura da tampa = 25% da espessura da base */
+  --nb-lid-ratio: 0.4;
+  /* espessura da tampa = 40% da espessura da base */
+  --nb-lid-r: 14px;
+  /* arredondamento dos cantos de cima da tampa */
   --nb-lid-t: max(3px, calc(var(--nb-base-t) * var(--nb-lid-ratio)));
   position: relative;
   display: flex;
@@ -5725,7 +5727,7 @@ html {
   position: absolute;
   inset: 0;
   box-sizing: border-box;
-  border-radius: 14px 14px 4px 4px;
+  border-radius: var(--nb-lid-r) var(--nb-lid-r) 4px 4px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -5779,32 +5781,51 @@ html {
   background: linear-gradient(180deg, #1d2020 0%, #060707 100%);
 }
 
+/* As laterais começam depois do arredondamento do canto, senão apareciam
+   "pontas" saindo para fora da tampa; as quinas fazem a ligação em diagonal */
 .nb-lid-edge-top {
-  left: 0;
+  left: var(--nb-lid-r);
   top: 0;
-  width: 100%;
+  width: calc(100% - var(--nb-lid-r) * 2);
   height: var(--nb-lid-t);
-  border-radius: 14px 14px 0 0;
   transform-origin: 50% 0;
   transform: rotateX(-90deg);
 }
 
 .nb-lid-edge-left {
   left: 0;
-  top: 0;
+  top: var(--nb-lid-r);
   width: var(--nb-lid-t);
-  height: 100%;
+  height: calc(100% - var(--nb-lid-r));
   transform-origin: 0 50%;
   transform: rotateY(90deg);
 }
 
 .nb-lid-edge-right {
   right: 0;
-  top: 0;
+  top: var(--nb-lid-r);
   width: var(--nb-lid-t);
-  height: 100%;
+  height: calc(100% - var(--nb-lid-r));
   transform-origin: 100% 50%;
   transform: rotateY(-90deg);
+}
+
+.nb-lid-edge-corner {
+  top: 0;
+  width: calc(var(--nb-lid-r) * 1.4142);
+  height: var(--nb-lid-t);
+  transform-origin: 0 0;
+}
+
+.nb-lid-edge-corner-left {
+  left: 0;
+  top: var(--nb-lid-r);
+  transform: rotateZ(-45deg) rotateX(-90deg);
+}
+
+.nb-lid-edge-corner-right {
+  left: calc(100% - var(--nb-lid-r));
+  transform: rotateZ(45deg) rotateX(-90deg);
 }
 
 .nb-logo-badge {
