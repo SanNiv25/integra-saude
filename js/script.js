@@ -3571,143 +3571,79 @@ window.carregarMinhasConsultas = async function () {
 
   // (A Função gerarHTMLCartao permanece visualmente idêntica e perfeitamente funcional aqui)
   const gerarHTMLCartao = (c, isAbaPrincipalPacotes = false) => {
-    const [ano, mes, dia] = c.data.split("-");
-    const [h, m] = c.hora.split(":");
-    const dataConsulta = new Date(ano, mes - 1, dia, parseInt(h), parseInt(m));
+    const [ano, mes, dia] = String(c.data || "").split("-");
+    const [h, m] = String(c.hora || "00:00").split(":");
+    const dataConsulta = new Date(ano, mes - 1, dia, parseInt(h, 10), parseInt(m, 10));
     const tempoConsulta = dataConsulta.getTime();
     const tempo24hAntes = tempoConsulta - (24 * 60 * 60 * 1000);
     const dezMinAntes = tempoConsulta - (10 * 60 * 1000);
     const tempoFim = tempoConsulta + (50 * 60 * 1000);
 
-    let minFim = parseInt(m) + 50;
-    let hFim = parseInt(h);
+    let minFim = parseInt(m, 10) + 50;
+    let hFim = parseInt(h, 10);
     if (minFim >= 60) { hFim += 1; minFim -= 60; }
-    const horaFimStr = `${hFim.toString().padStart(2, '0')}:${minFim.toString().padStart(2, '0')}`;
+    const horaFimStr = `${String(hFim).padStart(2, '0')}:${String(minFim).padStart(2, '0')}`;
 
     let botoesRender = "";
     let classePassada = "";
     let avisoPacoteHTML = "";
 
     if (c.is_pacote) {
-      if (isAbaPrincipalPacotes) {
-        let avisoPacoteHTML = "";
-        if (c.is_pacote) {
-          const numSessao = c.sessaoNumeroCalculada || 1;
-          avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
-        }
+      const numSessao = c.sessaoNumeroCalculada || 1;
+      avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
+    }
+
+    if (c.status_geral === 'finalizada') {
+      classePassada = "consulta-inativa consulta-finalizada";
+      botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Concluída</p>`;
+    } else if (c.status_geral === 'ausente') {
+      classePassada = "consulta-inativa consulta-ausente";
+      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
+    } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
+      classePassada = "consulta-inativa";
+      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Consulta Cancelada</p>`;
+    } else if (agora.getTime() >= tempoFim) {
+      classePassada = "consulta-inativa consulta-esgotada";
+      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">Consulta Encerrada</p>`;
+    } else {
+      let btnReagendar = "";
+      let btnCancelar = "";
+      let btnMeet = `<button style="flex: 1; margin: 0; background: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>Iniciar Consulta</button>`;
+
+      if (c.is_pacote || agora.getTime() >= tempo24hAntes) {
+        btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
       } else {
-        let avisoPacoteHTML = "";
-        if (c.is_pacote) {
-          const numSessao = c.sessaoNumeroCalculada || 1;
-          avisoPacoteHTML = `<div class="consulta-pacote-badge" style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; display: inline-block;">📦 Sessão ${numSessao} de 4 (Pacote)</div>`;
+        btnReagendar = `<button style="flex: 1; margin: 0; background-color: #5bc0de; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalReagendar('${encodeURIComponent(c.profissional)}', '${encodeURIComponent(c.data)}', '${encodeURIComponent(c.hora)}')">🔄 Reagendar</button>`;
+      }
+
+      if ((c.is_pacote && c.sessaoNumeroCalculada !== 1) || agora.getTime() >= tempo24hAntes) {
+        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
+      } else {
+        btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.id}', '${c.profissional}', '${c.data}', '${c.hora}', ${!!c.is_pacote}, ${c.sessaoNumeroCalculada || 0}, '${c.pacote_id || ''}')">❌ Cancelar</button>`;
+      }
+
+      if (agora.getTime() >= dezMinAntes) {
+        if (c.status_profissional === 'na_sala') {
+          const textoMeet = c.status_paciente === 'na_sala' ? 'Retornar à Chamada' : 'Entrar na Chamada';
+          const corMeet = c.status_paciente === 'na_sala' ? '#2E7D32' : '#28a745';
+          btnMeet = `<button style="flex: 1; margin: 0; background: ${corMeet}; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">${textoMeet}</button>`;
+        } else {
+          btnMeet = `<button style="flex: 1; margin: 0; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled title="Aguarde o profissional abrir a sala de atendimento.">Aguardando Profissional...</button>`;
         }
       }
 
-      if (c.status_geral === 'finalizada') {
-        classePassada = "consulta-inativa consulta-finalizada";
-        botoesRender = `<p style="color: #2E7D32; font-weight: bold; margin-top: 10px;">✅ Consulta Concluída</p>`;
-      } else if (c.status_geral === 'ausente') {
-        classePassada = "consulta-inativa consulta-ausente";
-        botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">❌ Não compareceu</p>`;
-      } else if (c.status_geral === 'cancelada' || c.status_geral === 'cancelada_reembolso') {
-        classePassada = "consulta-inativa";
-        botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">🛑 Consulta Cancelada</p>`;
-      } else if (agora.getTime() >= tempoFim) {
-        classePassada = "consulta-inativa consulta-esgotada";
-        botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px;">Consulta Encerrada</p>`;
-      } else {
-        let btnReagendar = "";
-        let btnCancelar = "";
-        let btnMeet = `<button style="flex: 1; margin: 0; background: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>Iniciar Consulta</button>`;
+      botoesRender = `<div style="display: flex; gap: 5px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
+    }
 
-        if (c.is_pacote) {
-          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
-        } else if (agora.getTime() >= tempo24hAntes) {
-          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>🔄 Reagendar (Bloqueado)</button>`;
-        } else {
-          btnReagendar = `<button style="flex: 1; margin: 0; background-color: #5bc0de; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalReagendar('${c.profissional}', '${c.data}', '${c.hora}')">🔄 Reagendar</button>`;
-        }
-
-        if (c.is_pacote && c.sessaoNumeroCalculada !== 1) {
-          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
-        } else if (agora.getTime() >= tempo24hAntes) {
-          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #999; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled>❌ Cancelar (Bloqueado)</button>`;
-        } else {
-          btnCancelar = `<button style="flex: 1; margin: 0; background-color: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="abrirModalCancelar('${c.id}', '${c.profissional}', '${c.data}', '${c.hora}', ${c.is_pacote}, ${c.sessaoNumeroCalculada || 0}, '${c.pacote_id || ''}')">❌ Cancelar</button>`;
-        }
-
-        if (agora.getTime() >= dezMinAntes) {
-          if (c.status_profissional === 'na_sala') {
-            if (c.status_paciente === 'na_sala') {
-              btnMeet = `<button style="flex: 1; margin: 0; background: #2E7D32; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Retornar à Chamada</button>`;
-            } else {
-              btnMeet = `<button style="flex: 1; margin: 0; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; padding: 10px 2px;" onclick="entrarNaChamada('${c.profissional}', '${c.data}', '${c.hora}')">Entrar na Chamada</button>`;
-            }
-          } else {
-            btnMeet = `<button style="flex: 1; margin: 0; background: #f39c12; color: white; border: none; border-radius: 6px; cursor: not-allowed; font-weight: 600; font-size: 12px; padding: 10px 2px;" disabled title="Aguarde o profissional abrir a sala de atendimento.">Aguardando Profissional...</button>`;
-          }
-        }
-
-        botoesRender = `<div style="display: flex; gap: 5px; margin-top: 15px; width: 100%;">${btnReagendar}${btnCancelar}${btnMeet}</div>`;
-      }
-
-      return `
-          <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative;">
-              ${avisoPacoteHTML}
-              <h3 style="color: #0F4C5C; margin-bottom: 10px; font-size: 17px;">🧑‍⚕️ ${c.profissional}</h3>
-              <p style="margin-bottom: 5px; color: #555; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
-              <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
-              ${botoesRender}
-          </div>
-      `;
-    };
-
-    const renderAbaPacotes = (lista) => {
-      if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhum pacote pendente no momento.</p>`;
-      let gruposArray = [];
-      lista.forEach(c => {
-        let chave = c.pacote_id || c.profissional;
-        let grupo = gruposArray.find(g => g.id === chave);
-        if (!grupo) { grupo = { id: chave, consultas: [] }; gruposArray.push(grupo); }
-        grupo.consultas.push(c);
-      });
-      gruposArray.forEach(g => { g.consultas.sort((a, b) => new Date(a.data + "T" + a.hora) - new Date(b.data + "T" + b.hora)); });
-      let html = '';
-      gruposArray.forEach((grupo, index) => {
-        html += '<div class="consultas-grid" style="margin-bottom: 20px;">';
-        grupo.consultas.forEach(c => { html += gerarHTMLCartao(c, true); });
-        html += '</div>';
-        if (index < gruposArray.length - 1) html += `<hr style="border: 0; border-top: 2px dashed #b2dfdb; margin: 30px 0;">`;
-      });
-      return html;
-    };
-
-    const renderAbaNormal = (lista) => {
-      if (lista.length === 0) return `<p style="color: #777; text-align: center; padding: 20px;">Nenhuma consulta nesta categoria.</p>`;
-      let html = '<div class="consultas-grid">';
-      lista.forEach(c => { html += gerarHTMLCartao(c, false); });
-      html += '</div>';
-      return html;
-    };
-
-    mural.innerHTML = menuAbas + `
-    <div id="tabIndividuais" class="tab-content-paciente" style="display: block;">
-        ${renderAbaNormal(individuais)}
-    </div>
-    <div id="tabPacotes" class="tab-content-paciente" style="display: none;">
-        ${renderAbaPacotes(pacotes)}
-    </div>
-    <div id="tabRealizadas" class="tab-content-paciente" style="display: none;">
-        ${renderAbaNormal(realizadas)}
-    </div>
-    <div id="tabCanceladas" class="tab-content-paciente" style="display: none;">
-        ${renderAbaNormal(canceladas)}
-    </div>
-    <div id="tabPerdidas" class="tab-content-paciente" style="display: none;">
-        ${renderAbaNormal(perdidas)}
-    </div>
-  `;
-    window.mudarAbaConsultas('tabIndividuais');
+    return `
+      <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative;">
+        ${avisoPacoteHTML}
+        <h3 style="color: #0F4C5C; margin-bottom: 10px; font-size: 17px;">🧑‍⚕️ ${escaparHTML(c.profissional)}</h3>
+        <p style="margin-bottom: 5px; color: #555; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
+        <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${escaparHTML(c.hora)} às ${horaFimStr}</p>
+        ${botoesRender}
+      </div>
+    `;
   };
 
   /* =====================================================
