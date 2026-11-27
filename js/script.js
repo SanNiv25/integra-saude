@@ -1969,12 +1969,36 @@ window.renderizarAdminCandidatos = async function () {
 
   listaDiv.innerHTML = "";
   candidatos.forEach(cand => {
+    // 1. Formata a data de nascimento (YYYY-MM-DD para DD/MM/YYYY)
+    let dataNascFormatada = "Não informada";
+    if (cand.nascimento) {
+      const partes = cand.nascimento.split("-");
+      if (partes.length === 3) {
+        dataNascFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      } else {
+        dataNascFormatada = cand.nascimento;
+      }
+    }
+
+    // 2. Traduz o booleano do banco para Sim/Não
+    let atendeOnlineTexto = "Não informado";
+    if (cand.atende_online === true) atendeOnlineTexto = "Sim";
+    if (cand.atende_online === false) atendeOnlineTexto = "Não";
+
+    // 3. Formata o "Como conheceu" (aceita string ou array)
+    let comoConheceuStr = "Não informado";
+    if (cand.como_conheceu) {
+      comoConheceuStr = Array.isArray(cand.como_conheceu) ? cand.como_conheceu.join(', ') : cand.como_conheceu;
+    }
+
     listaDiv.innerHTML += `
       <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 6px solid #f39c12; margin-bottom:15px;">
         <h3 style="color: #0F4C5C; font-size: 22px; margin-bottom: 10px;">${cand.nome} <span style="font-size: 16px; color: #777;">(${cand.profissao})</span></h3>
-        <div style="display: flex; gap: 40px; margin-bottom: 20px; font-size: 14px; color: #444;">
+        
+        <div style="display: flex; gap: 40px; margin-bottom: 20px; font-size: 14px; color: #444; flex-wrap: wrap;">
           <div>
             <p><strong>CPF:</strong> ${cand.cpf}</p>
+            <p><strong>Data Nasc.:</strong> ${dataNascFormatada}</p>
             <p><strong>Registro:</strong> ${cand.registro} - ${cand.estado}</p>
             <p><strong>Experiência:</strong> ${cand.exp} anos</p>
           </div>
@@ -1982,11 +2006,16 @@ window.renderizarAdminCandidatos = async function () {
             <p><strong>Telefone:</strong> ${cand.telefone}</p>
             <p><strong>E-mail:</strong> ${cand.email}</p>
             <p><strong>Público:</strong> ${cand.publico}</p>
+            <p><strong>Atende Online?:</strong> ${atendeOnlineTexto}</p>
           </div>
         </div>
-        <p style="font-size: 14px; color: #444; margin-bottom: 20px;"><strong>Áreas de atuação:</strong> ${cand.atuacao}</p>
+        
+        <p style="font-size: 14px; color: #444; margin-bottom: 10px;"><strong>Áreas de atuação:</strong> ${cand.atuacao}</p>
+        <p style="font-size: 14px; color: #444; margin-bottom: 10px;"><strong>Como conheceu:</strong> ${comoConheceuStr}</p>
         <p style="font-size: 14px; color: #444; margin-bottom: 20px;"><strong>Endereço:</strong> ${cand.rua}, ${cand.numero} ${cand.complemento ? ' - ' + cand.complemento : ''} - ${cand.bairro}, ${cand.cidade}/${cand.uf} (CEP: ${cand.cep})</p>
+        
         ${cand.curriculo_path ? `<button onclick="abrirCurriculo('${cand.curriculo_path}')" style="background:#0F766E; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:bold; margin-bottom:15px;">📄 Ver currículo</button>` : ""}
+        
         <div style="display: flex; gap: 15px;">
           <button onclick='aprovarCandidato("${cand.cpf}")' style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ CADASTRAR (Aprovar e Enviar Whats)</button>
           <button onclick="recusarCandidato('${cand.cpf}')" style="background: #d9534f; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">❌ RECUSAR (Apagar e Enviar Whats)</button>
