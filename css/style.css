@@ -5511,12 +5511,13 @@ html {
   margin-bottom: 14px;
 }
 
-.nb-copy h2 {
-  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+.nb-copy h1 {
   color: var(--nb-ink);
-  font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 14px;
+  font-size: clamp(2.2rem, 4.4vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 18px;
 }
 
 .nb-copy p {
