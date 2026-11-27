@@ -532,14 +532,15 @@ window.atualizarDashboardProfissional = async function () {
     let nomeDoPaciente = pacienteEncontrado ? pacienteEncontrado.nome : "Paciente não identificado";
 
     return `
-      <div class="consulta-card ${classePassada}" style="border-left: 5px solid #0F766E; position: relative; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px;">
+      <div class="consulta-card ${classePassada}">
           ${avisoPacoteHTML}
-          <h3 style="color: #0F4C5C; margin-bottom: 5px; font-size: 17px;">👤 ${escaparHTML(nomeDoPaciente)}</h3>
-          <p style="margin-bottom: 5px; color: #555; font-size: 14px;">📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
-          <p style="margin-bottom: 5px; color: #555; font-size: 14px;">⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
+          <h3>👤 ${escaparHTML(nomeDoPaciente)}</h3>
+          <p>📅 <strong>Data:</strong> ${dia}/${mes}/${ano}</p>
+          <p>⏰ <strong>Horário:</strong> ${c.hora} às ${horaFimStr}</p>
+          
           ${btnProf}
           
-          <button class="btn-primary" style="width: 100%; margin-top: 10px; background: #17a2b8;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
+          <button class="btn-primary" style="width: 100%; margin-top: 10px;" onclick="abrirProntuario('${c.paciente_cpf}', '${escaparHTML(nomeDoPaciente)}')">📝 Prontuário</button>
       </div>
     `;
   };
