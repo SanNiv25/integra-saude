@@ -300,7 +300,14 @@ window.atualizarDashboardPaciente = async function () {
     } else if (consulta.status_geral === 'ausente') {
       classePassada = "consulta-inativa consulta-ausente";
       botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">❌ Não compareceu</p>`;
-    } else if (agora.getTime() >= tempoFim) {
+    }
+    // 👇 NOVO BLOCO ADICIONADO AQUI 👇
+    else if (consulta.status_geral === 'cancelada' || consulta.status_geral === 'cancelada_reembolso') {
+      classePassada = "consulta-inativa";
+      botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">🛑 Cancelada</p>`;
+    }
+    // 👆 FIM DO NOVO BLOCO 👆
+    else if (agora.getTime() >= tempoFim) {
       classePassada = "consulta-inativa consulta-esgotada";
       botoesRender = `<p style="color: #d9534f; font-weight: bold; margin-top: 10px; text-decoration: none !important;">Consulta Encerrada</p>`;
     } else {
