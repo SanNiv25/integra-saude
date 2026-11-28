@@ -4079,8 +4079,7 @@ window.limparFiltrosFinanceiroAdmin = function () {
   document.getElementById("filtroDataFinanceiro").value = "recente";
   document.getElementById("filtroStatusFinanceiro").value = "";
   document.getElementById("filtroProfissionalFinanceiro").value = "";
-  document.getElementById("filtroDataInicioFinanceiro").value = "";
-  document.getElementById("filtroDataFimFinanceiro").value = "";
+  document.getElementById("filtroDiaFinanceiro").value = "";
   window.carregarHistoricoFinanceiroAdmin();
 };
 
@@ -4732,15 +4731,7 @@ window.carregarHistoricoFinanceiroAdmin = async function () {
   const ordem = document.getElementById("filtroDataFinanceiro").value;
   const status = document.getElementById("filtroStatusFinanceiro").value;
   const profissional = document.getElementById("filtroProfissionalFinanceiro").value;
-  const inputInicio = document.getElementById("filtroDataInicioFinanceiro");
-  const inputFim = document.getElementById("filtroDataFimFinanceiro");
-
-  // Se o admin colocou as datas invertidas, corrige sozinho
-  if (inputInicio.value && inputFim.value && inputInicio.value > inputFim.value) {
-    [inputInicio.value, inputFim.value] = [inputFim.value, inputInicio.value];
-  }
-  const dataInicio = inputInicio.value;
-  const dataFim = inputFim.value;
+  const dia = document.getElementById("filtroDiaFinanceiro").value; // formato AAAA-MM-DD
 
   container.innerHTML = "<p style='color: #666; text-align: center; padding: 20px;'>⏳ Carregando histórico financeiro...</p>";
 
@@ -4759,8 +4750,7 @@ window.carregarHistoricoFinanceiroAdmin = async function () {
     query = query.eq("status_geral", status);
   }
 
-  if (dataInicio) query = query.gte("data", dataInicio);
-  if (dataFim) query = query.lte("data", dataFim);
+  if (dia) query = query.eq("data", dia);
 
   const [{ data: consultas, error }, { data: pacientes }] = await Promise.all([
     query,
