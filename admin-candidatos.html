@@ -226,20 +226,9 @@
                 <p style="color: #666; margin-bottom: 20px;">Monitore todas as consultas marcadas, finalizadas e
                     cancelamentos que exigem estorno financeiro.</p>
 
-                <!-- 👇 FILTROS DE PESQUISA (DATA E STATUS) 👇 -->
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 200px;">
-                        <label
-                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">📅
-                            Ordenar por Data:</label>
-                        <select id="filtroDataFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
-                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
-                            <option value="recente">Mais recente</option>
-                            <option value="antiga">Mais antiga</option>
-                        </select>
-                    </div>
-
-                    <div style="flex: 1; min-width: 200px;">
+                <!-- 👇 FILTROS DE PESQUISA (STATUS, PROFISSIONAL E PERÍODO) 👇 -->
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end;">
+                    <div style="flex: 1; min-width: 180px;">
                         <label
                             style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">🔍
                             Filtrar por Status:</label>
@@ -249,12 +238,55 @@
                             <option value="agendada">Agendada</option>
                             <option value="finalizada">Finalizada</option>
                             <option value="ausente">Ausente / Faltou</option>
+                            <option value="todas_canceladas">Todas as canceladas</option>
                             <option value="cancelada">Cancelada</option>
                             <option value="cancelada_reembolsada">Cancelada / Reembolsada</option>
                             <option value="cancelada_reembolso">Cancelada (Reembolso Pendente)</option>
                             <option value="pendente_pagamento">Pendente Pagamento</option>
+                            <option value="repasse_concluido">Repasse Concluído</option>
                         </select>
                     </div>
+
+                    <div style="flex: 1; min-width: 180px;">
+                        <label
+                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">🧑‍⚕️
+                            Profissional:</label>
+                        <select id="filtroProfissionalFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                            <option value="">Todos os profissionais</option>
+                            <!-- Preenchido automaticamente via JS -->
+                        </select>
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label
+                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">📅
+                            Período - De:</label>
+                        <input type="date" id="filtroDataInicioFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label
+                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">📅
+                            Período - Até:</label>
+                        <input type="date" id="filtroDataFimFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label
+                            style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">↕️
+                            Ordenar por Data:</label>
+                        <select id="filtroDataFinanceiro" onchange="carregarHistoricoFinanceiroAdmin()"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; outline: none; font-family: 'Montserrat', sans-serif;">
+                            <option value="recente">Mais recente</option>
+                            <option value="antiga">Mais antiga</option>
+                        </select>
+                    </div>
+
+                    <button onclick="limparFiltrosFinanceiroAdmin()"
+                        style="background: #888; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">Limpar</button>
                 </div>
                 <!-- 👆 FIM DOS FILTROS 👆 -->
 
@@ -278,7 +310,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase.js"></script>
 
-    <script src="js/script.js?v=16"></script>
+    <script src="js/script.js?v=17"></script>
 </body>
 
 </html>
